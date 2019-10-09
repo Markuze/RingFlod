@@ -112,10 +112,10 @@ Our contributions:
 \subsection{All contributions made in NDSS paper\cite{thunder}:}
 \begin{description}
 \item[attack 1,2] Windows attacks, irrelevant.
-\item[attack 3 ] MAC OS reading VPN data, irrelevant.
+\item[attack 3] MAC OS reading VPN data, irrelevant.
 \item[attack 4] Shared mappings between devices: MAC OS (Also Windows)mbufs open to read/write - Same as Gils  attack \#1 on thunderbolt.
 \item[attack 5] FreeBSD per device iommu:  Same as Gils  attack \#1 on thunderbolt (p.9). Mention that Linux is invulnerable.
-\item[attack 6] Linux leaks nat tables - \texttt{Seems half baked, but needs more investigation.}
+\item[attack 6] Linux leaks nat tables - \texttt{Seems half baked, but needs farther investigation.}
 \item[attack 7] Linux leaking data by avoiding tx completions - would hit T/O issues and driver restart.
 \item[attack 8] ATS - Self serve IOMMU by NIC. 
 \end{description}
@@ -129,8 +129,11 @@ Our contributions:
 \subsection{New Contribution}
 
 \begin{description}
-\item[skb shared info] Shared Mdata in Linux skb.
-\item[RingFlod] Determining PFNs for attack.
+\item[skb shared info] Shared Mdata in Linux skb. 
+\item[page cahe colocation] RX data allocated from page cache - means that after unmap page is still accessible via iova of next buffer - (strict and deferred vulnerable). This is stronger then sub page, as dense mappings 
+allow for an attack even with strict API and correct ordering.
+\item[RingFlod] Determining PFNs for attack. \texttt{What else is accessible by the NIC, what config, FW return codes/values? - Is kva visible}.
+\item[HOTPage] A TX page reused in RX - allowing for temp R/W access with open valid kva (zero knowledge)-- \texttt{I'm pretty sure overlap is impossible and this approach is invalid}.
 \end{description}
 
 \newpage
