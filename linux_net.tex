@@ -1,0 +1,24 @@
+\section{Linux Network Stack}
+
+\subsection{Attack Vector sh\_info}
+Gil's thesis
+\subsection{Ring Flod}
+To execute a successful DMA attack on an writable callback pointer; the attacking device needs a memory buffer filled with malicious code and the kernel address of that buffer.
+Every RX packet is a possible buffer of malicious code, but the device is only given the buffer iova. The mapping between an iova and its kva is held in the device page table and the device driver meta-data; neither is accessible to the device. Additionally the \texttt{struct page} address is filled by the driver 
+\subsubsection{RingFlod Eval}
+Some figs on address distribution.
+Kernel x Machine
+\subsection{Privilege escalation}
+sh\_info of a sent packet is read only to the NIC.
+but if the \texttt{struct page} holds malicious content that all the NIC needs. By copying the sh\_info of the TX skb to the sh\_info of an RX skb(can be generated at will). 
+%T/O will happen 15 sec?
+
+\subsection{Packet Forwarding}
+Same can be achieved if the Linux sever allows for packet forwarding\footnote{Need to check what happens to sh\_info, (1.can we carry an "invisible" sh\_info - we can, but doesn't work as you need the driver to fill the kva) 2. or just forward a packet with frags (MTU, is usually a limiting factor)}
+
+\subsection{sh\_info co-location breaks strict}
+Additional challenge with attacking the sh\_info is the fact the the fields are filled and rewritten by the driver. As it turns out this is not a problem as multiple device drivers \footnote{make sure to get list from Gil's Thesis} first create an skb and only then unmap, allowing the device ample opportunity to annul the changes made by the driver. But even when the order is correct; the default mode in Linux us deferred protection and although the page was unmapped the device can still access it via the IOTLB. In the case of the strict protection, the device can still rewrite sh\_info due to the way sh\_info is allocated. 
+\subsubsection{When page frags are used indiscriminately}
+Unfortunately the following is not found in nature...\newline
+In case where both TX and RX sh\_info come from the same page frag. The NIC can read arbitrary kernel addresses by modifying the frag list of a TX skb and making the driver map random addresses.
+Being able to read the NIC can generate a large RX packet an just read the sh\_info frag written by the driver and 
