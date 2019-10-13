@@ -38,7 +38,7 @@ guaranteed to be in the range [0xffff880000000000, 0xffffc80000000000). Using a 
 technique, we read random colocated pointers we identified as belonging to that region,
 finding our payload as well.
 
-\textcolor{red}{Memory models, pfn > page > kva}
+The current memory model of x86-64 linux servers is SPARSEMEM\_VMEMMAP \cite{mem_model}. Allowing easy transition between KVA - PFN - \page\footnote{Show fig with transitions}.
 \subsubsection{NX-BIT}
 As described in Chapter 4, we located the payload in a device-writeable page or in
 a page belonging to the page cache. In both cases, this page is used to hold data

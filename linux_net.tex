@@ -27,9 +27,9 @@ The NIC will hold off on the TX completion event in order to make sure that \kva
 In this scenario the attacker doesn't need any prior knowledge of the kernel or the hardware. The only assumption is that there is an accomplice that can open a socket in user-space or even in user-space of a guest machine; making any cloud VM a valid intrusion tool.
 
 \subsection{Packet Forwarding}
-Same can be achieved if the Linux sever allows for packet forwarding\footnote{Need to check what happens to sh\_info, (1.can we carry an "invisible" sh\_info - we can, but doesn't work as you need the driver to fill the kva) 2. or just forward a packet with frags (MTU, is usually a limiting factor)}
+Packet forwarding functionality is usualy disabled by default in Linux machines. But some Linux servers may function as a router or a load balancer; these machines will have packet forwarding enabled. In this scenario the NIC can independently generate an RX packets with a \mabaf. These packets can have valid 5 tuples to their network. The driver will complete the \page address of the buffer. \textcolor{red}{These packets will be forwarded and so become a TX packet that can be used as described in the previous attack.} \footnote{Need to check what happens to sh\_info, can we just forward a packet with frags (MTU, is usually a limiting factor)}
 
 \subsubsection{When page frags are used indiscriminately}
-Unfortunately the following is not found in nature...\newline
+\textcolor{magenta}{Unfortunately the following is not found in nature...}\newline
 In case where both TX and RX sh\_info come from the same page frag. The NIC can read arbitrary kernel addresses by modifying the frag list of a TX skb thus making the driver map random addresses.
 Being able to read the \shinfo, allows the NIC to generate an RX packet packet with \mabaf; the \kva of which will be written by driver and read by the NIC via TX iova. From this point and on I refer the reader to the steps in the previous sections.
