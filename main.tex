@@ -58,7 +58,9 @@
 
 % inlined bib file
 \usepackage{filecontents}
-
+\providecommand{\shinfo}{\texttt{struct skb\_shared\_info}}
+\providecommand{\page}{\texttt{struct page}}
+\providecommand{\uarg}{\texttt{uarg}}
 %-------------------------------------------------------------------------------
 \begin{document}
 %-------------------------------------------------------------------------------
@@ -90,16 +92,17 @@ Technion, VMware Research
 \begin{abstract}
 %-------------------------------------------------------------------------------
 Your abstract text goes here. Just a few facts. Whet our appetites.
-Not more than 200 words, if possible, and preferably closer to 150.
+Not more than 200 words, if possible, and preferably closer to 150.\newline
+We ignore the NDSS paper, the Linux attacks it mentiones are at best half backed, which makes our contribution valid. We will still need to address it because the whole sub-page thing; but really its the Copy paper that introduced that notion and this is how we should frame it. The steps are \#1 Write paper as if NDSS doesnt exist. \#2 Add some defensive text when \#complete
 \end{abstract}
 
 
 %-------------------------------------------------------------------------------
 \section{Introduction}
 %-------------------------------------------------------------------------------
-
+ 
 \input{background.tex}
-\input{other_os.tex}
+%\input{other_os.tex}
 \input{attack_setup.tex}
 \input{linux_net.tex}
 \input{mitigations_future.tex}

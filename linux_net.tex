@@ -1,16 +1,27 @@
 \section{Linux Network Stack}
 
-\subsection{Attack Vector sh\_info}
-Gil's thesis
+\subsection{\shinfo}
+The sk buff is a common data structure that is used in the Linux network stack to
+hold information for representing a packet and is used by many network card drivers.
+Basically, sk buff contains the packet’s metadata (e.g., its size and the protocol that
+uses this packet) and several pointers to different locations in the data itself, which is
+usually located in a different page (see Figure \footnote{Need Gil's figure}). The network stack supports packet
+cloning by copying sk buff metadata and letting the new one point to the same data
+as the old one. To support this data sharing, the skb shared info metadata structure
+is located in a row with the data. Just as in the previous attack, skb shared info is
+accidentally mapped for the device with the permissions of the packet (i.e., write for Rx
+packets and read for Tx packets).
+The main difference between this and the previous attack is that since the packet is
+either Tx or Rx, but never both, we cannot deduce the virtual address of the packet as we did in the previous case. Hence, placing the payload in the same page is meaningless.
+
 \subsection{Ring Flod}
 To execute a successful DMA attack on an writable callback pointer; the attacking device needs a memory buffer filled with malicious code and the kernel address of that buffer.
-Every RX packet is a possible buffer of malicious code, but the device is only given the buffer iova. The mapping between an iova and its kva is held in the device page table and the device driver meta-data; neither is accessible to the device. Additionally the \texttt{struct page} address is filled by the driver 
-\subsubsection{RingFlod Eval}
-Some figs on address distribution.
-Kernel x Machine
+Every RX packet is a possible buffer of malicious code, but the device is only given the buffer iova. The mapping between an iova and its kva is held in the device page table and the device driver meta-data; neither is accessible to the device. Additionally the \texttt{struct page} address is filled by the driver on RX but while we have write access we don't have read access. We must deduce a valid kva some other way.\newline
+The boot process is deterministic; executing the same set of commands, initiating the same modules and allocating the same amount of memory each reboot. While the actual pages each module gets will vary in a multi-core machine due to timing issues, the drift is not expected to be to large. We evaluate this assumptions running 128 reboots on three Dell machines with different kernel versions. In the f\footnote{Please generate figure of RingFlod Results} we show the memory used by each driver and how many of the pfns repeat in more than X\% percent. Thus an adversary that has some knowledge about the physical setup and the kernel being used can guess with a high probability a valid kva for one of the RX pages. Whats left is to fill all the pages with a valid uarg struct with a callback pointer set back to it self, see fig \footnote{Need to generate a fig of a valid uarg}. Under the assumption of the default memory model\footnote{Figure out the memory model and show a calculation, best in figure}
+
 \subsection{Privilege escalation}
 sh\_info of a sent packet is read only to the NIC.
-but if the \texttt{struct page} holds malicious content that all the NIC needs. By copying the sh\_info of the TX skb to the sh\_info of an RX skb(can be generated at will). 
+but if the \page holds malicious content that all the NIC needs. By copying the sh\_info of the TX skb to the sh\_info of an RX skb(can be generated at will). 
 %T/O will happen 15 sec?
 
 \subsection{Packet Forwarding}
