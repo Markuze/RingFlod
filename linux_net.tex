@@ -12,6 +12,12 @@ accidentally mapped for the device with the permissions of the packet (i.e., wri
 packets and read for Tx packets).
 The main difference between this and the previous attack is that since the packet is
 either Tx or Rx, but never both, we cannot deduce the virtual address of the packet as we did in the previous case.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{figs/skb.png}
+    \caption{Caption}
+    \label{fig:sh_info}
+\end{figure}
 \subsection{\shinfo co-location}
 Additional challenge with attacking \shinfo is the fact the the fields are filled and rewritten by the device driver; after the packet is received. As it turns out this is not a problem as multiple device drivers \footnote{make sure to get list from Gil's Thesis} first create an skb and only then unmap, allowing the device ample opportunity to annul the changes made by the driver. But even when the order is correct; the default mode in Linux us deferred protection and although the page was unmapped the device can still access it via the IOTLB. Still, in the case when the strict protection is used; the device can rewrite \shinfo due to the way \shinfo is allocated. An RX skb is allocated via the \texttt{napi\_alloc\_skb} function\footnote{there are several other options as well, but the principle is the same} this function uses a page frag to allocate the \texttt{data} buffer that contains \shinfo. While, it is possible that the iova we were using has been invalidated, we can still access the physical page using the iova of the next RX descriptor.
 

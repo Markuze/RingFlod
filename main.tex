@@ -51,6 +51,7 @@
 
 \documentclass[letterpaper,twocolumn,10pt]{article}
 \usepackage{usenix2019_v3}
+%\usepackage[sorting=none]{biblatex}
 
 % to be able to draw some self-contained figs
 \usepackage{tikz}
@@ -61,8 +62,10 @@
 \providecommand{\shinfo}{\texttt{struct skb\_shared\_info }}
 \providecommand{\page}{\texttt{struct page }}
 \providecommand{\uarg}{\texttt{uarg }}
-\providecommand{\kva}{kva}
-\providecommand{\mabaf}{malicious buffer}
+\providecommand{\kva}{kva }
+\providecommand{\iova}{IOVA }
+\providecommand{\mabaf}{malicious buffer }
+\providecommand{\spb}{SPB\-2 }
 %-------------------------------------------------------------------------------
 \begin{document}
 %-------------------------------------------------------------------------------
@@ -101,10 +104,12 @@ We ignore the NDSS paper, the Linux attacks it mentiones are at best half backed
 
 %-------------------------------------------------------------------------------
 \section{Introduction}
+
 %-------------------------------------------------------------------------------
  
 \input{background.tex}
 \input{attack_mechanics.tex}
+\input{os_defences.tex}
 \input{attack_setup.tex}
 \input{linux_net.tex}
 \input{mitigations_future.tex}

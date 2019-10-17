@@ -1,0 +1,60 @@
+\section{OS Defences}
+\subsection{KASLR}
+Address Space Layout Randomization (ASLR) is a common mechanism for mitigating
+code-execution attacks in the context of user-level processes. To inject code into a
+process, the attacker must know its memory layout (for example, the address of the code
+section is required for finding ROP gadgets). Systems that support ASLR randomize the
+memory layout for each process on every execution. In this way, regular attacks, which
+are built for a specific layout, cannot work. Similarly, kASLR randomizes the memory
+layout of the kernel, yet treats the entire kernel as a single region, randomizing only its
+base address. Hence, knowing even one pointer is enough to deduce the base address.
+Once the base address is known, the attacker can use it to patch the payload (first line of Listing 5.1).
+In Linux, the high bits of every kernel pointer are always set to one. The specific number of bits depends on the region to which the pointer points. Even with
+kASLR, pointers to the kernel binary region are always in the range [0xffffffff80000000,
+0xffffffffc0000000) and, therefore, they are very easy to detect. In addition, since (at
+least currently) kASLR works in multiplies of 2MB granularity, once a pointer is known,
+it is also easy to conclude to which symbol in the binary it points. Malicious devices
+can scan pages mapped for reading, looking for kernel pointers colocating with their
+buffers. Once such a pointer is identified, all that remains is to reduce the offset of the
+symbol in the binary from the pointer to get the base address.
+We found that there is a symbol visible to both FireWire and NICs in all Linux
+versions we tested, making it suitable for breaking kASLR. Starting from version
+2.6.24, Linux supports network namespaces for isolating different instances of network
+use. Every network object (and sockets, in particular) has a pointer to its namespace
+object. Moreover, at least one namespace is always defined by the global object init net.
+Since Tx packets have varying sizes, NICs can see all kinds of dynamically allocated
+objects, including sockets. In addition, socket objects are about the same size as
+sbp2 management orb, making them allocated from the same pages. Hence, both of
+them can see socket objects and, thus also the address of init net. Using this pointer,
+the attacker can deduce the base address and complete the attack.
+In the case where we put the payload in a known page (e.g., FireWire), we are
+done. In the other cases, we used the direct mapping to spray our payload—whether it
+was using FTP, a user-level program or the NIC’s buffers. Starting from version 4.8,
+the direct mapping base is also randomized (in alignment of at least 1GB), and it is
+guaranteed to be in the range [0xffff880000000000, 0xffffc80000000000). Using a similar
+technique, we read random colocated pointers we identified as belonging to that region,
+finding our payload as well.
+
+The current memory model of x86-64 linux servers is SPARSEMEM\_VMEMMAP \cite{mem_model}. Allowing easy transition between KVA - PFN - \page\footnote{Show fig with transitions}.
+\subsubsection{NX-BIT}
+As described in Chapter 4, we located the payload in a device-writeable page or in
+a page belonging to the page cache. In both cases, this page is used to hold data
+(rather than code, for example). Modern OSs make use of hardware support, namely
+the No-eXecute bit, to prevent running code from these pages. The bit for each page is
+defined in MMU’s page tables. Whenever the CPU tries to fetch code from memory, this
+bit is checked. If it is set, instead of running the code, the CPU will raise an exception to the OS, notifying it that someone is trying to break into the system. This method is known under the names NX\-bit, W xor X (Write xor eXecute) and DEP.
+Return Oriented Programming (ROP) Return Oriented Programming (ROP)
+is a common method used by malware to bypass DEP defenses [RBSS12]. ROP takes
+advantage of the fact that the CPU stack pointer may point to any data page. To set
+up an attack from a data page, the attacker builds a stack filled with required data and
+pointers to special locations in the code section (aka ROP gadgets) in it. Each gadget is
+a short piece of code—usually one or two commands, and a return command. When the
+CPU executes a return command, the next address to fetch code from is taken from the
+stack. If the stack has been built correctly, the next address points to another gadget
+and so on. By carefully selecting these gadgets, an attacker may run any payload. A
+similar technique that uses jumps instead of returns—and, therefore, does not use the
+stack—is called Jump Oriented Programming (JOP) [BJFL11].
+\subsubsection{best practices}
+I imagine a table with OS on Y and best practices on X.
+IOMMU policy, KASLR, NX-bit, discriminate mapping (R or W, not both), device IOVA separation, sand boxing mapped addresses.
+Kernels Win,MacOS,FreeBSD - use NDSS paper, contribution: ESX (Need to send some emails), Linux - Ubuntu versions, Sless?(RHEL).
