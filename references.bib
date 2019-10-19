@@ -6,7 +6,7 @@
 }
 @inproceedings{ABYTS11,
         Author = {Nadav Amit and Muli Ben-Yehuda and Dan Tsafrir and Assaf Schuster},
-        Booktitle = atc,
+        Booktitle = {ATC 11},
         Title = {{vIOMMU}: efficient {IOMMU} emulation},
         Year = 2011,
         note = {\url{https://www.usenix.org/legacy/events/atc11/tech/final_files/Amit.pdf}
@@ -143,11 +143,38 @@
   year={2012},
   organization={Springer}
 }
+@article{WR11,
+        title = {Following the White Rabbit: Software attacks against
+                {Intel} {VT-d} technology},
+        author = {Rafal Wojtczuk and Joanna Rutkowska},
+        note =
+                {\url{http://invisiblethingslab.com/resources/2011/Software\%20Attacks\%20on\%20Intel\%20VT-d.pdf}
+                 Accessed: May 2018},
+        journal = {{Invisible Things Lab}},
+        year = {2011}
+}
+@misc{Cim16,
+        author = {Catalin Cimpanu},
+        title = {\$300 Device Can Steal {Mac} {FileVault2} Passwords},
+        howpublished =
+                {\url{https://www.bleepingcomputer.com/news/security/-300-device-can-steal-mac-filevault2-passwords/}},
+        note = {Accessed: May 2018},
+        month = {December},
+        year = {2016}
+}
 @inproceedings{LKV13,
   title={You can type, but you can’t hide: A stealthy GPU-based keylogger},
   author={Ladakis, Evangelos and Koromilas, Lazaros and Vasiliadis, Giorgos and Polychronakis, Michalis and Ioannidis, Sotiris},
   booktitle={Proceedings of the 6th European Workshop on System Security (EuroSec)},
   year={2013}
+}
+@inproceedings{BJFL11,
+        author = {Bletsch, Tyler and Jiang, Xuxian and Freeh, Vince W. and Liang,
+                Zhenkai},
+        title = {Jump-oriented programming: a new class of code-reuse attack},
+        booktitle = {ASIACCS},
+        year = {2011},
+        note = {\url{http://doi.acm.org/10.1145/1966913.1966919}}
 }
 @inproceedings{YHD16,
   title={A2: Analog malicious hardware},
@@ -215,6 +242,45 @@
   year={2013},
   organization={ACM}
 }
+@article{RBSS12,
+        author = {Roemer, Ryan and Buchanan, Erik and Shacham, Hovav and
+                Savage, Stefan},
+        title = {Return-oriented programming: Systems, languages, and
+                applications},
+        journal = {TISSEC},
+        volume = {15},
+        number = {1},
+        pages = {2:1--2:34},
+        month = {March},
+        year = {2012},
+        publisher = {ACM},
+        note = {\url{https://doi.org/10.1145/2133375.2133377}}
+}
+@inproceedings{SLND10,
+        author = {Sang, Fernand Lone and Lacombe, Eric and Nicomette,
+                Vincent and Deswarte, Yves},
+        title = {Exploiting an {I/OMMU} vulnerability},
+        booktitle = {MALWARE},
+        pages = {7--14},
+        year = {2010},
+        note = {\url{https://doi.org/10.1109/MALWARE.2010.5665798}}
+}
+@inproceedings{MANK16,
+        author = {Morgan, Beno{\^\i}t and Alata, Eric and Nicomette,
+                Vincent and Ka{\^a}niche, Mohamed},
+        title = {Bypassing {IOMMU} Protection against {I/O} Attacks},
+        booktitle = {LADC},
+        pages = {145--150},
+        year = {2016},
+        note = {\url{https://doi.org/10.1109/LADC.2016.31}}
+}
+@misc{Ben17a,
+        title={Over The Air - Vol. 2, Pt. 3: Exploiting The {Wi-Fi} Stack on {Apple} Devices},
+        author={Gal Beniamini},
+        howpublished={\url{https://googleprojectzero.blogspot.co.il/2017/10/over-air-vol-2-pt-3-exploiting-wi-fi.html}},
+        note = {Accessed: May 2018},
+        year={2017}
+}
 @article{Ben17b,
   title={Over The Air: Exploiting Broadcom’s Wi-Fi Stack},
   author={Beniamini, Gal},
@@ -275,7 +341,7 @@
   year={2018},
   school={Computer Science Department, Technion}
 }
-@MISC{mem_model,
+@misc{mem_model,
    author =       {Rapoport, Mike},
    title =        {Memory: the flat, the discontiguous, and the sparse},
    editor =       {https://lwn.net/},
@@ -284,3 +350,85 @@
    url = {https://lwn.net/Articles/789304/},
    note =         {https://lwn.net/Articles/789304/},
  }
+ @misc{kalsr,
+    author ={Jake Edge},
+    title = {Kernel address space layout randomization},
+    editor =       {https://lwn.net/},
+    note = {https://lwn.net/Articles/569635/ Accessed Oct 2019},
+    url = {https://lwn.net/Articles/569635/}
+    
+}
+@misc{Han14,
+        author={Dave Hansen},
+        title={x86: mm: set {TLB} flush tunable to sane value (33)},
+        howpublished={linux-mm mailing list \url{https://patchwork.kernel.org/patch/4066561/}},
+        year=2014
+}
+@inproceedings{Peleg15,
+  title={Utilizing the $\{$IOMMU$\}$ Scalably},
+  author={Peleg, Omer and Morrison, Adam and Serebrin, Benjamin and Tsafrir, Dan},
+  booktitle={2015 $\{$USENIX$\}$ Annual Technical Conference (USENIX ATC)},
+  pages={549--562},
+  year={2015}
+}
+@article{aA10,
+        author = {Patroklos (argp) Argyroudis},
+        title = {Binding the Daemon: {FreeBSD} Kernel Stack and Heap Exploitation},
+        year = {2010},
+        journal = {BHEU},
+        note =
+                {\url{http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.183.1140&rep=rep1}
+                Accessed: May 2018},
+}
+@misc{hotcold,
+    author = {Jonathan Corbet},
+    title = {Hot and Cold Pages},
+    editor =       {https://lwn.net/},
+    note = {https://lwn.net/Articles/14768/ Accessed Oct 2019},
+    url = {https://lwn.net/Articles/14768/}
+    
+}
+@inproceedings{MMT16,
+        author = {Markuze, Alex and Morrison, Adam and Tsafrir, Dan},
+        title = {True {IOMMU} Protection from {DMA} Attacks: When Copy is
+                Faster Than Zero Copy},
+        booktitle = {ASPLOS},
+        year = {2016},
+        pages = {249--262},
+        note = {\url{https://doi.org/10.1145/2980024.2872379}}
+}
+@inproceedings{MSMT18,
+        author = {Markuze, Alex and Smolyar, Igor and Morrison, Adam and Tsafrir,
+        Dan},
+        title = {{DAMN}: Overhead-Free IOMMU Protection for Networking},
+        booktitle = {ASPLOS},
+        year = {2018},
+        note = {\url{http://doi.acm.org/10.1145/3173162.3173175}}
+}
+@misc{BDK10,
+        author = {Becher, Michael and Dornseif, Maximillian and Klein,
+                Christian N},
+        title = {{FireWire}: all your memory are belong to us},
+        howpublished =
+                {\url{https://cansecwest.com/core05/2005-firewire-cansecwest.pdf}},
+        note = {CanSecWest Presentation. Accessed: May 2018},
+        year = {2010}
+}
+@misc{Int17,
+        author = {INTEL},
+        title = {{Intel} Control-flow Enforcement Technology Preview -
+        {Rev}.\ 2.0.},
+        howpublished =
+        {\url{https://software.intel.com/sites/default/files/managed/4d/2a/control-flow-enforcement-technology-preview.pdf}},
+        note = {Accessed: May 2018},
+        month = {June},
+        year = {2017}
+}
+@misc{dr17,
+        author = {Theo de Raadt},
+        title = {{KARL} - kernel address randomized link},
+        note = {Accessed: May 2018},
+        month = {October},
+        year = {2017},
+        howpublished = {\url{https://marc.info/?l=openbsd-tech&m=149732026405941}},
+}

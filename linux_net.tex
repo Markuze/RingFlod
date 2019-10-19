@@ -4,7 +4,7 @@
 The sk buff is a common data structure that is used in the Linux network stack to
 hold information for representing a packet and is used by many network card drivers.
 Basically, sk buff contains the packet’s metadata (e.g., its size and the protocol that
-uses this packet) and several pointers to different locations in the data itself, which is usually located in a different page (see Figure \footnote{Need Gil's figure}). The network stack supports packet
+uses this packet) and several pointers to different locations in the data itself, which is usually located in a different page (see Figure \ref{fig:sh_info}). The network stack supports packet
 cloning by copying sk buff metadata and letting the new one point to the same data
 as the old one. To support this data sharing, the skb shared info metadata structure
 is located in a row with the data. Just as in the previous attack, skb shared info is
@@ -15,7 +15,7 @@ either Tx or Rx, but never both, we cannot deduce the virtual address of the pac
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{figs/skb.png}
-    \caption{Caption}
+    \caption{\texttt{struct sk\_buff} and \shinfo}
     \label{fig:sh_info}
 \end{figure}
 \subsection{\shinfo co-location}
@@ -36,6 +36,8 @@ In this scenario the attacker doesn't need any prior knowledge of the kernel or 
 Packet forwarding functionality is usualy disabled by default in Linux machines. But some Linux servers may function as a router or a load balancer; these machines will have packet forwarding enabled. In this scenario the NIC can independently generate an RX packets with a \mabaf. These packets can have valid 5 tuples to their network. The driver will complete the \page address of the buffer. \textcolor{red}{These packets will be forwarded and so become a TX packet that can be used as described in the previous attack.} \footnote{Need to check what happens to sh\_info, can we just forward a packet with frags (MTU, is usually a limiting factor)}
 
 \subsubsection{When page frags are used indiscriminately}
-\textcolor{magenta}{Unfortunately the following is not found in nature...}\newline
+\textcolor{magenta}{Unfortunately the following is not found in nature... - XDP Does :)}\newline
 In case where both TX and RX sh\_info come from the same page frag. The NIC can read arbitrary kernel addresses by modifying the frag list of a TX skb thus making the driver map random addresses.
-Being able to read the \shinfo, allows the NIC to generate an RX packet packet with \mabaf; the \kva of which will be written by driver and read by the NIC via TX iova. From this point and on I refer the reader to the steps in the previous sections.
+Being able to read the \shinfo, allows the NIC to generate an RX packet packet with \mabaf; the \kva of which will be written by driver and read by the NIC via TX iova. From this point and on we refer the reader to the steps in the previous sections.
+\subsection{XDP}
+\textcolor{red}{XDP (5.1.12)is not umpapping or using DMA\_MAP\_BIDIR \- please show its ill advised...} mlx5 in 5+ is using non linear it seems need to check ubuntu and other "LTS" (centos 8) kernels.

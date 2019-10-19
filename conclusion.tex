@@ -1,4 +1,6 @@
+\section{IPoIB/RDMA? - DPDK, NetMap?}
+We didnt find any risks associated with RDMA other than the methods listed in this paper, the ipoib driver also maps the \shinfo. But a malicious device is still needed, as the post\_send/post\_receive API is simmilar in function to the usual way NICs function; namely a remote user can pick where to write or to write more than once to the same address intentionally. For these kinds of attacks rdma\_read/write API is needed, which provides the peer the ability to read/write to a chosen addresses. We didn't find any uses for this API in the Linux kernel. \textcolor{red}{AFAIK; besides Linux only Windows supports RDMA in the kernel}
 \section{Related Work}
 \textcolor{blue}{Page 13, when all else is done, may spend some lines to rip into the ndss paper}
 \section{Conclusion}
-\subsection{IPoIB/RDMA? - DPDK, NetMap?}
+DMA attacks are feasible and should not be treated lightly. IOMMU subverting attacks are avoidable, but none of the solutions can be found in the wild. Better kASLR, NX-BIT and better API are all needed to prevent IOMMU subverting techniques. 
