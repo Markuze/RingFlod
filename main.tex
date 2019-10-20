@@ -58,6 +58,7 @@
 \usepackage{amsmath}
 \usepackage{fancyvrb}
 \usepackage{listings}
+\usepackage{comment}
 
 % inlined bib file
 \usepackage{filecontents}
@@ -76,9 +77,10 @@
 \date{}
 
 % make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-\title{\Large \bf Bypassing IOMMU via the Linux Network stack}
+\title{\Large \bf IOMMU and the Illusion of Safety}
 
-%for single author (just remove % characters)
+% USENIX Security has double blind submissions
+\begin{comment}
 \author{
 {\rm Markuze Alex}\\
 Technion, VMware Research
@@ -92,6 +94,7 @@ VMware Research
 \and{\rm Dan Tsafrir}\\
 Technion, VMware Research
 } % end author
+\end{comment}
 
 \maketitle
 
@@ -122,6 +125,7 @@ Direct Memory Access (DMA) is a technology that allows input-output (I/O) device
 \bibliographystyle{plain}
 \bibliography{references}
 \appendix
+
 \input{appendixes/shellcode.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}
