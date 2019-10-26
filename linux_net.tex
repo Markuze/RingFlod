@@ -1,17 +1,24 @@
 \section{Linux Network Stack}
-\textcolor{magenta}{First figure our your attacks:\begin{enumerate}
+\textcolor{magenta}{First figure our your attacks \texttt{Latest Ubuntu LTS and latest Kernel}:\begin{enumerate}
+    \item Packet forwarding(Non Linear - mlx5)
+    \item skb\_try\_coalesce with liner skb on mlx5 (UDP fragmentation).\newline MTU 1500 + no LRO - Default.\newline
+    skb\_gro\_receive
+    \item RingFlod Experiment (mlx5 and local drivers)
     \item Go over the code when DMA\_BIDIR is used(EDMA \& WiFi)
     \item Go over the code with fill/add frag + BIDIR (XDP).
-    \item Packet forwarding(Non Linear - mlx5)
-    \item skb\_try\_coalesce with liner skb on mlx5 (UDP fragmentation).
-    \item RingFlod Experiment (mlx5 and local drivers)
 \end{enumerate}
 second add figures and tables
 \begin{enumerate}
     \item RingFlod table : machine|kernel|driver|size|drift size|probability and size of window
     \item add uarg to \shinfo fig
     \item explain page frag
-    \item KASLR bits
+    \item KASLR bits (diff ready)
+\end{enumerate}
+List of additional experiments...
+\begin{enumerate}
+    \item Use user-space malliciou ptr, in case of KARL - show feasibility.
+    \item new kernel configs SHUFFLE\_PAGE\_ALLOCATOR, SLAB...RAND... (Go over, RAND, Shuffle)
+    \url{https://lore.kernel.org/patchwork/patch/1037734/}
 \end{enumerate}}
 \subsection{\shinfo}
 The sk\_buff is a common data structure that is used in the Linux network stack to hold information for representing a packet and is used by many network card drivers. Basically, sk\_buff contains the packet’s metadata (e.g., its size and the protocol that uses this packet) and several pointers to different locations in the data itself, which is usually located in a different page (see Figure \ref{fig:sh_info}). The network stack supports packet cloning by copying sk buff metadata and letting the new one point to the same data as the old one. To support this data sharing, the \shinfo metadata structure is located in a row with the data. Just as in the previous attack, \shinfo is unwittingly mapped for the device with the permissions of the packet (i.e., write for RX packets, read for TX packets and in some cases read and write for XDP/XSK \footnote{\url{https://www.kernel.org/doc/html/v4.18/networking/af_xdp.html}}). The main challenge, is that since the packet is either TX or RX, we can either learn a kva of a read only buffer or have a writable \shinfo without knowing the kva for a \mabaf.
