@@ -25,7 +25,7 @@ The sk\_buff is a common data structure that is used in the Linux network stack 
 
 \begin{figure}
     \centering
-    \includegraphics[width=1.2\linewidth]{figs/skb.png}
+    \includegraphics[width=1.1\linewidth]{figs/ubuf.pdf}
     \caption{\texttt{struct sk\_buff} and \shinfo}
     \label{fig:sh_info}
 \end{figure}
@@ -65,6 +65,12 @@ Luckily for the attacker, the current memory model of x86-64 and ARM Linux serve
 The boot process is deterministic; executing the same set of commands, initiating the same modules and allocating the same amount of memory each reboot. While the actual pages each module gets will vary in a multi-core machine due to timing issues, the drift is not expected to be to large. We evaluate this assumptions running 128 reboots on three Dell machines with different kernel versions. In the fig\footnote{Please generate figure of RingFlod Results} we show the memory used by each driver and how many of the pfns repeat in more than X\% percent. Thus an adversary that has some knowledge about the physical setup and the kernel being used can guess with a high probability a valid kva for one of the RX pages. Whats left is to fill all the pages with a valid uarg struct with a callback pointer set back to it self, see fig \footnote{Need to generate a fig of a valid \uarg}.\textcolor{magenta}{ends to abruptly, add a sentence to tie it all back and maybe a uarg payload fig? }
 
 \subsection{Privilege escalation}
+\begin{figure*}
+    \centering
+    \includegraphics[width=1.1\linewidth]{figs/paylopad_both.pdf}
+    \caption{An sk\_buff filled with malicious code}
+    \label{fig:payload}
+\end{figure*}
 \shinfo of a TX packet is read only to the NIC.
 But if the fragments hold malicious content; its all the malicious NIC needs for a successful attack. The readable \shinfo holds a \kva for a \page. This both allows the NIC to break KASLR and gives a \kva\footnote{\textcolor{magenta}{Do show exactly what are the KASLR bits and how you break it}} of a valid \mabaf. To implement the attack the NIC will generate an RX packet and fill the \uarg address from the calculated \kva.
 The NIC will hold off on the TX completion event in order to make sure that \kva is not freed by the TX completion handler; before the poisoned RX packet is processed. A TX completion event that fails to appear in due time, will trigger a TX T/O error that will flush all buffers; the T/O is set by the driver usually to 5 seconds, which is enough to implement an attack.\newline
@@ -72,6 +78,13 @@ In this scenario the attacker doesn't need any prior knowledge of the kernel or 
 
 \subsection{Packet Forwarding}
 Packet forwarding functionality is usualy disabled by default in Linux machines. But some Linux servers may function as a router or a load balancer; these machines will have packet forwarding enabled. In this scenario the NIC can independently generate an RX packets with a \mabaf. These packets can have valid 5 tuples to their network. The driver will complete the \page address of the buffer. \textcolor{red}{These packets will be forwarded and so become a TX packet that can be used as described in the previous attack.} \footnote{Need to check what happens to sh\_info, can we just forward a packet with frags (MTU, is usually a limiting factor)}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=1.1\linewidth]{figs/gro_generation.pdf}
+    \caption{An sk\_buff filled with malicious code}
+    \label{fig:gro}
+\end{figure*}
 
 \subsubsection{When page frags are used indiscriminately}
 \textcolor{magenta}{Unfortunately the following is not found in nature... - XDP Does :)}\newline
