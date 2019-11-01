@@ -1,0 +1,23 @@
+\newpage
+\section{TODO}
+First figure our your attacks \texttt{Latest Ubuntu LTS and latest Kernel}:\begin{enumerate}
+    \item \sout{Packet forwarding - Linear SKB: trace ready; need to describe: a. flow. b. read.}
+    \item skb\_try\_coalesce with liner skb on mlx5 (UDP fragmentation).\newline MTU 1500 + no LRO - Default.\newline
+    skb\_gro\_receive
+    \item RingFlod Experiment (mlx5 and local drivers)
+    \item Go over the code when DMA\_BIDIR is used(EDMA \& WiFi)
+    \item Go over the code with fill/add frag + BIDIR (XDP).
+\end{enumerate}
+second add figures and tables
+\begin{enumerate}
+    \item RingFlod table : machine|kernel|driver|size|drift size|probability and size of window
+    \item add uarg to \shinfo fig
+    \item explain page frag
+    \item KASLR bits (diff ready)
+\end{enumerate}
+List of additional experiments...
+\begin{enumerate}
+    \item Use user-space malliciou ptr, in case of KARL - show feasibility.
+    \item new kernel configs SHUFFLE\_PAGE\_ALLOCATOR, SLAB...RAND... (Go over, RAND, Shuffle)
+    \url{https://lore.kernel.org/patchwork/patch/1037734/}
+\end{enumerate}

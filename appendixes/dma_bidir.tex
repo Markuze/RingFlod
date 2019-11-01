@@ -1,5 +1,6 @@
 \newpage
-\section{suspect drivers}
+\section{Driver lists}
+\subsection{drivers - DMA\_BIDIR}
 \begin{enumerate}
     \item bnxt
     \item cxgb4
@@ -13,4 +14,10 @@
     \item ti
     \item ath9k - EDMA
     \item iwlwifi
+\end{enumerate}
+\subsection{Wrong Unmap order}{\label{apndx:wrong_order}}
+A partial list of drivers that dont unmap the RX buffer or do it \textbf{after} initialising the \shinfo 
+\begin{enumerate}
+    \item Intel 40GbE NIC driver : i40e
+    \item Mellanox Connectx 5/6 : mlx5\_core\footnote{mlx5\_core has two modes, linear and non-linear. Linear mode is the default}
 \end{enumerate}
