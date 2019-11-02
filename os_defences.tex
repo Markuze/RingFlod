@@ -1,15 +1,53 @@
 \section{OS Defences}
 In this section we discuss the common mechanisms used to mitigate code injection attacks. Subverting these countermeasures is essential to the success of any DMA attack.
-\subsection{kASLR}
-Address Space Layout Randomization (ASLR) is a common mechanism for mitigating code-execution attacks in the context of user-level processes. To inject code into a process, the attacker must know the memory layout. For example, the address of the code section is required for finding ROP gadgets \ref{sec:nx-bit}). Systems that support ASLR randomize the memory layout for each process on every execution. In this way, regular attacks, which are built for a specific layout, cannot work. Similarly, kASLR \cite{kalsr} randomizes the memory layout of the kernel. kASLR treats the entire kernel as a single region, randomizing only its base address. Hence, knowing even one pointer is enough to deduce the base address. Once the base address is known, the attacker can use it to patch the payload. In Linux, the high bits of every kernel pointer are always set to one. The specific number of bits depends on the region to which the pointer points. Even with kASLR, pointers to the kernel binary region are always in the range [0xffffffff80000000,0xffffffffc0000000)\footnote{The Linux memory layout is conveniently provided in 
-\url{ https://elixir.bootlin.com/linux/v5.3.6/source/Documentation/x86/x86_64/mm.rst }
-} and, therefore, they are very easy to detect. In addition, since (at least currently) kASLR works in multiplies of 2MB granularity, once a pointer is known, it is also easy to conclude to which symbol in the binary it points. Malicious devices can scan pages mapped for reading, looking for kernel pointers colocating with their buffers. Once such a pointer is identified, all that remains is to reduce the offset of the symbol in the binary from the pointer to get the base address. We found that there is a symbol visible to both FireWire and NICs in all Linux versions we tested, making it suitable for breaking kASLR. Starting from version 2.6.24, Linux supports network namespaces for isolating different instances of network use. 
-\newline 
-Every network object (and sockets, in particular) has a pointer to its namespace object. Moreover, at least one namespace is always defined by the global object init net. Since TX packets have varying sizes, NICs can see all kinds of dynamically allocated objects, including sockets. In addition, socket objects are about the same size as sbp2 management orb, making them allocated from the same pages. Hence, both of them can see socket objects and, thus also the address of init net. Using this pointer, the attacker can deduce the base address and complete the attack. Starting from version 4.8, the direct mapping base is also randomized (in alignment of at least 1GB), and it is guaranteed to be in the range [0xffff880000000000, 0xffffc80000000000).
 
-\subsubsection{NX-BIT}\label{sec:nx-bit}
-When exploiting a sub-page vulnerability (section \ref{sec:subpage}) a peripheral device has access with read/write permissions to memory buffers it shouldn't. Gaining write access to a function pointer can allow the attacker to inject malicious code. DMA capable devices, usually get access to pages with data, rather than code. Modern OSs make use of hardware support, namely the No-eXecute bit, to prevent running code from data pages. The bit for each page is defined in MMU’s page tables. Whenever the CPU tries to fetch code from memory, this bit is checked. If it is set, instead of running the code, the CPU will raise an exception to the OS, notifying it that someone is trying to break into the system. This method is known under the names NX\-bit, W xor X (Write xor eXecute) and DEP. Seemingly stopping any code injection attacks.\newline
-Return Oriented Programming (ROP) Return Oriented Programming (ROP) is a common method used by malware to bypass DEP defenses \cite{RBSS12}. ROP takes advantage of the fact that the CPU stack pointer may point to any data page. To set up an attack from a data page, the attacker builds a stack filled with required data and pointers to special locations in the code section (aka ROP gadgets) in it. Each gadget is a short piece of code—usually one or two commands, and a return command. When the CPU executes a return command, the next address to fetch code from is taken from the stack. If the stack has been built correctly, the next address points to another gadget and so on. By carefully selecting these gadgets, an attacker may run any payload. A similar technique that uses jumps instead of returns—and, therefore, does not use the stack—is called Jump Oriented Programming (JOP) \cite{BJFL11}. The case when an attacker is able to overwrite the stack (e.g., buffer overflow in the stack) is simple. This, however, is not the common case, and it is not the case when talking about DMA pages or page cache. To make ROP work, the attacker must first pivot the stack into the data page. This is done using JOP gadgets that direct the stack pointer to the desired page.
+\subsection{NX-BIT}\label{sec:nx-bit}
+When exploiting a sub-page vulnerability (section \ref{sec:subpage}) a peripheral device has access with read/write permissions to memory buffers it shouldn't. Gaining write access to a function pointer can allow the attacker to inject malicious code. DMA capable devices, usually get access to pages with data, rather than code. Modern OSs make use of hardware support, namely the No-eXecute bit, to prevent running code from data pages. The bit for each page is defined in MMU’s page tables. Whenever the CPU tries to fetch code from memory, this bit is checked. If it is set, instead of running the code, the CPU will raise an exception to the OS, notifying it that someone is trying to break into the system. This method is known under the names NX\-bit, W xor X (Write xor eXecute) and DEP and it is intended to prevent code injection attacks.\newline
+Return Oriented Programming (ROP) Return Oriented Programming (ROP) is a common method used by malware to bypass DEP defenses \cite{RBSS12}. ROP takes advantage of the fact that the CPU stack pointer may point to any data page. To set up an attack from a data page, the attacker builds a stack filled with required data and pointers to special locations in the code section (aka ROP gadgets) in it. Each gadget is a short piece of code—usually one or two commands, and a return command. When the CPU executes a return command, the next address to fetch code from is taken from the stack. In the stack the next address points to another gadget and so on. By carefully selecting these gadgets, an attacker can execute any payload. For a ROP attack to succeed, an attacker needs the stack pointer to point at the poisoned stack. We turn to Jump Oriented Programming ;(JOP) is a similar technique that uses jumps instead of returns and, therefore, does not need the stack\cite{BJFL11}.We use JOP gadgets that direct the stack pointer to the desired page, to jump-start the ROP attack. 
+
+%#define __PAGE_OFFSET           page_offset_base
+%#define PAGE_OFFSET ((unsigned long )__PAGE_OFFSET)
+%#define VMEMMAP_START          vmemmap_base
+%#define vmemmap ((struct page *)VMEMMAP_START)
+
+\begin{figure*}[t]
+                \begin{lstlisting}[
+        %basicstyle = \scriptsize,
+        columns = flexible,
+        tabsize=8,
+        %frame = l,
+        language = C
+        ]
+        
+#define __va(x) ((void *)((unsigned long)(x) - PAGE_OFFSET))
+#define __pa(x) ((unsigned long)(x) + PAGE_OFFSET)
+
+#define virt_to_pfn(kaddr)      (__pa(kaddr) >> PAGE_SHIFT)
+#define pfn_to_virt(pfn)        __va((pfn) << PAGE_SHIFT)
+
+        /* memmap is virtually contiguous.  */
+#define __pfn_to_page(pfn)      (vmemmap + (pfn))  
+#define __page_to_pfn(page)     (unsigned long)((page) - vmemmap)
+                \end{lstlisting}
+        \caption{ Linux Macros for transition between KVA, PFN and \page.
+                }
+        \label{fig:mem_model}
+\end{figure*}
+\subsection{KASLR}\label{sec:kaslr}
+Address Space Layout Randomization (ASLR) is a common mechanism for mitigating code-execution attacks in the context of user-level processes. To inject code into a process, the attacker must know the memory layout. For example, the address of the code section is required for finding ROP gadgets \ref{sec:nx-bit}. Systems that support ASLR randomize the memory layout for each process on every execution. In this way, regular attacks, which are built for a specific layout, fail. Similarly, KASLR \cite{kalsr} randomizes the memory layout of the kernel. The Linux kernel has a predetermined virtual memory layout\footnote{\url{https://elixir.bootlin.com/linux/latest/source/Documentation/x86/x86_64/mm.rst}} KASLR treats the entire kernel text mapping as a single region, randomizing only its base address. Linux Kernel text addresses are always in the range [0xffffffff80000000,0xffffffffa0000000) and, therefore are very easy to detect. KASLR kernel text is aligned to 2MB boarders\footnote{This is the result of page table restrictions and unlikely to change}, which means that the lowest 21 bits remain unchanged with KASLR. Hence, knowing even one address of a known element is enough to deduce the base address and break KASLR. Once the base address is known, the attacker can use it to create a ROP stack. Malicious devices can scan pages mapped for reading, looking for kernel pointers colocated with their buffers. Once such a pointer is identified, all that remains is to reduce the offset of the symbol in the binary from the pointer to get the base address. We found that there is a symbol visible to both FireWire and NICs in all Linux versions we have tested, making it suitable for breaking kASLR. Starting from version 2.6.24, Linux supports network namespaces for isolating different instances of network use. Every network object (and sockets, in particular) has a pointer to its namespace object. Moreover, at least one namespace is always defined by the global object \texttt{init\_net}. Since TX packets have varying sizes, NICs can see all kinds of dynamically allocated objects, including sockets. In addition, socket objects are about the same size as sbp2 management orb, making them allocated from the same pages. Hence, both of them can see socket objects and, thus also the address of \texttt{init\_net}. Using this pointer, the attacker can deduce the base address and complete the ROP attack. \newline Starting from Linux 4.8, the direct mapping base, and virtual memory map are also randomized, each regions base pointer is randomized at a 1GB alignment; which means that the lover 30 bits are unmodified and can leak both the PFN numbers and the randomized offset. This alignment is also due to page table considerations (page upper table(PUD) has a 30bit shift). We will need to know both offsets for the attacks in sections \ref{sec:linux_net}. Once, the random offsets \textit{PAGE\_OFFSET} and \textit{vmemmap} for direct mapping base and virtual memory map, are known; we can transition between a \kva its PFN and its \page address. The translation macros are shown in Fig \ref{fig:mem_model}.  
+
+\begin{comment}
+\textcolor{olive}{
+\subsection{breaking kaslr with leaked pointers}
+Please make prev section coherent...
+\begin{itemize}
+    \item PUD alignment
+    \item page\_offset\_base
+    \item vmemmap\_base
+    \item kernel text offset
+\end{itemize}}
+\end{comment}
+
 \subsubsection{Mitigations in the wild}
 \textcolor{magenta}{I imagine a table with OS on Y and best practices on X.
 IOMMU policy, KASLR, NX-bit, discriminate mapping (R or W, not both), device IOVA separation, sand boxing mapped addresses.

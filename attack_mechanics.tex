@@ -5,6 +5,15 @@ Given that:
     \item IOMMU is correctly initialized on time
 \end{enumerate}
 One might assume that the systems are safe from DMA attacks. We contend that this is not the case. The \textit{least-privilege principle} requires that an entity such as a software module or a physical device must always have only the minimum necessary access to operate normally. In this chapter, we describe the risks caused by software when this principle is violated.
+\subsection{MMO}
+In this section we introduce the notion of MMO (Motive,Means,Opportunity) in the context of DMA attacks. Using the idea we can better understand the vulnerabilities of the OS and the viability of possible prevention methods. In order to gain control over a server the malicious device needs three things:
+\begin{enumerate}
+    \item Motive: The device has DMA access, to what should be a restricted area. The malicious device is now motivated to exploit this situation. 
+    \item Means: The device has a valid \kva of a \mabaf. The device wields the \kva as a weapon.
+    \item Opportunity: The device can overwrite a callback pointer in a deterministic way. The device has a target in its cross-hairs.
+\end{enumerate}
+For example, a NIC has write access to a page of an RX packet. Due to sub page vulnerability a random structure with a callback pointer is accessible at a random offset. While this may seem, that the device has a valid attack vector it is actually missing two key ingredients. The device has no \textit{Means}. While the device can write a \mabaf on to the page; the device must figure out the \kva\footnote{The device is using an IOVA to access memory, to the best of our knowledge there is no way to correlate an IOVA to a \kva on a Linux machine}. The device also doesn't have an \textit{Opportunity}. Without  read access or any other additional information, the NIC cant know what structures are exposed and at what offsets. While corrupting random kernel memory may cause a kernel panic \cite{MMT16}, but its not the goal that we are after.
+
 \begin{figure}[t]
     \centering
     \includegraphics[width=1\columnwidth]{figs/colocation.png}
