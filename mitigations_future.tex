@@ -1,4 +1,10 @@
-\section{Discussion on possible mitigations}
+
+\section{RDMA}
+We didnt find any risks associated with RDMA other than the methods listed in this paper, the ipoib driver also maps the \shinfo. But a malicious device is still needed, as the post\_send/post\_receive API is simmilar in function to the usual way NICs function; namely a remote user cant pick where to write or choose to write more than once to the same address. These kinds of operations are supported by rdma\_read/write API; which provides the peer the ability to read/write to a chosen addresses. We didn't find any uses for this kind of API in the Linux kernel. \textcolor{red}{AFAIK; besides Linux only Windows supports RDMA in the kernel}
+
+\section{Related work}
+\subsection{NDSS paper}
+\textcolor{blue}{Page 13, when all else is done, may spend some lines to rip into the ndss paper}
 \subsection{Protecting Against New attacks}
 Deferred mode vulnerability could be mitigated by simply stopping batch IOTLB invalidations. To reduce performance overheads, one may batch the entire unmapping process rather than only the invalidation. Implementing such a solution will require a new memory management mechanism to keep the pages owned by the device. Implementing a page ownership mechanism could be beneficial for other cases as well, such as zero-copy buffers—which may be owned by one of the device, the kernel and user-level applications.
 Sub-page vulnerability results from the gap between hardware design and software usages. Hence, it could be mitigated by modifying either the software or the hardware. Software modifications could be done either by repairing all broken drivers or, preferably, by changing the DMA layer so that it becomes aware of the size discrepancy. Hardware modification must be done centrally in the IOMMU in order to support legacy devices. Any solution that requires changes in I/O devices implies that secured environments could not include any currently existing device. In addition, common techniques against heap-overflow vulnerabilities might be used for making the attacks harder even though they will not completely eliminate them, as demonstrated above.

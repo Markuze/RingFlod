@@ -1,7 +1,5 @@
-\section{IPoIB/RDMA? - DPDK, NetMap?}
-We didnt find any risks associated with RDMA other than the methods listed in this paper, the ipoib driver also maps the \shinfo. But a malicious device is still needed, as the post\_send/post\_receive API is simmilar in function to the usual way NICs function; namely a remote user can pick where to write or to write more than once to the same address intentionally. For these kinds of attacks rdma\_read/write API is needed, which provides the peer the ability to read/write to a chosen addresses. We didn't find any uses for this API in the Linux kernel. \textcolor{red}{AFAIK; besides Linux only Windows supports RDMA in the kernel}
-\section{Related Work}
-\textcolor{blue}{Page 13, when all else is done, may spend some lines to rip into the ndss paper}
+
+
 \section{Conclusion}
 
 Hardware attacks are often considered to be harder to implement than software attacks. Nevertheless, once a malicious device is built, launching the attack is as easy as connecting the device to an external port for only a few seconds. Recent leaks from clandestine agencies show that they attacked both by shipping infected hardware \cite{Gal14} and by connecting external malicious devices \cite{Fin14}. Hence, the problems really do exist in the wild and should concern security experts. Moreover, our FireWire/SPB2 attack can be seen as an expansion of the classic attacks and could easily be added as a module to existing off-the-shelf attacking tools.
@@ -11,7 +9,7 @@ While working on the attacks, we realized that the root cause of all the discuss
 DMA attacks are feasible and should not be treated lightly. IOMMU subverting attacks are avoidable, but none of the solutions can be found in the wild. Better kASLR, NX-BIT and better API are all needed to prevent IOMMU subverting techniques. 
 \textcolor{olive}{use elsewhere:Its important to note that no DMA attack could work in the presence of IOMMU and the absence of sub-page vulnerability.}
 
-\subsubsection{Mitigations in the wild}
+\subsection{Mitigations in the wild}
 \textcolor{magenta}{I imagine a table with OS on Y and best practices on X.
 IOMMU policy, KASLR, NX-bit, discriminate mapping (R or W, not both), device IOVA separation, sand boxing mapped addresses.
 Kernels Win,MacOS,FreeBSD - use NDSS paper, contribution: ESX (Need to send some emails), Linux - Ubuntu versions, Sless?(RHEL)}.
