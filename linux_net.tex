@@ -15,18 +15,17 @@ The sk\_buff is a common data structure that is used in the Linux network stack 
     \item when \skb is freed the callback is invoked.
 \end{enumerate}
 This scenario assumes that the \kva of the mapped page(a.k.a \means) is known to the NIC and that \shinfo will not be overwritten by the CPU. We tackle both issues in this section.
-\begin{figure}
-    \centering
-    \includegraphics[width=1.2\linewidth]{figs/ubuf.pdf}
-    \caption{Using \shinfo to run random code in kernel context.}
-    \label{fig:sh_info}
-\end{figure}
 
 \subsection{Hacking \shinfo}\label{sec:shinfo}
 Presumably, a correct use of DMA api by the device driver could easily thwart the attack outlined in Fig \ref{fig:sh_info}. Unmapping the buffer and then initializing \shinfo; should allow the CPU to undo any malicious changes the NIC may have perpetrated. As it turns out, multiple device drivers \footnote{A partial list appears in \ref{apndx:wrong_order}} first create an \skb and only then unmap. Many high speed drivers, avoid unmapping altogether due to the performance penalty of dma\_unamp \cite{MMT16,MSMT18}. These unmapping practices (or bugs) allow the NIC ample opportunity to execute an attack. But even when the order is correct \shinfo is not safe from modifications. The default iommu mode in Linux is deferred protection; and though the unmapp function was called in the right order, the device can still access it via the IOTLB. A security conscious admin may change the default setting to strict. Now the \iova the NIC had for that page is no longer valid. And yet the device can still modify \shinfo. The vulnerability stems from the way \data is allocated. An RX \skb is allocated via the \texttt{napi\_alloc\_skb} or \texttt{netdev\_alloc\_skb} functions\footnote{There are several other options as well, but the principle is the same. \url{https://elixir.bootlin.com/linux/v5.3.8/source/net/core/skbuff.c\#L519}}; these function use a page\_frag to allocate the \data buffer that contains \shinfo. Page\_frag is an efficient method for allocating small buffers of memory. A page\_frag is initialized by allocating a contiguous memory region(usually 32KB), setting a \textit{va} pointer to the start of the region and \texttt{offset} to point to the end. An allocation request for \texttt{B} (See Fig \ref{fig:page_frags}) bytes will subtract \texttt{B} bytes from the \texttt{offset} pointer and return the new value of  \texttt{offset}. 
 %\begin{comment}The page\_frag is local to each CPU so there is no contention; page\_frag is replaced with a new one when exhausted.\end{comment} 
 This mechanism for memory allocation is very fast, but it also means that consecutive \data buffers will share memory pages. The NIC doesn't need to access the unmapped \iova to modify the \shinfo; it can use the \iova for the next data buffer. The lower 12 bits(the offset on the page) of the \iova  are the same as in the \kva, meaning that the NIC can easily know which \iova overlaps with the previous buffer. In figure \ref{fig:sh_info}, the shaded areas belong to the neighbouring \data buffers. It seems that the only way to secure \shinfo, is to never map it\cite{MSMT18}.
-
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.2\linewidth]{figs/ubuf.pdf}
+    \caption{Using \shinfo to run random code in kernel context.}
+    \label{fig:sh_info}
+\end{figure}
 \subsection{Ring Flod}\label{sec:ringflod}
 In \ref{sec:shinfo} we have established that that a malicious NIC has ample opportunity both to create a ROP stack and alter a callback function that will use it. A NIC can calculate a valid kernel\_base pointer(as we have shown in \ref{sec:kaslr}) and other randomized base pointers just by scanning pointers leaked in TX packets\footnote{For example the NIC can spoof a constant stream of pings that will continuously leak kernel pointers}; thus circumventing KASLR. At this point the malicious NIC is still missing the \means to execute an attack.
 While the NIC has a \mabaf and a callback function to override; it is missing the \kva to said buffer.
