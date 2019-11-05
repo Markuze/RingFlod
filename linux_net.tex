@@ -37,7 +37,7 @@ While the NIC has a \mabaf and a callback function to override; it is missing th
 The boot process is deterministic; executing the same set of commands, initiating the same modules and allocating the same amount of memory each reboot. While the actual pages each module gets will vary in a multi-core machine due to timing issues, the drift is not expected to be to large. We evaluate this assumptions on a DELL 730 server equiped with a ConnectX-5 NIC, running 256 reboots on Ubuntu 18.04 with kernel 5.0. \textcolor{magenta}{different kernel versions could be better, and three Dell machines}. In the fig\footnote{\textcolor{red}{Please generate table of RingFlod Results}} we show the memory used by each driver and how many of the PFNs repeat in more than 50\% percent of reboots. \textcolor{magenta}{Need to see If we can improve this number}. Thus an adversary that has some knowledge about the physical setup and the kernel version can guess with a high probability a valid \kva for one of the RX pages. Whats left is to fill all the pages with a valid \mabaf and execute an attack as demonstrated in Fig \ref{fig:sh_info}. The callback wont necessarily point back to its own page; but rather to any of the 14K such pages on a 28 core machine\footnote{We assume 1.default RX ring with 1K entries 2.MTU of 1500 where each page is shared by two skbs}. The probability of this attack depends on the driver version and NIC capabilities.For example ,some NICs have a HW LRO capability; where a NIC can aggregate multiple TCP packets into a single TCP packet, larger than MTU (bnx2x and mlx5)\footnote{\textcolor{red}{need reference to capability}}. Drivers configured with these options have a much larger memory footprint and as a result, are much easier to target with a RingFlod attack.
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=1.1\linewidth]{figs/accomplice.pdf}
+    \includegraphics[width=\linewidth]{figs/accomplice.pdf}
     \caption{A TX sk\_buff filled with malicious code, used as a \means for a DMA attack}
     \label{fig:payload}
 \end{figure*}
@@ -63,7 +63,7 @@ Packet forwarding, also opens up additional attack options. Instead of sending a
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=1.1\linewidth]{figs/gro.pdf}
+    \includegraphics[width=\linewidth]{figs/gro.pdf}
     \caption{An RX sk\_buff after GRO, used as a \means for a DMA attack}
     \label{fig:gro}
 \end{figure*}
@@ -78,6 +78,9 @@ In linear mode the NIC has both read, and write access to \shinfo; this addition
     \item The NIC reads the updated \texttt{frag} field, translates the \page address to a valid \kva and finally fills the \texttt{destructor\_arg} field. Creating a poisoned \skb like in Fig \ref{fig:sh_info}.
 \end{enumerate}
 The difference between this flow and a regular receive flow is the additional read capability the NIC has due to XDP.
+\textcolor{magenta}{\subsection{ICMP}
+In the ICMP code I have noticed; what seems to be a reuse of RX skbs for TX, resulting in READ/WRITE mapping - this can allow the device to read all server memory. Unfortunately privilege escalation is infeasible due to lack of \means, until of-course we find a scenario where ICMP adds, write accessible frags.} 
+
 \begin{comment}
 %The linear skbs in mlx5 are mapping sh\_info as BI\_DIR, need to see when linear used vs non-linear and to check othe XDP drivers. When sh\_info is mapped BI\_DIR its all we need to attack.\newline It seems linear skb (No (HW?)LRO and MTU<1500 : verify with experimnt or Boris) means no frags, while \begin{enumerate}
 %    \item build\_skb is used on a mapped page

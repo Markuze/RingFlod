@@ -77,6 +77,7 @@
 \providecommand{\spb}{SPB\-2 }
 \providecommand{\oportunity}{\textit{Opportunity} }
 \providecommand{\means}{\textit{Means} }
+\providecommand{\motivation}{\textit{Motivation} }
 
 \newcommand{\SV}[1]{{\textcolor{red}{[Shay:#1}]}} 
 
@@ -88,7 +89,7 @@
 \date{}
 
 % make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-\title{\Large \bf When DMA attacks: The self compromising Kernel}
+\title{\Large \bf The Anatomy of DMA Attacks: The Self Compromising Kernel}
 
 % USENIX Security has double blind submissions
 \begin{comment}
@@ -115,37 +116,13 @@ Technion, VMware Research
 \textcolor{magenta}{Your abstract text goes here. Just a few facts. Whet our appetites.
 Not more than 200 words, if possible, and preferably closer to 150.\newline
 We ignore the NDSS paper, the Linux attacks it mentions are at best half backed, which makes our contribution valid. We will still need to address it because the whole sub-page thing; but really its the Copy paper that introduced that notion and this is how we should frame it. The steps are \#1 Write paper as if NDSS doesn't exist. \#2 Add some defensive text when \#1 is complete}
-\newline
-\textcolor{blue}{Means, motive and opportunity; posioned KVA, DMA write access and vulberable cb pointer}
 \end{abstract}
 
 
 %-------------------------------------------------------------------------------
-\section{Introduction}
-Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access the memory without CPU involvement. Before DMA, each I/O operation resulted in data being copied to and from the CPU, causing performance degradation. By letting devices access the memory directly, this copy overhead is avoided and the system is able to run faster. 
+\input{intro.tex}
 
-Yet, in its basic form, DMA makes the system vulnerable to DMA attacks, which are carried out by malicious devices that access memory regions not intended for their use. DMA attacks are well-known and have existed in the wild for over a decade \cite{Dor04,BDK10,thunder}. They range from stealing and manipulating sensitive data to taking over the victim machine. Popular attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; or extracting full memory dumps of victim machines for offline analysis \cite{MM, Vol, Fin14, GA10}. Modern systems protect themselves against DMA attacks using the input-output memory management unit (IOMMU). Inspired by the design of the ordinary MMU, the IOMMU adds a layer of virtual memory to devices. Instead of using physical addresses, the devices use I/O virtual addresses (IOVAs), which are translated into physical addresses by the IOMMU during each I/O transaction. Hence, devices are able to access only their mapped memory, leaving all other memory protected. 
- %Our attacks rely on the fact that operating systems (OSs) are usually long living, and are almost never designed from scratch. Even though it is possible to build a completely new operating system such that it will be fully protected, this task is very hard and not common. 
-We claim that the way all state-of-the-art OSs treat I/O devices leads to wrong utilization of the IOMMU, and as a result makes them vulnerable. 
-%The reason for the numerous security vulnerabilities is the DMA API it self; writing a driver, that wont be a security burden is currently a challenge.
-\newline 
-We start the work by exploring the disparity between IOMMU design and its actual utilization. We define and explain the sub-page granularity vulnerability and the deferred invalidation vulnerability, both caused by this gap. We also give a complete view of the attacks, including the attack boundaries and threat model. The sub-page granularity vulnerability comes from the fact that the IOMMU works in granularity of whole pages only. Using current technologies, it is impossible for an OS to define permissions for items smaller than a page. Yet, I/O buffers are typically smaller; in some cases, they are as small as a few bytes. Hence, I/O devices are able to access (potentially sensitive) data co-located with their buffers in the same page. Malicious devices might use this ability to manipulate or steal this data. Due the high cost of the translation process, the IOMMU caches the translations in the I/O translation look-aside buffer (IOTLB). The OS is responsible for removing stale entries from this buffer. Because of performance issues, OSs may defer the invalidation to a later time (Linux does it by default). This behavior exposes the system to the deferred invalidation vulnerability, which might be exploited by malicious devices that access the memory during the time the IOTLB is inconsistent with the IOMMU’s translation tables. With deferred protection mode, the device can access a memory region that the code will treat as immutable.
-%black, blue, brown, cyan, darkgray, gray, green, lightgray, lime, magenta, olive, orange, pink, purple, red, teal, violet, white, yellow.
-\textcolor{orange}{V2:\newline 
-A recent study\cite{thunder}, has exposed DMA vulnerabilities in multiple OSs. The project was able to "\emph{reveal endemic vulnerability in the presence of a more sophisticated attacker despite explicit use of the IOMMU to limit I/O attacks.}". The study has resulted in fixes applied to Windows,MacOS and FreeBSD. That study also theorised that the Linux kernel should also be vulnerable to DMA attacks; though no viable attacks were proposed. The current, common impression, is that the Linux kernel, with IOMMU enabled; is safe from DMA attacks. We demonstrate, that this common assumption is false; to the extent that producing non DMA-vulnerable device drivers is a non-trivial challenge. In this work we focus on privilege escalation attacks, where an attacker can run arbitrary code in kernel context. We also demonstrate, how under specific circumstances a device can get a full memory dump. Attacks, that cause memory corruption or can read random bits of memory, have already been demonstrated \cite{MMT16,thunder} and thus do not represent a novelty. We contend, that a malicious device, just like a human criminal; when perpetrating its attack has an MMO(Means, Motive and Opportunity). Farther more, without either of the three a privilege escalation attack is impossible. We show, that as long as the OS allows for sub-page vulnerabilities even a carefully authored device driver, can be subverted by performance optimizations in deeper OS layers.
-}
-\begin{comment}
-\textcolor{teal}{V1:\newline
-The thunderclap project \cite{thunder} has exposed weakness in multiple OSs. The project was able to "\emph{reveal endemic vulnerability in the presence of a more sophisticated attacker despite explicit use of the IOMMU to limit I/O attacks.}". Most of these vulnerabilities were due to clear disregard to good DMA hygiene; and resulted in fixes in these exposed OSs. In most cases all the ingredients for a DMA attack were immediately available, to the device. In this work, we present multiple concrete attacks, where the device has to work harder to lunch an attack. The sole bastion of security seemed to be the Linux Kernel. Thus, this work focuses on the Linux network stack that was declared to be mostly secure from DMA attacks, by the Thunderclap project. To date and to the best of our knowledge, no complete DMA attacks were demonstrated against IOMMU enabled Linux Kernel. It is important to disclose that the Thunderclap project, has claimed an attack on a Linux network devices, but the description was incomplete and the attack, as described, was infeasible. We actually use it as an example in section \ref{sec:mmo}, when talking about the necessary ingredients for a successful DMA attack. In this work, we attempt to show, that while each security hole can be plugged, when reported; DMA related risks are inevitable until sub-page vulnerability is systematically eliminated.}
-\end{comment}
-\newline
-In this paper we:
-\begin{enumerate}
-    \item Define a framework for a successful DMA attack \ref{sec:mmo}. 
-    \item Demonstrate, how a buggy device driver (FireWire) can negate all OS counter measures \ref{sec:sbp2_attack}.
-    \item Show, that even when a driver is carefully written, the OS can still betray it self to a malicious device; allowing the execution of arbitrary code and/or collecting a full memory dump \ref{sec:shinfo}.
-    \item We provide a list of suggestion for a more secure OS.
-\end{enumerate}
+
 %-------------------------------------------------------------------------------
  
 \input{background.tex}
