@@ -25,3 +25,19 @@ Its important to note, that no DMA attack could work without sub-page vulnerabil
 
 %\subsection{Mitigations in the wild}
 %\textcolor{magenta}{I imagine a table with OS on Y and best practices on X. IOMMU policy, KASLR, NX-bit, discriminate mapping (R or W, not both), device IOVA separation, sand boxing mapped addresses. Kernels Win,MacOS,FreeBSD - use NDSS paper, contribution: ESX (Need to send some emails), Linux - Ubuntu versions, Sless?(RHEL)}.
+
+
+\textcolor{blue}{
+Our actionable conclusions:
+\begin{enumerate}
+    \item Static code analysis for DMA vulnerabilities.
+    \item Remove DMA Mapping API, adopt DAMN instead. \label{act:damn}
+    \item Remove mixed linear/non-linear skbs, add checks into \shinfo API.
+    \item Better API is needed for I/O operations
+    \begin{itemize}
+        \item I/O buffer creation, discourage bad habits (build\_skb).
+        \item Remove dma\_map\_single (Or adopt \ref{act:damn})
+        \item Better memory allocation - namely I/O buffers like page\_frag, page\_pool or DAMN.
+    \end{itemize}
+\end{enumerate}
+}
