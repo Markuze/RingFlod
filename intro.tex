@@ -1,18 +1,33 @@
 \section{Introduction}
 
-Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access the memory without CPU involvement. Before DMA, each I/O operation resulted in data being copied to and from the CPU, causing performance degradation. By letting devices access the memory directly, this copy overhead is avoided and the system is able to run faster. 
+Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access the memory without CPU involvement; improving system performance.  
+Yet, in its basic form, DMA makes the system vulnerable to DMA attacks, which are carried out by malicious devices that access memory regions not intended for their use. 
 
-Yet, in its basic form, DMA makes the system vulnerable to DMA attacks, which are carried out by malicious devices that access memory regions not intended for their use. DMA attacks are well-known and have existed in the wild for over a decade \cite{Dor04,BDK10,thunder}. They range from stealing and manipulating sensitive data to taking over the victim machine. Popular attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; or extracting full memory dumps of victim machines for offline analysis \cite{MM, Vol, Fin14, GA10}. Modern systems protect themselves against DMA attacks using the input-output memory management unit (IOMMU). Inspired by the design of the ordinary MMU, the IOMMU adds a layer of virtual memory to devices. Instead of using physical addresses, the devices use I/O virtual addresses (IOVAs), which are translated into physical addresses by the IOMMU during each I/O transaction. Hence, devices are able to access only their mapped memory, leaving all other memory protected.
+\SV{Add information regarding DMA capable devices}
 
-While both MMU and IOMMU provide address space isolation. IOMMU, fails to isolate the kernel from unprivileged access. The sub-page granularity vulnerability, comes from the fact that the IOMMU works in granularity of whole pages only (often 4KB). Using current technologies, it is impossible for an OS to define permissions for items smaller than a page. Yet, I/O buffers are typically smaller; in some cases, they are as small as a few bytes. Hence, I/O devices are able to access (potentially sensitive) data co-located with their buffers in the same page. Malicious devices might use this ability to manipulate or steal this data.
+DMA attacks are well-known and have existed in the wild for over a decade \cite{Dor04,BDK10,thunder}. They range from stealing and manipulating sensitive data to taking over the victim machine. Popular attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; or extracting full memory dumps of victim machines for offline analysis \cite{MM, Vol, Fin14, GA10}. 
 
-We claim that the way all state-of-the-art OSs treat I/O devices, leads to wrong utilization of the IOMMU, and as a result makes them vulnerable.
+Modern systems protect themselves against such DMA attacks by using the input-output memory management unit (IOMMU). IOMMU, inspired by the design of the ordinary MMU, adds a layer of virtual memory to devices. That is, instead of using physical addresses, the devices use I/O virtual addresses (IOVAs) which are translated into physical addresses by the IOMMU during each I/O transaction. Hence, by design, IOMMU provides address space isolation by allowing devices to access only their mapped pages, leaving all other memory pages inaccessible. 
 
-In this work we present a conceptual framework for privilege escalation attacks by DMA capable devices; MMO(\means,\motivation,\oportunity) a trifecta of prerequisites, necessary for a successful attack. We define MMO in the context of DMA attacks in the following way: \begin{enumerate}
-    \item \motivation A kernel buffer filled with malicious code; a \mabaf.
-    \item \means The \kva of a \mabaf. The device is given the \iova of all the buffers it can access; but never the \kva (directly).
-    \item \oportunity Write access to a rewrite callback function pointer.
-\end{enumerate} Without either, a privilege escalation is impossible. The MMO schema is useful for vulnerability analysis. We build a static code analysis tool to flag high risk device drivers. We used our tool on Linux Kernel 5.3. Our tool, identified around 500 device drivers at risk for high impact DMA attacks; attacks, like code injection and full memory dump. Our static analysis is able to flag drivers where \means or \oportunity are present, in the case of I/O devices \motivation is usually trivial. 
+But unlike processes that operate in page granularity, I/O buffers can be significantly smaller and share pages with other kernel buffers. For this specific reason, known as the sub-page vulnerability \cite{MMT16,thunder}, IOMMU fails to protect the kernel from unprivileged access. That is, when I/O buffers are co-located with sensitive kernel buffers in the same page, they are able to access potentially sensitive data. 
+
+Malicious devices can exploit this vulnerability to construct their attacks. These range from simple random memory access exploits (e.g., memory corruption that can be used to crush the kernel) to the more dire privilege escalation attacks; where the attacker gains control over the victim machine.
+
+\SV{related work exists but it only mentions specific attacks and specific solutions... there is no schema to identify potential threats...}
+
+Accordingly, in this work we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,\motivation,\oportunity (MMO) a trifecta of attributes, (Section \ref{sec:mmo}):
+\begin{enumerate}
+    \item \motivation: A kernel buffer filled with malicious code; a \mabaf.
+    \item \means: The kernel virtual address (\kva) of a \mabaf.
+    \item \oportunity: Write access to a callback function pointer.
+\end{enumerate} 
+
+The MMO schema is especially useful for vulnerability analysis. For example, we show that without either, a privilege escalation attack is impossible. But, other high impact attacks like a full memory dump may still be viable.  
+
+We build a static code analysis tool to flag high risk device drivers. We use our tool on Linux Kernel 5.3 and identify numerous device drivers at risk for high impact DMA attacks; attacks, like code injection and full memory dump. Our static analysis is able to flag drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device usually has a legitimate write access. 
+
+\SV{here...}
+
 \textcolor{olive}{Often, the trifecta is present in a single buffer; this makes some DMA attacks trivial\cite{thunder}. This triviality, of known DMA attacks; where a single buggy design choice compromises a system, is actually, a bane to security. The anecdotal nature of these issues, leads to a patchwork of localized fixes rather than a comprehensive solution.} We focus on more complex attacks. Situations, where the MMO trifecta is incomplete. \textcolor{olive}{Analysis of such cases, reveals a dangerous misconception. It is assumed, that buggy device drivers or poor but isolated design choices, are to blame for DMA vulnerabilities.} We demonstrate, that it is often the Kernel it self, that supplements the missing pieces of the trifecta. 
 
 In our attacks, we assume a kernel that utilizes best practices for code injection mitigation i.e KASLR,NX-bit and enables IOMMU by default. The Linux kernel is one such kernel. Linux is the de facto OS of the cloud and runs on most of the worlds servers. The Linux, also has no known DMA attacks against it; though some were theorized\cite{MMT16,thunder}.
