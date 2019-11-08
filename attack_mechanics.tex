@@ -1,11 +1,4 @@
-\section{Attack Mechanics\SV{Change section title to MMO...}}
-Given that:
-\begin{enumerate}
-    \item IOMMU hardware is correctly implemented 
-    \item IOMMU is correctly initialized on time
-\end{enumerate}
-One might assume that the systems are safe from DMA attacks. We contend that this is not the case. The \textit{least-privilege principle} requires that an entity such as a software module or a physical device must always have only the minimum necessary access to operate normally. In this chapter, we describe the risks caused by software when this principle is violated.
-\subsection{MMO}\label{sec:mmo}
+\section{MMO}\label{sec:mmo}
 In this section we introduce the notion of MMO (Motive,Means,Opportunity) in the context of DMA attacks. We contend, that a malicious device just like a human criminal needs Motive, Means and Opportunity to perpetrate its attack. Using the idea we can better understand the vulnerabilities of the OS and the viability of possible prevention methods. In order to gain control over a server the malicious device needs three things:
 \begin{enumerate}
     \item Motive: The device has DMA access, to a \mabaf The malicious device, is now motivated to exploit this situation. 
@@ -22,6 +15,14 @@ a page that also holds other data: (a) I/O buffer metadata, (b) memory allocator
 metadata such as free-list pointers and (c) randomly colocated sensitive buffers.}
     \label{fig:colocation}
 \end{figure}
+\subsection{Attack Mechanics}
+Given that:
+\begin{enumerate}
+    \item IOMMU hardware is correctly implemented 
+    \item IOMMU is correctly initialized on time
+\end{enumerate}
+One might assume that the systems are safe from DMA attacks. We contend that this is not the case. The \textit{least-privilege principle} requires that an entity such as a software module or a physical device must always have only the minimum necessary access to operate normally. In this chapter, we describe the risks caused by software when this principle is violated.
+
 \subsection{Sub-Page}\label{sec:subpage}
 Currently, OSs allocate I/O buffer memory using the same mechanisms they use for any memory allocation. These mechanisms, however, are oblivious to the role of the allocated memory. Consequently, I/O buffers may reside in the same page with other and potentially sensitive data. Since IOMMU protection is limited to page granularity, I/O devices that are allowed to access an I/O buffer gain access to this data as well. This behavior might compromise the system security. We classified the different types of potentially co-located data into three categories (as illustrated in Figure ~\ref{fig:colocation}: In case (a), the I/O buffer is part of a bigger data structure that also contains metadata used by the device driver. In the extreme case, this metadata might include function pointers, which enable relatively simple and robust attacks. Other fields in such data structures might be dangerous as well. In case (b), the memory allocator saves metadata, such as free-lists, with the I/O buffers, in the same page \cite{Cor07}. Manipulating these data structures may compromise the system completely \cite{ak09}. Finally, in (c), the I/O buffer and another dynamically allocated memory may reside in the same page. This common situation can easily cause data leakage, but may also be used for more sophisticated attacks. 
 %We used randomly colocated pointers to break kASLR, as we discuss in Chapter 5. Why do OSs ignore the disparity between I/O buffer allocation alignment and protection granularity? One possible explanation is the benefits of dense memory allocations: lower internal memory fragmentation, which results in higher memory utilization, and lower translation lookaside buffer (TLB) pressure, which reduces the number of TLB misses. We suspect, however, that the main reason for the disparity is actually more prosaic. As IOMMUs were introduced to commodity servers relatively recently, OS developers have been reluctant to overhaul existing device drivers and change the way they allocate and manage their memory. Instead, IOMMU mapping operations were abstracted from device drivers, and implemented on top of existing DMA APIs [MHJ, The]. As a result, the memory allocation of I/O buffers has not been modified and adapted to take into consideration the IOMMU protection granularity.
