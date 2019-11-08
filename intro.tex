@@ -1,9 +1,9 @@
 \section{Introduction}
 
-Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access the memory without CPU involvement; improving system performance.  
-Yet, in its basic form, DMA makes the system vulnerable to DMA attacks, which are carried out by malicious devices that access memory regions not intended for their use. 
+Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access the memory without CPU involvement; improving system performance.
+DMA capable devices include internal devices, such as GPUs, Network Interface Cards (NICs), storage devices (e.g., NVMe) and other peripheral devices; and external devices such as FireWire and Thunderbolt devices. Currently, the Linux kernel (version 5.3) has as much as 700 such device drivers, where a third of those are network device drivers. Yet, in its basic form, DMA makes the system vulnerable to DMA attacks; which are carried out by malicious DMA capable devices that access memory regions not intended for their use. 
 
-\textcolor{blue}{DMA capable devices include internal devices, like GPUs, Network Interface Cards(NICs), Storage devices, NVMe and other accelerators; and external like FireWire and Thunderbolt devices. In the Linux kernel there are around 700 such device drivers, about a third of which are network device drivers.}
+
 
 DMA attacks are well-known and have existed in the wild for over a decade \cite{Dor04,BDK10,thunder}. They range from stealing and manipulating sensitive data to taking over the victim machine. Popular attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; or extracting full memory dumps of victim machines for offline analysis \cite{MM, Vol, Fin14, GA10}. 
 
@@ -13,33 +13,29 @@ But unlike processes that operate in page granularity, I/O buffers can be signif
 
 Malicious devices can exploit this vulnerability to construct their attacks. These range from simple random memory access exploits (e.g., memory corruption that can be used to crush the kernel) to the more dire privilege escalation attacks; where the attacker gains control over the victim machine.
 
-%\SV{related work exists but it only mentions specific attacks and specific solutions... there is no schema to identify potential threats...}
-
-\textcolor{blue}{Previously reported vulnerabilities had an ad-hoc nature; rather than a structured top down approach. We argue that a structured approach is needed. As it can lead to better threat detection and as a result, a more secure OS.} Accordingly, in this work we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,\motivation,\oportunity (MMO) a trifecta of attributes, needed for DMA attacks (Section \ref{sec:mmo}):
+Previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top down approach. We argue that a structured approach is needed as it can lead to better threat detection and analysis; precipitating a more secure OS. Accordingly, in this work we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,~\motivation{} and \oportunity~(MMO) a trifecta of attributes, sufficient to lay out the space of DMA attacks (Section \ref{sec:mmo}):
 \begin{enumerate}
     \item \motivation: A kernel buffer filled with malicious code; a \mabaf.
     \item \means: The kernel virtual address (\kva) of a \mabaf.
     \item \oportunity: Write access to a pointer; that can alter the CPU control flow.
 \end{enumerate} 
-\textcolor{blue}{The schema covers plausible deterministic attacks; where the device knows, which data structures are targeted. As opposed to, random access due to sup-page vulnerability. Random access  attacks, should not be taken lightly. But the analysis of random access attacks, is beyond the scope of this paper.}
 
+The MMO schema is especially useful for vulnerability analysis. For example, we show that a privilege escalation attack requires the full trifecta to be realized. Other high impact attacks, such as full memory dump, may still be viable with only \oportunity{} given. 
 
-The MMO schema is especially useful for vulnerability analysis. For example, we show that a privilege escalation attack needs the full trifecta to succeed. But, other high impact attacks, like a full memory dump, may still be viable with only an \oportunity{} is given. 
+We build a static code analysis tool inspired by MMO to flag high risk device drivers. We use our tool on Linux Kernel 5.3 and identify numerous device drivers at risk for high impact DMA attacks such as privilege escalation by code injection and full memory dump. 
 
-We build a static code analysis tool to flag high risk device drivers. We use our tool on Linux Kernel 5.3 and identify numerous device drivers at risk for high impact DMA attacks; attacks, like code injection and full memory dump. Our static analysis is able to flag drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device usually has a legitimate write access. 
+Often, the trifecta is present in a single buffer; this makes some DMA attacks straight forward. This apparent simplicity of known DMA attacks, where a single buggy design choice compromises an entire system, is actually, a bane to security. The anecdotal nature of these issues, often leads to a patchwork of localized fixes rather than a comprehensive solution. 
 
-\SV{here...}
+We focus on more complex attacks; situations, where the MMO trifecta is incomplete. Analysis of such cases, as we find in this work, reveals a dangerous misconception. It is assumed, that buggy device drivers or poor but isolated design choices, are to blame for DMA vulnerabilities. We demonstrate, that, in fact, it is often the Kernel itself, that supplements the missing pieces of the trifecta; showing that this is a deep-rooted issue rather than a collection of disjoint incidents.
 
-\textcolor{olive}{Often, the trifecta is present in a single buffer; this makes some DMA attacks trivial\cite{thunder}. This triviality, of known DMA attacks; where a single buggy design choice compromises a system, is actually, a bane to security. The anecdotal nature of these issues, leads to a patchwork of localized fixes rather than a comprehensive solution.} We focus on more complex attacks. Situations, where the MMO trifecta is incomplete. \textcolor{olive}{Analysis of such cases, reveals a dangerous misconception. It is assumed, that buggy device drivers or poor but isolated design choices, are to blame for DMA vulnerabilities.} But, we demonstrate, that it is often the Kernel it self, that supplements the missing pieces of the trifecta. Showing that is is a deep-rooted issue rather than a collection of anecdotes.
+To asses and validate our findings, we use a recent Linux kernel (version 5.3) that utilizes best practices for code injection mitigation i.e., KASLR, NX-bit and has IOMMU enabled by default. Furthermore, Linux is the de facto OS of the cloud and runs on most of the worlds servers. The Linux, also has no known DMA attacks against it; though some were theorized \cite{MMT16,thunder}. 
 
-In our attacks, we assume a kernel that utilizes best practices for code injection mitigation i.e KASLR,NX-bit and enables IOMMU by default. The Linux kernel is one such kernel. Linux is the de facto OS of the cloud and runs on most of the worlds servers. The Linux, also has no known DMA attacks against it; though some were theorized\cite{MMT16,thunder}. In this work, we demonstrate several exploits, on several device drivers. We begin by demonstrating an exploit on the Firewire, \spb driver (sec \ref{sec:sbp2_attack}). This, driver belongs to the family of device drivers that are trivially vulnerable, and are easily marked by our static analysis tool. We also provide a short list of notable drivers, that have the same vulnerability. Then in section \ref{sec:linux_net}, we tackle the harder cases where the trifecta is initially incomplete and human expertise are needed to expose the vulnerabilities.
-
-Our contributions in this paper are as follows:
+Nevertheless, in this work, we demonstrate how MMO can be used systematically to expose DMA vulnerabilities in the Linux kernel. For example, we demonstrate an exploit on the FireWire \spb driver (section \ref{sec:sbp2_attack}) and show how this driver is marked by our static analysis tool. We also provide a list of notable drivers, that have the same vulnerability. We also tackle harder cases where the identified trifecta attributes are initially incomplete and human expertise is needed to exploit these vulnerabilities (section \ref{sec:linux_net}). To summarize, our contributions in this paper are as follows:
 \begin{itemize}
-    \item MMO Schema for evaluating DMA attacks; we show that the trifecta must be complete for a successful attack. 
-    \item We evaluate the Linux kernel device drivers with static code analysis; to find around 500 drivers at high levels of risk.
-    \item We demonstrate multiple DMA attacks on the Linux Kernel, where initially the trifecta is incomplete. 
-    %We show how the Linux kernel itself; rather than the drivers leak access. These attacks reveal a deep vulnerability in the Linux kernel, de-facto, the OS of the cloud.
-    %\item We show how the OS API for the device drives is at fault; rather than the device driver programmers.
-    \item We provide a set of actionable advice for better DMA security which is compatible with the performance needs of modern systems.
+    \item We introduce the MMO Schema for evaluating kernel vulnerabilities to DMA attacks. 
+    \item We develop an MMO inspired, static code analysis tool. We use it to evaluate the Linux kernel device drivers; and find numerous device drivers, at a high level of risk to DMA attack.
+    \item We demonstrate, various MMO inspired DMA attacks on the Linux Kernel; even such where initially the trifecta is seemingly incomplete. 
+    \item We utilize our findings and provide a set of actionable advice for better DMA security; which is compatible with the performance needs of modern systems.
 \end{itemize}
+
+\noindent\textbf{Remark.} The MMO schema covers both random and deterministic attacks. In this paper we focus on demonstrating and addressing deterministic attacks; where the device knows, which data structures are targeted. Random access attacks, also exploit sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks, requires a deeper analysis to produce a viable chance of success. Such attacks, are out of the scope of this paper. 
