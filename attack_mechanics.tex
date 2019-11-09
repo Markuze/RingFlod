@@ -1,34 +1,72 @@
 \section{MMO}\label{sec:mmo}
-In this section we introduce the notion of MMO (Motive,Means,Opportunity) in the context of DMA attacks. We contend, that a malicious device just like a human criminal needs Motive, Means and Opportunity to perpetrate its attack. Using the idea we can better understand the vulnerabilities of the OS and the viability of possible prevention methods. In order to gain control over a server the malicious device needs three things:
+
+In this section, we introduce the MMO (\motivation, \means, \oportunity) schema. We contend that a malicious device, just like a human criminal, needs Motive, Means, and Opportunity to perpetuate its attack. Using this schema, we can better understand the DMA vulnerabilities of an OS, the viability of possible DMA attacks, and their prevention. 
+
+For example, using MMO schema, we are able to lay out the necessary conditions for a successful privilege escalation attack (i.e., code injection). Specifically, a malicious device needs all three prerequisites:
 \begin{enumerate}
-    \item Motive: The device has DMA access, to a \mabaf The malicious device, is now motivated to exploit this situation. 
-    \item Means: The device has a valid \kva for said \mabaf. The device is given the \iova of all the buffers it can access; but never the \kva{} (directly). The device wields the \kva like a weapon.
-    \item Opportunity: The device can overwrite a callback pointer in a deterministic way. The device has a target in its cross-hairs.
+    \item \motivation: A kernel buffer filled with malicious code (e.g., a valid ROP attack) -- a \mabaf.
+    \item \means: The kernel virtual address (\kva) of a \mabaf. Given the device is using \iova, the attacker needs to obtain the \kva{}, for example, by observing leaked pointers. 
+    \item \oportunity: Write access to a known pointer, which can alter the CPU control flow. For example, write access to a data structure that holds a function callback pointer, at a known offset\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation \cite{rand_layout}.}.
 \end{enumerate}
-For example, a NIC has write access to a page of an RX packet. Due to sub page vulnerability a random structure with a callback pointer is accessible at a random offset. While this may seem, that the device has a valid attack vector it is actually missing two key ingredients. The device has no \textit{Means}. While the device can write a \mabaf on to the page; the device must figure out the \kva\footnote{The device is using an IOVA to access memory, to the best of our knowledge there is no way to correlate an IOVA to a \kva on a Linux machine}. The device also doesn't have an \textit{Opportunity}. Without  read access or any other additional information, the NIC cant know what structures are exposed and at what offsets. While corrupting random kernel memory may cause a kernel panic \cite{MMT16}, but its not the goal that we are after.
+
+Another example is a full memory dump attack, which can be executed by merely having \oportunity. In this case, we are able to modify the kernel control flow in such a way as to cause it to dma\_map arbitrary kernel addresses at will. In order to achieve this, an attacker will need to modify a kernel pointer once before it is mapped and for a second time before send (i.e., TX) completion in order to avoid memory corruption (Section \ref{sec:linux_net}). 
+
+To further emphasize the significance of the MMO attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing an RX packet (i.e., a received packet). Due to sub-page vulnerability and a random allocation coincidence, a structure with a callback pointer is inadvertently accessible with write permission. Also, the malicious device is able to create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks two essential prerequisites.
+
+\begin{itemize}
+    \item Missing \means: Without a valid \kva{} of the writable page, the device can not modify the callback function pointer to indicate the \mabaf.
+    \item Missing \oportunity: Although a callback function pointer is available for modifications, the device has no way of knowing: 
+    \begin{enumerate}
+        \item[(a)] That a callback function pointer is available for sabotage.
+        \item[(b)] The correct offset of the callback function pointer.
+    \end{enumerate}
+\end{itemize}
+
+Under the hypothesized circumstance, and without additional information, a malicious device has practically no valid attack options. 
+And while corrupting random kernel memory is still a possibility and may even cause a kernel panic \cite{MMT16}, it does not achieve the goal of privilege escalation.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=1\columnwidth]{figs/colocation.png}
-    \caption{Sub-page granularity DMA vulnerabilities when the I/O buffer resides in
+    \caption{\SV{TODO: update figure according to text and then update the caption accordingly.}Sub-page granularity DMA vulnerabilities when the I/O buffer resides in
 a page that also holds other data: (a) I/O buffer metadata, (b) memory allocator’s
-metadata such as free-list pointers and (c) randomly colocated sensitive buffers.}
+metadata such as free-list pointers and (c) randomly co-located sensitive buffers.}
     \label{fig:colocation}
 \end{figure}
+
+\begin{comment}
 \subsection{Attack Mechanics}
 Given that:
 \begin{enumerate}
     \item IOMMU hardware is correctly implemented 
-    \item IOMMU is correctly initialized on time
+    \item IOMMU is correctly initialized and on time
 \end{enumerate}
-One might assume that the systems are safe from DMA attacks. We contend that this is not the case. The \textit{least-privilege principle} requires that an entity such as a software module or a physical device must always have only the minimum necessary access to operate normally. In this chapter, we describe the risks caused by software when this principle is violated.
+%One might assume that the systems are safe from DMA attacks. We contend that this is not the case. The \textit{least-privilege principle} requires that an entity such as a software module or a physical device must always have only the minimum necessary access to operate normally. In this chapter, we describe the risks caused by software when this principle is violated.
+\end{comment}
 
-\subsection{Static Analysis}
-Our static analysis is able to flag drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device usually has a legitimate write access. 
+\subsection{Static Analysis Tool}
 
-\subsection{Sub-Page}\label{sec:subpage}
-Currently, OSs allocate I/O buffer memory using the same mechanisms they use for any memory allocation. These mechanisms, however, are oblivious to the role of the allocated memory. Consequently, I/O buffers may reside in the same page with other and potentially sensitive data. Since IOMMU protection is limited to page granularity, I/O devices that are allowed to access an I/O buffer gain access to this data as well. This behavior might compromise the system security. We classified the different types of potentially co-located data into three categories (as illustrated in Figure ~\ref{fig:colocation}: In case (a), the I/O buffer is part of a bigger data structure that also contains metadata used by the device driver. In the extreme case, this metadata might include function pointers, which enable relatively simple and robust attacks. Other fields in such data structures might be dangerous as well. In case (b), the memory allocator saves metadata, such as free-lists, with the I/O buffers, in the same page \cite{Cor07}. Manipulating these data structures may compromise the system completely \cite{ak09}. Finally, in (c), the I/O buffer and another dynamically allocated memory may reside in the same page. This common situation can easily cause data leakage, but may also be used for more sophisticated attacks. 
+Inspired by the MMO schema, we devise a static code analysis tool to classify device drivers by levels of risk. With well over a 1000 \texttt{dma\_map*} function calls, in the Linux Kernel alone, a manual process would be arduous.
+Our static analysis tool flags drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device usually has a legitimate write access. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure; additionally we look for functions (e.g \texttt{build\_skb}), that create a data structure inside a mapped buffer. The risk is classified according to the access permission, \motivation (indicated by READ) or \oportunity (indicated by WRITE/BIDIRECTIONAL). 
+Finally, the output of the tool presents structured and filtered findings suitable for deeper human expert analysis to determine if a viable attack is feasible.
+
+\subsection{Sub-Page Vulnerability}\label{sec:subpage}
+
+Currently, the Linux kernel uses the same memory allocation mechanism (e.g., kmalloc) for both I/O buffers and regular kernel memory use. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works in page granularity, the respective I/O devices gain access to these kernel buffers as well. 
+
+We classify the different types of potentially co-located data, into three categories, as illustrated in Figure~\ref{fig:colocation}:
+
+\begin{enumerate}
+    \item[(a)] The I/O buffer is part of a bigger data structure. In some cases, this data structure may include function pointers.
+    \item[(b)] The OS (e.g., memory allocator) rather than the driver saves metadata, such as free-lists, on the same page as the I/O buffer \cite{Cor07}. Manipulating these data structures may also compromise the system  \cite{ak09}.
+    \item[(c)] The I/O buffer and another dynamically allocated memory may coincidentally reside in the same page. This common situation causes data leakage (e.g., kernel pointers).
+     \item[(d)] The same page is mapped multiple times due to co-located device driver buffers. Resulting in multiple \iova{} for the same page.
+\end{enumerate}
+
+%In case (a),  
+%Other fields in such data structures might be dangerous as well.
 %We used randomly colocated pointers to break kASLR, as we discuss in Chapter 5. Why do OSs ignore the disparity between I/O buffer allocation alignment and protection granularity? One possible explanation is the benefits of dense memory allocations: lower internal memory fragmentation, which results in higher memory utilization, and lower translation lookaside buffer (TLB) pressure, which reduces the number of TLB misses. We suspect, however, that the main reason for the disparity is actually more prosaic. As IOMMUs were introduced to commodity servers relatively recently, OS developers have been reluctant to overhaul existing device drivers and change the way they allocate and manage their memory. Instead, IOMMU mapping operations were abstracted from device drivers, and implemented on top of existing DMA APIs [MHJ, The]. As a result, the memory allocation of I/O buffers has not been modified and adapted to take into consideration the IOMMU protection granularity.
+
 \subsection{Deferred Invalidation vulnerability} 
 \begin{figure*}[t]
     \centering
