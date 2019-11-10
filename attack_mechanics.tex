@@ -27,10 +27,10 @@ And while corrupting random kernel memory is still a possibility and may even ca
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=1\columnwidth]{figs/colocation.png}
-    \caption{\SV{TODO: update figure according to text and then update the caption accordingly.}Sub-page granularity DMA vulnerabilities when the I/O buffer resides in
+    \includegraphics[width=1\columnwidth]{figs/subpage.pdf}
+    \caption{Sub-page DMA vulnerabilities when the I/O buffer resides in
 a page that also holds other data: (a) I/O buffer metadata, (b) memory allocator’s
-metadata such as free-list pointers and (c) randomly co-located sensitive buffers.}
+metadata (c) randomly co-located sensitive buffers, (d) Page mapped by multiple \iova}
     \label{fig:colocation}
 \end{figure}
 
@@ -44,24 +44,23 @@ Given that:
 %One might assume that the systems are safe from DMA attacks. We contend that this is not the case. The \textit{least-privilege principle} requires that an entity such as a software module or a physical device must always have only the minimum necessary access to operate normally. In this chapter, we describe the risks caused by software when this principle is violated.
 \end{comment}
 
+\subsection{Sub-Page Vulnerability}\label{sec:subpage}
+
+We classify the different types of potentially co-located data, into four categories, as illustrated in Figure~\ref{fig:colocation}:
+
+\begin{enumerate}
+    \item[(a)] The I/O buffer is part of a bigger data structure. In some cases, this data structure may include function pointers. Often caused by poor DMA hygiene, by the driver authors. We demonstrate a full exploit in section \ref{sec:sbp2_attack}. A local driver is needed to fix such situation.
+    \item[(b)] The OS (e.g., memory allocator) rather than the driver saves metadata, such as free-lists, on the same page as the I/O buffer \cite{Cor07}. Manipulating these data structures may also compromise the system  \cite{ak09}. Similar to (a), but this time its an OS subsystem that is at fault rather than the device driver. We demonstrate attacks, made possible, by an OS subsystem in section \ref{sec:linux_net}.
+    \item[(c)] The I/O buffer and another dynamically allocated memory may coincidentally share a page. This common situation causes data leakage (e.g., kernel pointers).
+    Currently, the Linux kernel uses the same memory allocation mechanism (e.g., kmalloc) for both I/O buffers and regular kernel memory use. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works in page granularity, the respective I/O devices gain access to these kernel buffers as well. This, is a subclass of (b), as its caused by an OS subsystem; but the main difference is that, the exposed data structures are leaked randomly.
+     \item[(d)] The same page is mapped multiple times due to co-located device driver buffers. Resulting in multiple \iova{} to the same page. A seemingly benign case, made dangerous by the fact, that unmapping one \iova{} is meaningless, security wise. The device will retain access to the physical page as long as a single valid \iova{} exists. We discuss the implications of this scenario in section \ref{sec:linux_net}.
+\end{enumerate}
+
 \subsection{Static Analysis Tool}
 
 Inspired by the MMO schema, we devise a static code analysis tool to classify device drivers by levels of risk. With well over a 1000 \texttt{dma\_map*} function calls, in the Linux Kernel alone, a manual process would be arduous.
-Our static analysis tool flags drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device usually has a legitimate write access. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure; additionally we look for functions (e.g \texttt{build\_skb}), that create a data structure inside a mapped buffer. The risk is classified according to the access permission, \motivation (indicated by READ) or \oportunity (indicated by WRITE/BIDIRECTIONAL). 
-Finally, the output of the tool presents structured and filtered findings suitable for deeper human expert analysis to determine if a viable attack is feasible.
-
-\subsection{Sub-Page Vulnerability}\label{sec:subpage}
-
-Currently, the Linux kernel uses the same memory allocation mechanism (e.g., kmalloc) for both I/O buffers and regular kernel memory use. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works in page granularity, the respective I/O devices gain access to these kernel buffers as well. 
-
-We classify the different types of potentially co-located data, into three categories, as illustrated in Figure~\ref{fig:colocation}:
-
-\begin{enumerate}
-    \item[(a)] The I/O buffer is part of a bigger data structure. In some cases, this data structure may include function pointers.
-    \item[(b)] The OS (e.g., memory allocator) rather than the driver saves metadata, such as free-lists, on the same page as the I/O buffer \cite{Cor07}. Manipulating these data structures may also compromise the system  \cite{ak09}.
-    \item[(c)] The I/O buffer and another dynamically allocated memory may coincidentally reside in the same page. This common situation causes data leakage (e.g., kernel pointers).
-     \item[(d)] The same page is mapped multiple times due to co-located device driver buffers. Resulting in multiple \iova{} for the same page.
-\end{enumerate}
+Our static analysis tool flags drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device has a legitimate write access. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Figure \ref{fig:colocation} (a)); additionally we look for jeopardous functions (e.g \texttt{build\_skb}), that create a data structure inside a mapped buffer (Figure \ref{fig:colocation} (b)). The risk is classified according to the access permission, \motivation{}, implied by a READ permission, or \oportunity{} ,implied by a WRITE/BIDIRECTIONAL permission. 
+Finally, the output of the tool presents structured and filtered findings conductive for deeper human expert analysis to determine if a viable attack is feasible.
 
 %In case (a),  
 %Other fields in such data structures might be dangerous as well.
