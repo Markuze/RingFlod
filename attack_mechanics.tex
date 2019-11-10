@@ -29,7 +29,7 @@ And while corrupting random kernel memory is still a possibility and may even ca
     \centering
     \includegraphics[width=1\columnwidth]{figs/subpage.pdf}
     \caption{Sub-page DMA vulnerabilities when the I/O buffer shares a page with other data: (a) I/O buffer metadata; (b) memory allocator’s
-metadata; (c) randomly co-located sensitive buffers; (d) a page mapped by multiple \iova.}
+metadata; (c) randomly co-located sensitive buffers; (d) a page mapped by multiple \iova.\textcolor{red}{Add size 4k, and replace allocator md with something that actually makes a god damn sense.}}
     \label{fig:colocation}
 \end{figure}
 
