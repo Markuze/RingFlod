@@ -70,20 +70,31 @@ Finally, the output of the tool presents structured and filtered findings conduc
 \begin{figure*}[t]
     \centering
     \includegraphics[width=1.3\columnwidth]{figs/deferred.png}
-    \caption{Strict vs. deferred IOTLB invalidations. In deferred mode, there is a period
-where the data is accessible but the mapping no longer exists.}
+    \caption{Strict vs. deferred IOTLB invalidation. In deferred mode, there is a period of time
+where the data is accessible to the device but, the mapping no longer appears in the page table.}
     \label{fig:deferred}
 \end{figure*}
-To translate addresses efficiently, the IOMMU caches translations in an input/output translation lookaside buffer (IOTLB). Like MMUs, IOMMUs do not maintain consistency between the IOTLB and the IOMMU page tables, which reside in memory; instead, the OS is required to restore consistency by explicitly invalidating the IOTLB. Therefore, to ensure that the IOTLB never holds stale entries, the OS must invalidate the IOTLB immediately after it removes memory mappings. Yet this scheme, called the “strict” mode in Linux, can degrade performance, as IOTLB invalidations can induce very high overhead \cite{MMT16,MSMT18,Peleg15}. In I/O intensive workloads, the number of required IOTLB invalidations can be extremely high, as IOMMU entries are unmapped following each I/O operation. Moreover, the overhead of each IOTLB invalidation can be as high as 2000 cycles \cite{ABYTS11}, considerably more than TLB invalidation, which takes roughly 100 cycles \cite{Han14}. To reduce this overhead, Linux defers TLB invalidations by default, and instead performs periodic global TLB invalidations. This “deferred” mode induces smaller performance overheads relative to the alternative “strict” mode. Nevertheless, as depicted in Figure \ref{fig:deferred}, deferring IOTLB invalidations may not prevent I/O devices from accessing unmapped pages, as the IOMMU may perform translations using stale IOTLB entries until the actual invalidation. This behavior introduces a security hazard, as the OS can reuse pages for other purposes after they are unmapped, regardless of the actual time of IOTLB invalidation. In the time window between the unmap operation and the actual invalidation, the OS may place sensitive data in the unmapped page-frame which the device may then read or modify. This time frame may be as high as 10 milliseconds when I/O traffic is low \cite{MSMT18}. In fact, this is a common scenario, as OSs prefer to reuse “hot” page-frames, recently freed, as they are likely to be already cached in the CPU caches\cite{hotcold}
-. Therefore, it is possible in certain cases to predict how unmapped memory would be reused and which data it would expose.  
-%As we demonstrate in Section 4.3, this behavior enables us to build robust assaults powerful enough to gain full control over a victim system.
-\subsection{Threat Model}
-Our attacks are built on the following assumptions:
+To limit the overhead of page tables walks when translating \iova, the IOMMU caches translations in an input/output translation lookaside buffer (IOTLB). The IOTLB is analogous to the MMU TLB. IOMMU does not maintain consistency between the IOTLB and the IOMMU page tables. As a result, the OS has to explicitly invalidate the IOTLB, to maintain consistency when a translation entry is removed. Namely, to ensure that the IOTLB never holds stale entries, the OS must invalidate the IOTLB immediately after it removes memory mappings. Yet this scheme, called the “strict” mode in Linux, can degrade performance, as IOTLB invalidations can induce very high overhead \cite{MMT16,MSMT18,Peleg15}. In I/O intensive workloads, the number of required IOTLB invalidations can be extremely high, as IOMMU entries are unmapped following each I/O operation. Moreover, the overhead of each IOTLB invalidation can be as high as 2000 cycles \cite{ABYTS11}; which is, considerably higher than a TLB invalidation, which takes roughly 100 cycles \cite{Han14}. To reduce this overhead, Linux defers TLB invalidations by default, and instead performs periodic global TLB invalidations. 
+
+While “deferred” mode, improves I/O performance, it also breaks the stipulation, that after \texttt{dma\_unmap}, the physical page should no longer be accessible by the device. This "deferred" time frame (Figure \ref{fig:deferred}), may be as high as 10 milliseconds \cite{MSMT18}.
+
+The repercussions of "deferred" mode are that, a malicious device can take advantage of this time window; where it has access to memory pages, effectively, unbeknownst to the CPU. This opens up two distinct attack options:
 \begin{enumerate}
-    \item The actual attack is performed by a DMA-capable malicious device.
-    \item There is software that violates the least-privilege principle with respect to the I/O device. The inherent vulnerabilities in the common use of the IOMMU make this a realistic assumption (§\ref{sec:sbp2_attack}). 
+    \item A device can alter data structures the CPU has modified \emph{after} calling \texttt{dma\_unmap}.
+    \item The page can be freed, and then immediately reused by the OS. In fact, this is a common scenario, as Linux prefers to reuse “hot” pages (i.e., recently used pages), as they are likely, to already reside in the CPU caches\cite{hotcold}. Opening up the kernel to an additional random access attack.
+\end{enumerate}
+
+We demonstrate in section \ref{sec:linux_net}, how an adversary can take advantage of deferred mode.
+
+\subsection{Threat Model and Consequence}
+Our attacks are designed with the following assumptions:
+\begin{enumerate}
+    \item We assume the existence of a malicious, DMA capable device attached to the system.
+    \item The actual attack is performed, solely, by a DMA-capable, malicious device.
+    \item Any hardware aside from the specific malicious device is working as expected.
+    \item Any ports intended for debugging (e.g., jtag), are not considered.
+     %(§\ref{sec:sbp2_attack}). 
  \end{enumerate}
- The attacks discussed in this work are not executed by modifying the victim’s OS or drivers. We also assume that any hardware aside from the specific malicious device is working as expected, especially the DMA controller and the IOMMU itself. We also do not consider ports intended for debugging (e.g., jtag).
-\subsection{Consequences}
-The greatest potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. In all our experiments, we successfully executed code in the context of the kernel. Another, potential consequence is full system memory; these are harder to thwart and even harder to detect.  
-Lastly, a consequence of a simple attack is denial of service \cite{MMT16}; where we crush the OS. Ideally, malformed devices should not be able to crash the entire system. The IOMMU is expected to properly isolate the devices from the OS to ensure this does not happen. Bad isolation, such as colocation of different types of data in the same page, may lead to system instability. To reach the above results, the attacker must have write permissions to some memory region. When an attacker has only read permissions, the consequences may still be interesting as they may lead to data leakage\cite{thunder}. The kernel often keeps sensitive data such as encryption keys and passwords as plain-text in memory. Attackers may use incorrect read permissions to leak this sensitive information.
+
+The greatest potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Another, potential consequence we consider, is full system memory dump; these are harder to thwart and even harder to detect.  
+Lastly, a consequence of a possible failed attack, is a random memory corruption, resulting in denial of service \cite{MMT16}, where the OS panics. Ideally, malformed devices should not be able to crash the entire system. 
