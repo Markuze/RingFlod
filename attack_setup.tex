@@ -1,6 +1,6 @@
 \section{Attack setup}\label{sec:attack_setup}
 
-In our attacks, we use an Intel x86 machine with Ubuntu 17.10 (kernel version 4.13), as our victim machine. The server is equipped with Intel VT-d IOMMU and a Broadcom NetXtreme II BCM5709 Gigabit Ethernet NIC. An identical machine connected to the victim with a FireWire cable acting as the attacker. 
+In our attacks, we use a Dell PowerEdge R610 server, an Intel x86 machine with Ubuntu 18.04 (kernel version 4.15), as our victim machine. The server is equipped with Intel VT-d IOMMU a Broadcom NetXtreme II BCM5709 Gigabit Ethernet NIC, a Mellanox Technologies ConnectX-4 Ethernet NIC and VIA Technologies, Inc. VT6315 Series Firewire Controller. An identical machine connected to the victim with a FireWire cable acting as the attacker. 
 
 We create a malicious FireWire device by modifying the Linux-IO Target (LIO) subsystem on the attacker machine. The LIO subsystem supports hard disk emulation for remote computers via the \spb{} protocol; and, as such, is a suitable platform to execute such attacks. 
 
