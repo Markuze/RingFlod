@@ -58,16 +58,19 @@ As it turns out, prevalent device drivers (Appendix \ref{apndx:wrong_order}) fir
 \item In response, a security-conscious admin may change the default setting to \emph{strict} mode, where the IOTLB is flushed on every unmap. However, this both severely degrades networking performance \cite{MMT16,MSMT18}, and does not alleviate the security threats on the system. Presumably, with \emph{strict} mode enabled, the \iova{} the NIC used to access that \shinfo{} is no longer valid, which initially sounds promising. The problem is that the device, in many cases, will still have legitimate WRITE access to the physical page of the \shinfo. The vulnerability stems from the way \data{} is allocated. An RX \skb{} is almost exclusively allocated via an API (e.g., \texttt{napi\_alloc\_skb} or \texttt{netdev\_alloc\_skb}) that creates a type (c) sub page vulnerability (Fig. \ref{fig:colocation} (c)). The device can use the \iova{} of a co-located buffer to access the \shinfo{} it requires. Particularly, the buffers of the driver RX ring are allocated sequentially, resulting in pairs of successive RX descriptors that map the same page. Obviously, this holds as long as the buffer sizes are smaller than 4 KB. This is a reasonable assumption since the default MTU size is 1500~B. These allocation functions, use a \texttt{page\_frag} mechanism to allocate the \data{} buffers, which in turn contain \shinfo. The \texttt{page\_frag} is an efficient method for allocating small buffers, often used by the Linux network stack. A \texttt{page\_frag} is initialized by allocating a contiguous memory region (usually 32 KB), setting a \textit{va} pointer to the beginning of the region and \texttt{offset} to the end. An allocation request for \texttt{B} bytes subtracts \texttt{B} bytes from the \texttt{offset} pointer and returns the new value of \texttt{offset}\footnote{In multicore environments, the \texttt{page\_frag} uses a different buffer for each CPU and each CPU has a single RX ring. As a result, each RX ring is served by its own (per-CPU) contiguous buffer.} (Fig. \ref{fig:page_frags}). This mechanism for memory allocation is efficient, but results in consecutive \data{} buffers sharing memory pages. Due to this type (c) sub page vulnerability, the NIC does not require the invalidated \iova{} to modify the \shinfo; instead, it can use the \iova{} for the next data buffer. Note that the lower 12 bits (the offset on the page) of the \iova{} are identical to the corresponding \kva{} bits. As illustrated in Fig. \ref{fig:sh_info}, the \oportunity{} obtained is via the next buffer (i.e., the striped area at the end of the page).
 \end{enumerate}
 
-Interestingly, as it stands today, it seems that the only way to secure \shinfo{} is to never map it. 
+\textcolor{olive}{
+The drivers on our setup, namely bnx2 and mlx5\_core are both vulnerable. The bnx2 driver uses the correct unmapping order, and uses kmalloc to allocate its RX buffers, instead of the dedicated API functions (e.g., \texttt{napi\_alloc\_skb} or \texttt{netdev\_alloc\_skb}), but due to \emph{deferred} mode, \shinfo{} is still vulnerable to modifications.
+The mlx5\_core driver, avoids unmapping the RX buffers altogether, in kernel 5.0, the driver uses a \texttt{pool\_page} mechanism\cite{page_pool} and in kernel 4.15, the driver uses an ad-hoc mechanism, to achieve the same goal as \texttt{pool\_page}. These, design choices, in both cases leave \shinfo{} vulnerable, both in \emph{deferred} and \emph{strict} modes.  
+The discrepancy in driver behavior, is due to the fact that bnx2 is a driver for a 1 GBE NIC; where as, mlx5\_core is a 50 GBE\footnote{\textcolor{red}{Ours is an x8 model rather than the x16, that can reach 100GB/s.}}, and uses more efficient APIs to maximise performance.}
+
+
 
 \smallskip
-\textcolor{magenta}{On our own setup, the bnx2 (4.15, 5.0) driver is... and the mlx5 driver(4.15, 5.0) is...  }
-The bnx2 driver uses the correct unmapping order, and uses kmalloc to allocate its RX buffers instead of the dedicated API functions (e.g., \texttt{napi\_alloc\_skb} or \texttt{netdev\_alloc\_skb}), but due to \emph{deferred} mode, \shinfo is still vulnerable to modifications. 
+Interestingly, as it stands today, it seems that the only way to secure \shinfo{} is to never map it. 
 
 
 \smallskip
 \textcolor{olive}{From this point on, we assume that the attacker has unimpeded access to \oportunity{}. In the next subsections, we demonstrate various compound DMA attacks where an attacker can exploit OS behaviour to gain \means{} and \motivation{} completing the trifecta.}
-
 
 \subsection{Ring Flod}\label{sec:ringflod}
 
