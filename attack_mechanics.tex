@@ -28,8 +28,8 @@ And while corrupting random kernel memory is still a possibility and may even ca
 \begin{figure}[t]
     \centering
     \includegraphics[width=1\columnwidth]{figs/subpage.pdf}
-    \caption{Sub-page DMA vulnerabilities when the I/O buffer shares a page with other data: (a) I/O buffer metadata; (b) memory allocator’s
-metadata; (c) randomly co-located sensitive buffers; (d) a page mapped by multiple \iova.\textcolor{red}{Add size 4k, and replace allocator md with something that actually makes a god damn sense.}}
+    \caption{Sub-page DMA vulnerabilities when the I/O buffer shares a page with other data: (a) I/O buffer metadata; (b) OS
+metadata; (c) a page mapped by multiple \iova; (d) randomly co-located sensitive buffers. \textcolor{red}{Replace allocator md with something that actually makes a god damn sense. Fix Fig (c) <-> (d)}}
     \label{fig:colocation}
 \end{figure}
 
@@ -40,9 +40,10 @@ We classify the different types of potentially co-located data, into four catego
 \begin{enumerate}
     \item[(a)] The I/O buffer is part of a bigger data structure. In some cases, this data structure may include function pointers, often caused by poor DMA hygiene by the driver. We demonstrate a full exploit in section \ref{sec:sbp2_attack}. An isolated driver fix is needed to solve such vulnerabilities.
     \item[(b)] The OS (e.g., memory allocator) rather than the driver saves metadata, such as free-lists, on the same page as the I/O buffer \cite{Cor07}. Manipulating these data structures may also compromise the system \cite{ak09}. Similarly to (a), sensitive metadata is shared. However, in this case, its an OS subsystem that is at fault rather than the device driver. We demonstrate attacks made possible by an OS subsystem in section \ref{sec:linux_net}.
-    \item[(c)] The I/O buffer and a different, dynamically allocated memory buffer may coincidentally share a page. This common situation results in data leakage (e.g., kernel pointers).
+    \item[(c)] The same page is mapped multiple times due to co-located device driver buffers resulting in multiple \iova{} to the same page. A seemingly benign case, made dangerous by the fact that unmapping one \iova{} is meaningless, security-wise. The device will retain access to the physical page as long as a single valid \iova{} exists. We discuss the implications of this scenario in section \ref{sec:linux_net}.
+    \item[(d)] The I/O buffer and a different, dynamically allocated memory buffer may coincidentally share a page. This common situation results in data leakage (e.g., kernel pointers). \textcolor{olive}{The immediate implications, are that KASLR can be broken with high probability.}
     Currently, the Linux kernel uses the same memory allocation mechanism (e.g., kmalloc) for both I/O buffers and regular kernel buffers. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works in page granularity, the respective I/O devices gain access to these kernel buffers as well. This is a subclass of (b), as an OS subsystem causes it, but the main difference is that the exposed data structures are leaked randomly.
-     \item[(d)] The same page is mapped multiple times due to co-located device driver buffers resulting in multiple \iova{} to the same page. A seemingly benign case, made dangerous by the fact that unmapping one \iova{} is meaningless, security-wise. The device will retain access to the physical page as long as a single valid \iova{} exists. We discuss the implications of this scenario in section \ref{sec:linux_net}.
+
 \end{enumerate}
 
 \begin{figure*}[t]
