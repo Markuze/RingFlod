@@ -1,4 +1,4 @@
-\section{Compound DMA attacks}\label{sec:linux_net}
+\section{\compound{} DMA attacks}\label{sec:linux_net}
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{figs/page_frag.pdf}
@@ -46,38 +46,41 @@ To expand this scenario into a complete attack, the attacker must complete the M
     \label{fig:road_to_op}
 \end{figure}
 
-As depicted in Fig. \ref{fig:road_to_op}, we now detail the different ways ((a), (b) and (c))\footnote{\textcolor{red}{Change alpahnumeric to roman}} in which a malicious device obtains \oportunity{}.
+We now detail the different ways in which a malicious device can obtain \oportunity{} (Fig. \ref{fig:road_to_op}).
 
-\begin{enumerate}[label=(\alph*)]
+\begin{enumerate}[label=(\roman*)]
 
 \item Presumably, a correct use of the DMA API should thwart the attack outlined in the previous section (Fig. \ref{fig:sh_info}). Namely, unmapping the buffer and only then initializing \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated. 
 As it turns out, prevalent device drivers (Appendix \ref{apndx:wrong_order}) first create an \skb{} and only then unmap the buffer. This order of execution allows the \emph{device} to undo legitimate changes to \shinfo{} by the CPU. 
 
 \item Nevertheless, even when the order is correct, i.e., the unmapping of the buffer occurs before the creation of the \skb{}, still \shinfo{} is not safe from later modifications. As the default IOMMU mode in Linux is \emph{deferred} protection (Sec. \ref{sec:deferred}), the umap order is made irrelevant. That is, even though the unmap function is invoked in the correct order, the device can still corrupt \shinfo{} due to the IOTLB. Namely, the device can control which \iova{} are cached in the IOTLB by accessing only the addresses it needs cached. 
 
-\item In response, a security-conscious admin may change the default setting to \emph{strict} mode, where the IOTLB is flushed on every unmap. However, this both severely degrades networking performance \cite{MMT16,MSMT18}, and does not alleviate the security threats on the system. Presumably, with \emph{strict} mode enabled, the \iova{} the NIC used to access that \shinfo{} is no longer valid, which initially sounds promising. The problem is that the device, in many cases, will still have legitimate WRITE access to the physical page of the \shinfo. The vulnerability stems from the way \data{} is allocated. An RX \skb{} is almost exclusively allocated via an API (e.g., \texttt{napi\_alloc\_skb} or \texttt{netdev\_alloc\_skb}) that creates a type (c) sub page vulnerability (Fig. \ref{fig:colocation} (c)). The device can use the \iova{} of a co-located buffer to access the \shinfo{} it requires. Particularly, the buffers of the driver RX ring are allocated sequentially, resulting in pairs of successive RX descriptors that map the same page. Obviously, this holds as long as the buffer sizes are smaller than 4 KB. This is a reasonable assumption since the default MTU size is 1500~B. These allocation functions, use a \texttt{page\_frag} mechanism to allocate the \data{} buffers, which in turn contain \shinfo. The \texttt{page\_frag} is an efficient method for allocating small buffers, often used by the Linux network stack. A \texttt{page\_frag} is initialized by allocating a contiguous memory region (usually 32 KB), setting a \textit{va} pointer to the beginning of the region and \texttt{offset} to the end. An allocation request for \texttt{B} bytes subtracts \texttt{B} bytes from the \texttt{offset} pointer and returns the new value of \texttt{offset}\footnote{In multicore environments, the \texttt{page\_frag} uses a different buffer for each CPU and each CPU has a single RX ring. As a result, each RX ring is served by its own (per-CPU) contiguous buffer.} (Fig. \ref{fig:page_frags}). This mechanism for memory allocation is efficient, but results in consecutive \data{} buffers sharing memory pages. Due to this type (c) sub page vulnerability, the NIC does not require the invalidated \iova{} to modify the \shinfo; instead, it can use the \iova{} for the next data buffer. Note that the lower 12 bits (the offset on the page) of the \iova{} are identical to the corresponding \kva{} bits. As illustrated in Fig. \ref{fig:sh_info}, the \oportunity{} obtained is via the next buffer (i.e., the striped area at the end of the page).
+\item In response, a security-conscious admin may change the default setting to \emph{strict} mode, where the IOTLB is flushed on every unmap. However, this both severely degrades networking performance \cite{MMT16,MSMT18}, and does not alleviate the security threats on the system. Presumably, with \emph{strict} mode enabled, the \iova{} the NIC used to access that \shinfo{} is no longer valid, which initially sounds promising. The problem is that the device, in many cases, will still have legitimate WRITE access to the physical page of the \shinfo. The vulnerability stems from the way \data{} is allocated. An RX \skb{} is almost exclusively allocated via an API (e.g., \texttt{napi\_alloc\_skb} or \texttt{netdev\_alloc\_skb}) that creates a type (c) sub page vulnerability (Fig. \ref{fig:colocation} (c)). The device can use the \iova{} of a co-located buffer to access the \shinfo{} it requires. Particularly, the buffers of the driver RX ring are allocated sequentially, resulting in pairs of successive RX descriptors that map the same page. Obviously, this holds as long as the buffer sizes are smaller than 4 KB. This is a reasonable assumption since the default MTU size is 1500~B. These allocation functions, use a \texttt{page\_frag} mechanism to allocate the \data{} buffers, which in turn contain \shinfo. The \texttt{page\_frag} is an efficient method for allocating small buffers, often used by the Linux network stack\textcolor{olive}{, used 441 times by network drivers in Linux kernel 5.0}. A \texttt{page\_frag} is initialized by allocating a contiguous memory region (usually 32 KB), setting a \textit{va} pointer to the beginning of the region and \texttt{offset} to the end. An allocation request for \texttt{B} bytes subtracts \texttt{B} bytes from the \texttt{offset} pointer and returns the new value of \texttt{offset}\footnote{In multicore environments, the \texttt{page\_frag} uses a different buffer for each CPU and each CPU has a single RX ring. As a result, each RX ring is served by its own (per-CPU) contiguous buffer.} (Fig. \ref{fig:page_frags}). This mechanism for memory allocation is efficient, but results in consecutive \data{} buffers sharing memory pages. Due to this type (c) sub page vulnerability, the NIC does not require the invalidated \iova{} to modify the \shinfo; instead, it can use the \iova{} for the next data buffer. Note that the lower 12 bits (the offset on the page) of the \iova{} are identical to the corresponding \kva{} bits. As illustrated in Fig. \ref{fig:sh_info}, the \oportunity{} obtained is via the next buffer (i.e., the striped area at the end of the page).
 \end{enumerate}
 
 The drivers used by our setup, namely bnx2 and mlx5\_core are both vulnerable. The bnx2 driver uses the correct unmapping order, and uses kmalloc to allocate its RX buffers instead of the dedicated API functions (e.g., \texttt{napi\_alloc\_skb} or \texttt{netdev\_alloc\_skb}). However, due to \emph{deferred} mode, \shinfo{} is still vulnerable to modifications by the driver.
 
-On the other hand, the mlx5\_core driver avoids unmapping the RX buffers altogether. In kernel 5.0, the driver uses a \texttt{pool\_page} mechanism\cite{page_pool} and in kernel 4.15, the driver uses an ad-hoc mechanism to achieve the same goal as \texttt{pool\_page}. 
+On the other hand, the mlx5\_core driver avoids unmapping the RX buffers altogether. In kernel 5.0, the driver uses a \texttt{page\_pool} mechanism\cite{page_pool} and in kernel 4.15, the driver uses an ad-hoc mechanism to achieve the same goal as \texttt{page\_pool}. 
 
 These design choices, in both cases, leave \shinfo{} vulnerable, both in \emph{deferred} and \emph{strict} modes.  
-The discrepancy in driver behavior is because bnx2 is a driver for a 1 GBE NIC; whereas, mlx5\_core is a 50 GBE\footnote{Ours is an x8 model rather than the x16, that can reach 100GB/s.}, and uses more efficient APIs to maximize performance.
+The discrepancy in driver behavior is because bnx2 is a driver for a 1 GBE NIC; whereas, mlx5\_core is a 50 GBE NIC, and uses more efficient APIs to maximize performance.
+
 
 \smallskip
 Interestingly, as it stands today, it seems that the only way to secure \shinfo{} is to never map it. Finally, from this point on, we assume that the attacker has unimpeded access to \oportunity{}. In the next subsections, we demonstrate various compound DMA attacks where an attacker can exploit OS behavior  to gain \means{} and \motivation{} completing the trifecta.
-\textcolor{red}{We dont use type c vulnerability, which drivers have it?}
-\subsection{Ring Flod}\label{sec:ringflod}
+
+\subsection{Ring Flood}\label{sec:ringflod}
 
 A malicious device can generate a poisoned ROP stack on each RX buffer and gain \motivation{}. At this point, the device still cannot execute a successful code injection attack; the device is lacking \means{}. 
 
 Due to the IOMMU, the device has all the \iova{} for the RX buffers, but not the \kva{}. In this attack, we take advantage of the fact that the boot process is \emph{deterministic}. Each reboot, the same set of commands is executed in the same order initiating the same kernel modules and starting the same processes. While the pages each module receives may vary in a multi-core environment due to timing issues, the drift is not expected to be too large. 
 
-We evaluate this assumption also\footnote{\textcolor{red}{validate experiment on setups.}} on a DELL R730 server equipped with a ConnectX-4 NIC, running 256 reboots on Ubuntu 18.04 with kernel 5.0. 
-\footnote{\textcolor{red}{Please generate a table of RingFlod Results}} We find that many of the PFNs repeat in more than 50\% percent of reboots. \footnote{\textcolor{magenta}{Need to see If we can improve this number}} Thus, an adversary with knowledge about the physical setup can deduce a valid \kva{} for one of the RX pages containing a \mabaf. This provides both \means{} and \motivation{}. Thus, the trifecta is complete and the malicious device is able to execute the attack as shown in Fig. \ref{fig:sh_info} (in this case, the \texttt{destructor\_arg} will most likely indicate a different page, but other than that, the attack scenario is unchanged).
+We evaluate this assumption also\footnote{\textcolor{red}{validate experiment on setups.}} on a DELL R730 server equipped with a ConnectX-4 NIC, running 256 reboots on Ubuntu 18.04 with kernel 5.0.
+\footnote{\textcolor{red}{Please generate a table of RingFlood Results}} We find that many of the PFNs repeat in more than 50\% percent of reboots. \footnote{\textcolor{magenta}{Need to see If we can improve this number}} 
+We assume an attacker can gain access to an identical setup, and identify the most common PFN.
+Thus, an adversary with knowledge about the physical setup can deduce a valid \kva{} for one of the RX pages containing a \mabaf. This provides both \means{} and \motivation{}. Thus, the trifecta is complete and the malicious device is able to execute the attack as shown in Fig. \ref{fig:sh_info} (in this case, the \texttt{destructor\_arg} will most likely indicate a different page, but other than that, the attack scenario is unchanged).
 
-The success chances of this attack depend on the driver version and NIC capabilities. For example, some NICs have a HW LRO capability, where a NIC can aggregate multiple TCP packets into a single TCP packet, larger than MTU \cite{mlx5_lro}(e.g., bnx2x, mlx5\_core). On drivers configured with these options, each RX buffer is 64~KB regardless of MTU. As a result, these drivers have a much larger memory footprint\cite{MSMT18} and are much easier to target with a RingFlod attack.
+The success chances of this attack depend on the driver version and NIC capabilities. For example, some NICs have a HW LRO capability, where a NIC can aggregate multiple TCP packets into a single TCP packet, larger than MTU \cite{mlx5_lro}(e.g., bnx2x, mlx5\_core). On drivers configured with these options, each RX buffer is 64~KB regardless of MTU. As a result, these drivers have a much larger memory footprint\cite{MSMT18} and are much easier to target with a RingFlood attack.
 
 \begin{figure*}[t]
     \centering
@@ -87,10 +90,10 @@ The success chances of this attack depend on the driver version and NIC capabili
 \end{figure*}
 \subsection{Poisoned TX}\label{sec:posion}
 
-RingFlod (Section \ref{sec:ringflod}) allows a NIC to execute arbitrary code with high chances of success. However, the prerequisite is enough information regarding the physical layout of the server and a sufficiently high driver memory footprint. When deducing a valid PFN is not an option due to a low memory footprint, another way of acquiring a valid \kva{} is needed.
+RingFlood (Section \ref{sec:ringflod}) allows a NIC to execute arbitrary code with high chances of success. However, the prerequisite is enough information regarding the physical layout of the server and a sufficiently high driver memory footprint. When deducing a valid PFN is not an option due to a low memory footprint, another way of acquiring a valid \kva{} is needed.
 
 \smallskip
-Since a NIC has READ access to the \shinfo{} of a TX packet, this, in particular, provides the NIC with READ access to the \texttt{frags} array which is a part of \shinfo{}. This array contains \page{} pointers, and thus both leaks kernel pointers that allow the attacker to compromise KASLR, and provides the PFNs of specific pages containing data sent from the userspace; pages, the device has READ access to.
+Since a NIC has READ access to the \shinfo{} of a TX packet, this, in particular, provides the NIC with READ access to the \texttt{frags} (Fig. \ref{fig:payload}) array which is a part of \shinfo{}. This array contains \page{} pointers, and thus both leaks kernel pointers that allow the attacker to compromise KASLR, and provides the PFNs of specific pages containing data sent from the userspace; pages, the device has READ access to.
 
 \smallskip
 Assuming an unprivileged accomplice (witing or unwitting) can open a UDP/TCP socket in user space, this user can transmit a poisoned ROP buffer. For a ROP attack (where the Kernel text offset is required), the NIC spoofs an RX packet with the poisoned ROP stack to the accomplice, which in turn is sent back as a TX packet. 
@@ -98,8 +101,8 @@ Assuming an unprivileged accomplice (witing or unwitting) can open a UDP/TCP soc
 Once an accomplice sends the packet the NIC, the device can execute a code injection attack in 4 steps (Fig. \ref{fig:payload}):
 \begin{enumerate}
     \item The TX \data{} and the fragments are mapped for the NIC to read.
-    \item The NIC identifies the poisoned buffer and translates \page{} to \kva.
     \item The NIC spoofs an RX packet and delays the completion notification of the TX packets (so that the \mabaf will not be released prematurely).
+    \item The NIC identifies the poisoned buffer and translates \page{} to \kva{} (Fig. \ref{fig:mem_model}).
     \item The NIC overwrites \shinfo{} with the \kva{} retrieved during step 2. 
 \end{enumerate}
 
@@ -117,7 +120,7 @@ Packet forwarding is a standard Linux feature that allows a Linux machine to ser
 
 When this functionality is enabled, the NIC can independently generate an RX packet to a legitimate destination. This packet will then be forwarded to become a TX packet. However, unlike in the TCP layer that usually creates \skb{} packets with fragments, both the bnx2 and the mlx5\_core drivers, usually create a linear \skb{}.
 
-Namely, the drivers do not fill the \texttt{frags}, which the attacker uses to obtain \means{}. Both drivers, use the \texttt{napi\_gro\_receive} function to pass the \skb{} to the upper layer (this is the standard for most NIC drivers \SV{proove!}). 
+Namely, the drivers do not fill the \texttt{frags}, which the attacker uses to obtain \means{}. Both drivers, use the \texttt{napi\_gro\_receive} function to pass the \skb{} to the upper layer (this is the standard for most NIC drivers\footnote{Used by 98 NIC drivers, in Linux 5.0}). 
 
 In this case, the upper layer is the Generic Receive Offload (GRO) layer \cite{gro}. GRO attempts to aggregate multiple TCP segments into a single large packet. Specifically, GRO converts multiple linear \skb{} buffers (belonging to a single TCP stream) into a single \skb{} with multiple fragments. This \skb{} then traverses the Linux network stack and becomes a TX packet. The attacker can use this TX packet as described in the previous attack (Fig. \ref{fig:payload}).
 
@@ -129,7 +132,7 @@ Instead of sending a TCP packet and letting the GRO layer fill in the \texttt{fr
 To avoid detection and, more importantly, preserve OS stability, the device must undo the changes to \shinfo{} before creating a TX completion. That is, before letting the CPU know that the packet was sent and its buffer can now be freed. Otherwise, the OS tries freeing the pages, indicated by \shinfo.
 
 \smallskip
-\noindent\textbf{Remark.} Having an accomplice in the form of an unprivileged user provides additional vectors of attack. In addition to running ROP attacks, the NIC can also leak the content of arbitrary memory pages to the user. Assuming that the NIC has WRITE access to \shinfo{} after it has been sent up the network stack (for example, in case of deferred protection or when pool\_page is used (see \ref{sec:xdp})), the NIC can modify the \page{} address in the \texttt{frag} entries, letting the Linux network stack copy the context of arbitrary memory pages to an unprivileged user. A likely side effect of this attack is memory corruption and Kernel panic, so caution is advised. The reason being, that the \texttt{skb\_free} function attempts to free these pages, pages never owned by the network stack.
+\noindent\textbf{Remark.} Having an accomplice in the form of an unprivileged user provides additional vectors of attack. In addition to running ROP attacks, the NIC can also leak the content of arbitrary memory pages to the user. Assuming that the NIC has WRITE access to \shinfo{} after it has been sent up the network stack (for example, in case of deferred protection or when page\_pool is used (see \ref{sec:xdp})), the NIC can modify the \page{} address in the \texttt{frag} entries, letting the Linux network stack copy the context of arbitrary memory pages to an unprivileged user. A likely side effect of this attack is memory corruption and Kernel panic, so caution is advised. The reason being, that the \texttt{skb\_free} function attempts to free these pages, pages never owned by the network stack.
 
 
 \begin{figure*}[t]
@@ -143,7 +146,7 @@ To avoid detection and, more importantly, preserve OS stability, the device must
 
 XDP~\cite{xdp} provides a way for users to add custom handling to RX buffers with little overhead. Common use cases include DDOS mitigation for security, forwarding and load balancing. To support the latter, the RX buffers are mapped with BIDIRECTIONAL access to the NIC. 
 
-The bnx2 driver does not support XDP. XDP support is usually added to high-speed NICs, such as ConnectX-4 (mlx5\_core). Accordingly, in this attack, we focus on the mlx5\_core driver, which, as mentioned in \ref{sec:forward}, does not unmap the RX buffers and reuses the pages using the page \_pool mechanism \cite{page_pool}. Subsequently, these pages are never unmapped, and remain accessible to the device for both reading and writing. 
+The bnx2 driver does not support XDP. XDP support is usually added to high-speed NICs, such as ConnectX-4 (mlx5\_core). Accordingly, in this attack, we focus on the mlx5\_core driver, which, as mentioned in \ref{sec:forward}, does not unmap the RX buffers and reuses the pages using the page\_pool mechanism \cite{page_pool}. Subsequently, these pages are never unmapped, and remain accessible to the device for both reading and writing. 
 
 The fact that the NIC has both read and write access to \shinfo, allows the NIC to execute an attack in 4 steps (Fig \ref{fig:gro}):
 \begin{enumerate}

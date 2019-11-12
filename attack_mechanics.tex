@@ -1,3 +1,17 @@
+
+
+\section{Threat Model}\label{sec:threat_model}
+
+Our attacks are designed with the following assumptions:
+\begin{enumerate}
+    \item We assume the existence of a malicious DMA capable device attached to the system.
+    \item The actual attack is performed solely by a DMA-capable malicious device.
+    \item Any hardware aside from the specific malicious device is working as expected.
+    \item Any ports intended for debugging (e.g., jtag), are not considered.
+ \end{enumerate}
+
+The most significant potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Another potential consequence we consider is a full system memory dump. These are harder to thwart and even harder to detect. Lastly, a consequence of a possible failed attack is random memory corruption, resulting in a denial of service \cite{MMT16}, where the OS panics. Ideally, malformed devices should not be able to crash the entire system. 
+
 \section{MMO}\label{sec:mmo}
 
 In this section, we introduce the MMO (\motivation, \means, \oportunity) schema. We contend that a malicious device, just like a human criminal, needs Motive, Means, and Opportunity to perpetuate its attack. Using this schema, we can better understand the DMA vulnerabilities of an OS, the viability of possible DMA attacks, and their prevention. 
@@ -5,11 +19,11 @@ In this section, we introduce the MMO (\motivation, \means, \oportunity) schema.
 For example, using MMO schema, we are able to lay out the necessary conditions for a successful privilege escalation attack (i.e., code injection). Specifically, a malicious device needs all three prerequisites:
 \begin{enumerate}
     \item \motivation: A kernel buffer filled with malicious code (e.g., a valid ROP attack) -- a \mabaf.
-    \item \means: The kernel virtual address (\kva) of a \mabaf. Given the device is using \iova, the attacker needs to obtain the relevant \kva{}, for example, by observing leaked pointers. 
-    \item \oportunity: Write access to a known pointer, which can alter the CPU control flow. For example, write access to a data structure that holds a function callback pointer, at a known offset\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation \cite{rand_layout}.}.
+    \item \means: The kernel virtual address (\kva) of a \mabaf. Given the device is using \iova, the attacker needs to obtain the malicious buffer's \kva{}, for example, by observing leaked pointers. 
+    \item \oportunity: Write access to a known pointer, which can alter the CPU control flow and execute the malicious code. For example, write access to a data structure that holds a function callback pointer, at a known offset.\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation \cite{rand_layout}.}
 \end{enumerate}
 
-Another example is a full memory dump attack, which can be executed by merely having \oportunity. In this case, we are able to modify the kernel control flow in such a way as to cause it to dma\_map arbitrary kernel addresses at will. In order to achieve this, an attacker will need to modify a kernel pointer once before it is mapped and for a second time before send (i.e., TX) completion in order to avoid memory corruption (Section \ref{sec:linux_net}). 
+Another example is a full memory dump attack, which can be executed by merely having \oportunity. In this case, we are able to modify the kernel control flow in such a way as to cause it to map arbitrary kernel addresses. In order to achieve this, an attacker needs to modify a kernel pointer once before it is mapped and, for a second time before send (i.e., TX) completion in order to avoid memory corruption (Section \ref{sec:linux_net}). 
 
 To further emphasize the significance of the MMO attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing an RX packet (i.e., a received packet). Due to sub-page vulnerability and a random allocation coincidence, a structure with a callback pointer is inadvertently accessible with write permission. Also, the malicious device is able to create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks two essential prerequisites.
 
@@ -59,8 +73,8 @@ In the next sections we demonstrate how a \emph{straight-forward} (Sec. \ref{sec
 \end{figure*}
 \subsection{Static Analysis Tool}
 
-Inspired by the MMO schema, we devise a static code analysis tool to classify device drivers by levels of risk. With well over a 1000 \texttt{dma\_map*} function calls, in the Linux Kernel alone, a manual process would be arduous.
-Our static analysis tool flags drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device has legitimate write access and can freely write a poisoned ROP stack in any legitimate write accessible buffer. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig. \ref{fig:colocation} (a)); additionally we look for hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig. \ref{fig:colocation} (b)). The risk is classified according to the access permission, \motivation{}, implied by a READ permission, or \oportunity{} , implied by a WRITE/BIDIRECTIONAL permission. The case of multiple \iova{} (Fig. \ref{fig:colocation} (d)), is not a risk category by itself, rather a possible exploit. The tool flags use of functions (e.g., netdev\_alloc\_frag, napi\_alloc\_frag) that may result in this type of vulnerability.
+Inspired by the MMO schema, we devise a static code analysis tool to classify device drivers by levels of risk. With well over a 1000 \texttt{dma\_map*} (i.e., the set of functions implementing the DMA API) function calls, in the Linux Kernel alone, a manual process would be arduous.
+Our static analysis tool flags drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device has legitimate write access and can freely write a poisoned ROP stack in any legitimate write accessible buffer. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig. \ref{fig:colocation} (a)). Additionally we look for hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig. \ref{fig:colocation} (b)). The risk is classified according to the access permission. \means{} is implied by a READ permission and \oportunity{} is implied by a WRITE/BIDIRECTIONAL permission. The case of multiple \iova{} (Fig. \ref{fig:colocation} (d)), is not a risk category by itself, rather a possible exploit. The tool flags use of functions (e.g., netdev\_alloc\_frag, napi\_alloc\_frag) that may result in this type of vulnerability.
 Finally, the output of the tool presents structured and filtered findings conductive for more in-depth human expert analysis to determine if a viable attack is feasible. 
 
 \noindent\textbf{Remark.} Option (c) falls under the category of random access attacks and as such, requires a more profound human expert dynamic analysis. As mentioned, this is out of the scope of this paper.
@@ -85,16 +99,3 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
 \end{enumerate}
 
 We demonstrate in Section \ref{sec:linux_net}, how an adversary can take advantage of \emph{deferred} mode.
-
-\subsection{Threat Model}
-
-Our attacks are designed with the following assumptions:
-\begin{enumerate}
-    \item We assume the existence of a malicious DMA capable device attached to the system.
-    \item The actual attack is performed solely by a DMA-capable malicious device.
-    \item Any hardware aside from the specific malicious device is working as expected.
-    \item Any ports intended for debugging (e.g., jtag), are not considered.
- \end{enumerate}
-
-The most significant potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Another potential consequence we consider is a full system memory dump; these are harder to thwart and even harder to detect.  
-Lastly, a consequence of a possible failed attack is random memory corruption, resulting in a denial of service \cite{MMT16}, where the OS panics. Ideally, malformed devices should not be able to crash the entire system. 

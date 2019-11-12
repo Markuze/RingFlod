@@ -1,12 +1,18 @@
-\section{Attack setup}\label{sec:attack_setup}
+\section{\simple{} Attacks}\label{sec:attack_setup}
 
+In this section, we discuss \simple{} attacks, i.e., exploits in which the trifecta appears within a single page.
+We find several such potential \simple{} exploits in the Linux kernel. We detail such an example in the FireWire driver, as this is the hardware we have in our setup. 
+
+
+
+\subsection{Attack setup}
 In our attacks, we use a Dell PowerEdge R610 server, an Intel x86 machine with Ubuntu 18.04 (kernel version 4.15), as our victim machine. The server is equipped with Intel VT-d IOMMU a Broadcom NetXtreme II BCM5709 Gigabit Ethernet NIC, a Mellanox Technologies ConnectX-4 Ethernet NIC and VIA Technologies, Inc. VT6315 Series Firewire Controller. An identical machine connected to the victim with a FireWire cable acting as the attacker. 
 
 We create a malicious FireWire device by modifying the Linux-IO Target (LIO) subsystem on the attacker machine. The LIO subsystem supports hard disk emulation for remote computers via the \spb{} protocol; and, as such, is a suitable platform to execute such attacks. 
 
-We implement multiple attacks against the Linux kernel network stack. In order to demonstrate an attack by a malicious NIC, we use a FireWire device similarly to \cite{SLND10}. By carefully modifying the victim’s OS, we create an \iova{} page table sharing between the FireWire and the actual NIC. This way, the attacker machine can access the same pages as the Broadcom NIC, which allows us to execute an attack using a programmable interface, simulating a malicious NIC.
+We implement multiple attacks against the Linux kernel network stack. In order to demonstrate an attack by a malicious NIC, we use a FireWire device similarly to \cite{SLND10}. To emulate an attack by a malicious NIC using a FireWire device, we create an \iova{} page table sharing between the FireWire and the actual NIC. A minor patch is needed for the victim OS to facilitate this emulation. This way, the attacker machine can access the same pages as the Broadcom NIC, which allows us to execute an attack using a programmable interface, emulating a malicious NIC.
 
-\subsection{FireWire}
+\subsection{FireWire Background}
 
 The FireWire protocol is a serial replacement for the parallel SCSI bus, which provides connectivity for digital audio and video equipment. The SBP-2 (serial bus protocol $\#2$) enables the use of SCSI devices over Firewire. 
 
@@ -16,7 +22,7 @@ A SCSI connection consists of two endpoints: an initiator' (i.e., OS), which ini
 
 Linux has a Linux-IO (LIO) module, which allows for a Linux machine to act as a SCSI target. One can boot the machine in \emph{target disk mode}, such that it acts as a disk (i.e., SCSI target) when connected to another computer. When the connection is via FireWire, the SPB2 protocol is used.
 
-\subsection{Linux FireWire} \label{sec:sbp2_attack}
+\subsection{Linux FireWire Exploit} \label{sec:sbp2_attack}
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{figs/sbp.png}
@@ -35,4 +41,8 @@ The \texttt{spb2\_management\_orb} struct also holds its own address in the \tex
 The code of the \mabaf{} appears in Appendix \ref{apx:shellcode}. It is also important to note that in this attack KASLR was irrelevant, as the critical \kva{} appeared in full, inside the readable page.
 
 \smallskip
-\noindent \textbf{Remark.} To date (kernel 5.3), the \texttt{spb2\_management\_orb} struct has not changed.
+\noindent \textbf{Remark 1.} To date (kernel 5.3), the \texttt{spb2\_management\_orb} struct has not changed.
+
+\smallskip
+\noindent \textbf{Remark 2.} Additional such exploits, also appear in these drivers(a partial list) : nvme\_fc driver, and others...\footnote{\textcolor{red}{Find more}},
+The difference in detailing each such exploit would extend only to the structure names. \SV{dempstrate the tool.. say the tool found it and give examples...}
