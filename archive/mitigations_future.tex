@@ -37,3 +37,15 @@ Common techniques against heap-overflow vulnerabilities may also be useful when 
 
  
 \textcolor{magenta}{Need to mention new (Non default - Only impacts RingFlod)kernel configs SHUFFLE\_PAGE\_ALLOCATOR \url{https://lore.kernel.org/patchwork/patch/1037734/}}
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Naturally, preventing DMA attacks is also of interest in academic research. Proposed solutions include storing secret data in the CPU registers to prevent the data from being leaked \cite{MFD11, CZG15, Sim11} and monitoring the bus activity using hardware performance counters and finding anomalies in DMA activity \cite{Ste13}. However, the former does not prevent the devices from modifying the OS memory \cite{BR12}, whereas the latter requires modeling each device’s DMA activity \cite{Ste14}, which is arguably unreasonable.
+

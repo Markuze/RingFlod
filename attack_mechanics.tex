@@ -25,11 +25,15 @@ To further emphasize the significance of the MMO attributes, we present a hypoth
 Under the hypothesized circumstance, and without additional information, a malicious device has practically no valid attack options. 
 And while corrupting random kernel memory is still a possibility and may even cause a kernel panic \cite{MMT16}, it does not achieve the goal of privilege escalation.
 
+
+\smallskip
+\noindent\textbf{Remark.} The MMO schema covers both random and deterministic attacks. In this paper, we focus on demonstrating and addressing deterministic attacks, where the device knows which data structures are targeted. Random access attacks, also exploit the sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks requires a more in-depth analysis to produce a viable chance of success. Such attacks are out of the scope of this paper. 
+
 \begin{figure}[t]
     \centering
     \includegraphics[width=1\columnwidth]{figs/subpage.pdf}
     \caption{Sub-page DMA vulnerabilities when the I/O buffer shares a page with other data: (a) I/O buffer metadata; (b) OS
-metadata; (c) a page mapped by multiple \iova; (d) randomly co-located sensitive buffers. \textcolor{red}{Replace allocator md with something that actually makes a god damn sense. Fix Fig (c) <-> (d)}}
+metadata; (c) a page mapped by multiple \iova; (d) randomly co-located sensitive buffers.}
     \label{fig:colocation}
 \end{figure}
 
@@ -44,6 +48,8 @@ We classify the different types of potentially co-located data, into four catego
     \item[(d)] The I/O buffer and a different, dynamically allocated memory buffer may coincidentally share a page. This common situation results in data leakage (e.g., kernel pointers). Currently, the Linux kernel uses the same memory allocation mechanism (e.g., kmalloc) for both I/O buffers and regular kernel buffers. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works in page granularity, the respective I/O devices gain access to these kernel buffers as well. This is a subclass of (b), as an OS subsystem causes it, but the main difference is that the exposed data structures are leaked randomly.
 
 \end{enumerate}
+
+In the next sections we demonstrate how a \emph{straight-forward} (Sec. \ref{sec:sbp2_attack}) attack utilizes type (a) vulnerability. A \emph{compound attack} (Sec. \ref{sec:linux_net}), on the other hand, uses types (b) and (c) vulnerability. Both attack types use type (d) vulnerability to compromise KASLR: KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage.
 
 \begin{figure*}[t]
     \centering

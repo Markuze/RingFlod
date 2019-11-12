@@ -1,78 +1,31 @@
 
 
-\section{Conclusion}
+\section{Discussion and conclusions}
 
-% DMA attacks are real - now deal with it...
-Hardware attacks are often considered to be harder to implement than software attacks. Nevertheless, once a malicious device is built, launching the attack is as easy as connecting the device to an external port for only a few seconds. Recent leaks from clandestine agencies show that they attacked both by shipping infected hardware \cite{Gal14} and by connecting external malicious devices \cite{Fin14}. 
-
-%Hence, the problems really do exist in the wild and should concern security experts. Moreover, our FireWire/SPB2 attack can be seen as an expansion of the classic attacks and could easily be added as a module to existing off-the-shelf attacking tools. The main limitation of our attacks compared to the old ones is that the devices in our attacks have access only to part of the memory. For instance, memory dumping, a popular DMA attack, has become much less trivial thanks to the IOMMU. In the extreme case, the attacker has access only to one page without even knowing its physical address. As a result, our attacks had to be made more complicated than the old ones. For example, code injection might be required for memory dumping, and payload spraying for overcoming unknown physical addresses.
-%Generally speaking, the requirement for physical access means that the attacks are targeted albeit this need not be true. There are some methods for spreading opportunistic attacks using physical devices. In some case, modifying firmware to be malicious could be done entirely by software that, in its turn, could be distributed over the network (e.g., Bad USB attack \cite{NL14}). In some cases, the attack could even come from the network side of the device [Ben17a, Ben17b]. Another method is to drop malicious devices in public spaces and wait for a potential victim to connect it to his computer \cite{TDF16}. It is also possible to create a malicious device that can impersonate a legitimate device \cite{thunder}.\newline
-
-%While working on the attacks, we realized that the root cause of all the discussed problems comes from the way modern OSs treat peripheral devices. Today, the security industry no longer trusts I/O devices. Recommendations for building trusted environments often include putting limitations on devices, such as removing potentially dangerous drivers or using IOMMU. All state-of-the-art OSs, however, were designed a long time ago. Indeed, when it comes to security, OSs do not treat devices as untrusted entities as they do processes. All the lessons that were learned about protection from/of processes do not seem to have carried over.As a result:
-%\begin{enumerate}    
- %   \item Memory that is given to the device is not zeroed.
-  %  \item Allocation granularity is not page aligned.
-   % \item IOTLB invalidations are often deferred.
-    %\item IOVAs are not randomized and are predictable. \textcolor{red}{What? How are they predictable, and how does it help?}
-    %\item There are no checkers for invalid memory use (such as Linux’s KASAN for regular memory usages)
-%\end{enumerate}
-%Even though we explored only some aspects of this problem, this is a fundamental design issue and it should be addressed as such. Finally, we note that current IOMMU/PCI architectures allow peripheral devices to serve as their own IOTLB (namely, PCI ATS or Device-IOTLB). This technology makes our work meaningless because, by using it, malicious devices are able to simply report false translations and access any protected memory\footnote{It is now possible to disable ATS functionality with a boot parameter}.
+Hardware attacks are often considered to be harder to implement than software attacks. Nevertheless, once a malicious device is built, launching the attack boils down to connecting the device to an external port and for only a few seconds. Furthermore, recent leaks from clandestine agencies show that they have been attacked both by shipping infected hardware \cite{Gal14} and by connecting external malicious devices \cite{Fin14}. 
 
 \begin{comment}
 \footnote{\url{https://lore.kernel.org/lkml/20180510230948.GF190385@bhelgaas-glaptop.roam.corp.google.com/}}.
 \end{comment}
 
-%To somewhat enhance the security of Linux, we suggested a patch allowing system administrators to disable ATS.1 Development of this patch continues and it will most likely be introduced by Linux into one of its upcoming versions.\newline
-%DMA attacks are feasible and should not be treated lightly. IOMMU subverting attacks are avoidable, but none of the solutions can be found in the wild. Better kASLR, NX-BIT and better API are all needed to prevent IOMMU subverting techniques. 
-The root cause, for DMA attacks is sub-page vulnerability. Namely; no DMA attack could work without the unintentional exposure of restricted fields. 
+Clearly, the root cause, for DMA attacks is sub-page vulnerability. Namely, no DMA attack could work without the unintentional exposure of restricted fields. The blame is not with the device drivers alone. With the existing API used for I/O operations and due to performance considerations, it is extremely difficult not to create a sub-page vulnerability. Thus, even well-written drivers can be subverted by the OS (e.g., bnx2 by deferred protection). Examples to this include:
 
-The blame is not with the device drivers alone. With the existing API used for I/O operations, it is difficult not to create a sub-page vulnerability. And even, well written drivers can be subverted by the OS (e.g, bnx2 by deferred protection). 
-
-Examples to this include: 
 \begin{enumerate}
-    \item Bad api: \begin{itemize}
-        \item The \textit{dma\_map\_single} call accepts a pointer and the buffers length length; this API insinuates that only the mapped bytes will be exposed.
-        When in fact the whole page is accessible.
-        \item \textit{dma\_unmap\_single}, insinuates that the buffer will not be accessible to the device after the call; this is untrue, both due to deferred protection and type (c) sub-page vulnerabilities.
-        \item \textit{build\_skb} facilitates building an \skb{} around an arbitrary I/O buffer; thus, embedding critical data structures inside an I/O buffer.
-        \item \texttt{page\_frag} While in it self an efficient allocator, it inherently creates a type (c) sub-page vulnerability.
-    \end{itemize} 
-    \item Bad tools/infrastructure: \begin{itemize}
-            \item \texttt{page\_pool} api, by caching I/O buffers and avoiding expensive unmaps. The Drivers, \emph{circumvent} the security techniques of the OS. 
-            \item \shinfo is by design built inside an I/O buffer. Avoiding type (b) sub-page vulnerabilities is a challange.
-            \item No dedicated allocators for I/O.
-    \end{itemize}
-\end{enumerate}
-
-We contend, that a better API and better mechanisms not unlike what was proposed in DAMN\cite{MSMT18,MMT16}; can provide driver authors with better options for writing secure and performant device drivers.
-Specifically, for \shinfo, which is ingrained in the Linux network stack, as an alterantive to a new design, we urge the use of pointer obfuscation\cite{Coo17}, and solely non linear RX buffers.
-Additionaly, we urge the use of static code analysis that detect sub-page vulnerabilities.
-
-\emph{All DMA attacks stem from sub-page vulnerabilities - Simply stop sharing restricted data}
-
-%we know this to be untrue. The  To a lesser degree, the  This is dangerous, because this seems to encourage building an \skb around a dma mapped buffer; exposing \shinfo. 
-%In fact, we were looking for this function when working on a list of vulnerable device drivers.  Using the staunch, \textit{dma\_\{un\}map\_page} or using tools like \textit{dma\_page\_pool}.
-
-%\subsection{Mitigations in the wild}
-%\textcolor{magenta}{I imagine a table with OS on Y and best practices on X. IOMMU policy, KASLR, NX-bit, discriminate mapping (R or W, not both), device IOVA separation, sand boxing mapped addresses. Kernels Win,MacOS,FreeBSD - use NDSS paper, contribution: ESX (Need to send some emails), Linux - Ubuntu versions, Sless?(RHEL)}.
-
-\begin{comment}
-
-
-\textcolor{blue}{
-Our actionable conclusions:
-\begin{enumerate}
-    \item Static code analysis for DMA vulnerabilities.
-    \item Remove DMA Mapping API, adopt DAMN instead. \label{act:damn}
-    \item Remove mixed linear/non-linear skbs, add checks into \shinfo API.
-    \item Better API is needed for I/O operations
+    \item API: 
     \begin{itemize}
-        \item I/O buffer creation, discourage bad habits (build\_skb).
-        \item Remove dma\_map\_single (Or adopt \ref{act:damn})
-        \item Better memory allocation - namely I/O buffers like page\_frag, page\_pool or DAMN.
+        \item The \textit{dma\_map\_single} call accepts a pointer and the buffer length. This API insinuates that only the mapped bytes are exposed, when, in fact, the whole page is accessible.
+        \item \textit{dma\_unmap\_single}, insinuates that the buffer is not accessible to the device after the call; this does not hold both due to deferred protection and type (c) sub-page vulnerabilities.
+        \item \textit{build\_skb} facilitates building an \skb{} around an arbitrary I/O buffer, in turn, embedding critical data structures inside an I/O buffer.
+        \item While \texttt{page\_frag} is an efficient allocator, it inherently creates a type (c) sub-page vulnerability.
+    \end{itemize} 
+    \item Tools/Infrastructure: 
+    \begin{itemize}
+            \item \texttt{page\_pool} API, by caching I/O buffers and avoiding expensive unmaps, the drivers \emph{circumvent} the security techniques of the OS. 
+            \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) sub-page vulnerabilities impose a challenge.
+            \item No dedicated allocators for I/O such as proposed in previous works (e.g., \cite{MSMT18,MMT16}).
     \end{itemize}
 \end{enumerate}
-\texttt{All DMA attacks steam from this vulnerability.}
-}
-\end{comment}
-%It is important to note, that a DMA-page pool mechanism is not an inherently bad idea when implemented with caution\cite{MSMT18}. 
+
+We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we urge the use of pointer obfuscation \cite{Coo17}, and solely non-linear RX buffers as an alternative to a new design. Additionally, we urge the use of static code analysis that detects sub-page vulnerabilities.
+
+\emph{All DMA attacks stem from sub-page vulnerabilities - Simply stop sharing restricted data.}
