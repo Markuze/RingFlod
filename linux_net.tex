@@ -67,7 +67,7 @@ The discrepancy in driver behavior is because bnx2 is a driver for a 1 GBE NIC; 
 
 \smallskip
 Interestingly, as it stands today, it seems that the only way to secure \shinfo{} is to never map it. Finally, from this point on, we assume that the attacker has unimpeded access to \oportunity{}. In the next subsections, we demonstrate various compound DMA attacks where an attacker can exploit OS behavior  to gain \means{} and \motivation{} completing the trifecta.
-
+\textcolor{red}{We dont use type c vulnerability, which drivers have it?}
 \subsection{Ring Flod}\label{sec:ringflod}
 
 A malicious device can generate a poisoned ROP stack on each RX buffer and gain \motivation{}. At this point, the device still cannot execute a successful code injection attack; the device is lacking \means{}. 
@@ -135,7 +135,7 @@ To avoid detection and, more importantly, preserve OS stability, the device must
 \begin{figure*}[t]
     \centering
     \includegraphics[width=\linewidth]{figs/gro.pdf}
-    \caption{An RX \skb after GRO, used as a \means for a DMA attack}
+    \caption{An RX \skb{} after GRO used as a \means{} for a DMA attack.}
     \label{fig:gro}
 \end{figure*}
 

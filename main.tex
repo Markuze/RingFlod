@@ -89,7 +89,7 @@
 \date{}
 
 % make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-\title{\Large \bf Motivation, Means \& Opportunity: The Anatomy of DMA Attacks}
+\title{\Large \bf Motivation, Means \& Opportunity: The Anatomy of Modern DMA Attacks}
 
 % USENIX Security has double blind submissions
 \begin{comment}
@@ -119,9 +119,16 @@ Technion, VMware Research
 \textcolor{magenta}{Your abstract text goes here. Just a few facts. Whet our appetites.
 Not more than 200 words, if possible, and preferably closer to 150.\newline
 We ignore the NDSS paper, the Linux attacks it mentions are at best half backed, which makes our contribution valid. We will still need to address it because the whole sub-page thing; but really its the Copy paper that introduced that notion and this is how we should frame it. The steps are \#1 Write paper as if NDSS doesn't exist. \#2 Add some defensive text when \#1 is complete}
+
+\begin{enumerate}
+    \item Introduce Compound DMA attacks vs. straightforward -- add in intro and contribution list.
+    \item Connect type (c) opportunity gaining vulnerability is not connected to paper...
+    add examples.
+    \item Conclusions: add communication with Linux
+    \item Go over ndss references and copy everything relevant to our related work.
+\end{enumerate}
+
 \end{abstract}
-
-
 %-------------------------------------------------------------------------------
 \input{intro.tex}
 
@@ -133,7 +140,7 @@ We ignore the NDSS paper, the Linux attacks it mentions are at best half backed,
 \input{attack_mechanics.tex}
 \input{attack_setup.tex}
 \input{linux_net.tex}
-\input{mitigations_future.tex}
+\input{related_work.tex}
 \input{conclusion.tex}
 
 
