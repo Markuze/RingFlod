@@ -24,7 +24,7 @@ For example, using MMO schema, we are able to lay out the necessary conditions f
 
 Another example is a full memory dump attack, which can be executed by merely having \oportunity. In this case, we are able to modify the kernel control flow in such a way as to cause it to map arbitrary kernel addresses. In order to achieve this, an attacker needs to modify a kernel pointer once before it is mapped and, for a second time before send (i.e., TX) completion in order to avoid memory corruption (Section \ref{sec:linux_net}). 
 
-To further emphasize the significance of the MMO attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing an RX packet (i.e., a received packet). Due to sub-page vulnerability and a random allocation coincidence, a structure with a callback pointer is inadvertently accessible with write permission. Also, the malicious device is able to create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks two essential prerequisites.
+To further emphasize the significance of the MMO attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing an RX packet (i.e., a received packet). Due to \subpage{} vulnerability and a random allocation coincidence, a structure with a callback pointer is inadvertently accessible with write permission. Also, the malicious device is able to create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks two essential prerequisites.
 
 \begin{itemize}
     \item Missing \means: Without a valid \kva{} of the writable page, the device can not modify the callback function pointer to indicate the \mabaf.
@@ -45,7 +45,7 @@ And while corrupting random kernel memory is still a possibility and may even ca
 \begin{figure}[t]
     \centering
     \includegraphics[width=1\columnwidth]{figs/subpage.pdf}
-    \caption{Sub-page DMA vulnerabilities when the I/O buffer shares a page with other data: (a) I/O buffer metadata; (b) OS
+    \caption{\subpage{} DMA vulnerabilities when the I/O buffer shares a page with other data: (a) I/O buffer metadata; (b) OS
 metadata; (c) a page mapped by multiple \iova; (d) randomly co-located sensitive buffers.}
     \label{fig:colocation}
 \end{figure}
@@ -73,10 +73,10 @@ In the next sections we demonstrate how a \emph{straight-forward} (Sec. \ref{sec
 \subsection{Static Analysis Tool}
 
 Inspired by the MMO schema, we devise a static code analysis tool to classify device drivers by levels of risk. With well over a 1000 \texttt{dma\_map*} (i.e., the set of functions implementing the DMA API) function calls, in the Linux Kernel alone, a manual process would be arduous.
-Our static analysis tool flags drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device has legitimate write access and can freely write a poisoned ROP stack in any legitimate write accessible buffer. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig. \ref{fig:colocation} (a)). Additionally we look for hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig. \ref{fig:colocation} (b)). The risk is classified according to the access permission. \means{} is implied by a READ permission and \oportunity{} is implied by a WRITE/BIDIRECTIONAL permission. The case of multiple \iova{} (Fig. \ref{fig:colocation} (d)), is not a risk category by itself, rather a possible exploit. The tool flags use of functions (e.g., netdev\_alloc\_frag, napi\_alloc\_frag) that may result in this type of vulnerability.
+Our static analysis tool flags drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device has legitimate write access and can freely write a poisoned ROP stack in any legitimate write accessible buffer. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig. \ref{fig:colocation} (a)). Additionally we look for hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig. \ref{fig:colocation} (b)). The risk is classified according to the access permission. \means{} is implied by a READ permission and \oportunity{} is implied by a WRITE/BIDIRECTIONAL permission. The case of multiple \iova{} (Fig. \ref{fig:colocation} (c)), is not a risk category by itself, rather a possible exploit. The tool flags use of functions (e.g., netdev\_alloc\_skb, napi\_alloc\_skb) that may result in this type of vulnerability. \textcolor{blue}{Currently, human expert input is needed to determine which functions are \emph{hazardous}, as a result the tool determine type (a) vulnerabilities automatically; type (b) and (c) only with sufficient human expert input. }
 Finally, the output of the tool presents structured and filtered findings conductive for more in-depth human expert analysis to determine if a viable attack is feasible. 
 
-\noindent\textbf{Remark.} Option (c) falls under the category of random access attacks and as such, requires a more profound human expert dynamic analysis. As mentioned, this is out of the scope of this paper.
+\noindent\textbf{Remark.} Type (d) vulnerability falls under the category of random access attacks and as such, requires a more profound human expert dynamic analysis. As mentioned, this is out of the scope of this paper.
 
 
 \subsection{Deferred Invalidation vulnerability}\label{sec:deferred}
@@ -97,4 +97,4 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
     \item The page can be freed, and then immediately reused by the OS. In fact, this is a common scenario, as Linux prefers to reuse \emph{hot} pages (i.e., recently used pages), as they are likely, to already reside in the CPU caches \cite{hotcold}. In turn, this opens up the kernel to an additional random access attack.
 \end{enumerate}
 
-We demonstrate in Section \ref{sec:linux_net}, how an adversary can take advantage of \emph{deferred} mode.
+%We demonstrate in Section \ref{sec:linux_net}, how an adversary can take advantage of \emph{deferred} mode.

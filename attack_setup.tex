@@ -6,11 +6,11 @@ We find several such potential \simple{} exploits in the Linux kernel. We detail
 
 
 \subsection{Attack setup}
-In our attacks, we use a 28 core, Dell PowerEdge R730 server, an Intel x86 machine with Ubuntu 18.04 (kernel version 4.15), as our victim machine. The server is equipped with Intel VT-d IOMMU a Broadcom NetXtreme II BCM5709 Gigabit Ethernet NIC, a Mellanox Technologies ConnectX-4 Ethernet NIC and VIA Technologies, Inc. VT6315 Series Firewire Controller. An identical machine connected to the victim with a FireWire cable acting as the attacker. 
+In our attacks, we use a 28 core, Dell PowerEdge R730 server, an Intel x86 machine with Ubuntu 18.04 (kernel version 4.15), as our victim machine. The server is equipped with Intel VT-d IOMMU, a Broadcom NetXtreme II BCM5709 Gigabit Ethernet NIC, a Mellanox Technologies ConnectX-4 Ethernet NIC and VIA Technologies, Inc. VT6315 Series Firewire Controller. An identical machine connected to the victim with a FireWire cable acting as the attacker. 
 
 We create a malicious FireWire device by modifying the Linux-IO Target (LIO) subsystem on the attacker machine. The LIO subsystem supports hard disk emulation for remote computers via the \spb{} protocol; and, as such, is a suitable platform to execute such attacks. 
 
-We implement multiple attacks against the Linux kernel network stack. In order to demonstrate an attack by a malicious NIC, we use a FireWire device similarly to \cite{SLND10}. To emulate an attack by a malicious NIC using a FireWire device, we create an \iova{} page table sharing between the FireWire and the actual NIC. A minor patch is needed for the victim OS to facilitate this emulation. This way, the attacker machine can access the same pages as the Broadcom NIC, which allows us to execute an attack using a programmable interface, emulating a malicious NIC.
+We implement multiple attacks against the Linux kernel network stack. In order to demonstrate an attack by a malicious NIC, we use a FireWire device similarly to \cite{SLND10}. To emulate an attack by a malicious NIC using a FireWire device, we create an \iova{} page table sharing between the FireWire and the actual NIC. A minor patch is needed for the victim OS to facilitate this emulation. This way, the attacker machine can access the same pages as the NIC. This allows us to execute an attack using a programmable interface, emulating a malicious NIC.
 
 \subsection{FireWire Background}
 
@@ -30,7 +30,7 @@ Linux has a Linux-IO (LIO) module, which allows for a Linux machine to act as a 
     \label{fig:orb}
 \end{figure}
 
-The Linux FireWire driver has a type (a) (Fig. \ref{fig:colocation} (a)) sub-page vulnerability. Both the device metadata and the I/O buffers for the \spb{} protocol implemented by the spb2 driver are contained inside the \texttt{spb2\_management\_orb} struct (Fig. \ref{fig:orb}). This provides the attacker with both \means{} and \oportunity{}.
+The Linux FireWire driver has a type (a) (Fig. \ref{fig:colocation} (a)) \subpage{} vulnerability and the exploit we demonstrate, falls under the category of a \simple{} attack. Both the device metadata and the I/O buffers for the \spb{} protocol implemented by the spb2 driver are contained inside the \texttt{spb2\_management\_orb} struct (Fig. \ref{fig:orb}). This provides the attacker with both \means{} and \oportunity{}.
 
 To enable communication between the initiator and the target, the spb2 driver maps the request and response fields. As a result, the whole 4~KB page, that contains the \texttt{spb2\_management\_orb} struct is accessible with both READ and WRITE to the device. Read access is available via the \iova{} created when the \emph{request} was mapped. Write access is available via the \iova{} created when the \emph{response} was mapped. Consequently, the device can read and manipulate both the request and response fields as well as the metadata. 
 

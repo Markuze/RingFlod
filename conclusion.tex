@@ -8,27 +8,46 @@ Hardware attacks are often considered to be harder to implement than software at
 \footnote{\url{https://lore.kernel.org/lkml/20180510230948.GF190385@bhelgaas-glaptop.roam.corp.google.com/}}.
 \end{comment}
 
-Clearly, the root cause, for DMA attacks is sub-page vulnerability. Namely, no DMA attack could work without the unintentional exposure of restricted fields. The blame is not with the device drivers alone. With the existing API used for I/O operations and due to performance considerations, it is extremely difficult not to create a sub-page vulnerability. Thus, even well-written drivers can be subverted by the OS (e.g., bnx2 by deferred protection). Examples to this include:
+Clearly, the root cause, for DMA attacks is \subpage{} vulnerability. Namely, no DMA attack could work without the unintentional exposure of restricted fields. The blame is not with the device drivers alone. With the existing API used for I/O operations and due to performance considerations, it is extremely difficult not to create a \subpage{} vulnerability. Thus, even well-written drivers can be subverted by the OS (e.g., bnx2 by deferred protection). Examples to this include:
 
 \begin{enumerate}
     \item API: 
     \begin{itemize}
         \item The \textit{dma\_map\_single} call accepts a pointer and the buffer length. This API insinuates that only the mapped bytes are exposed, when, in fact, the whole page is accessible.
-        \item \textit{dma\_unmap\_single}, insinuates that the buffer is not accessible to the device after the call; this does not hold both due to deferred protection and type (c) sub-page vulnerabilities.
+        \item \textit{dma\_unmap\_single}, insinuates that the buffer is not accessible to the device after the call; this does not hold both due to deferred protection and type (c) \subpage{} vulnerabilities.
         \item \textit{build\_skb} facilitates building an \skb{} around an arbitrary I/O buffer, in turn, embedding critical data structures inside an I/O buffer.
-        \item While \texttt{page\_frag} is an efficient allocator, it inherently creates a type (c) sub-page vulnerability.
+        \item While \texttt{page\_frag} is an efficient allocator, it inherently creates a type (c) \subpage{} vulnerability.
     \end{itemize} 
     \item Tools/Infrastructure: 
     \begin{itemize}
             \item \texttt{page\_pool} API, by caching I/O buffers and avoiding expensive unmaps, the drivers \emph{circumvent} the security techniques of the OS. 
-            \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) sub-page vulnerabilities impose a challenge.
+            \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) \subpage{} vulnerabilities impose a challenge.
             \item No dedicated allocators for I/O such as proposed in previous works (e.g., \cite{MSMT18,MMT16}).
     \end{itemize}
 \end{enumerate}
 
-We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we urge the use of pointer obfuscation \cite{Coo17}, and solely non-linear RX buffers as an alternative to a new design. Additionally, we urge the use of static code analysis that detects sub-page vulnerabilities.
+We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we urge the use of pointer obfuscation \cite{Coo17}, and solely non-linear RX buffers as an alternative to a new design. Additionally, we urge the use of static code analysis that detects \subpage{} vulnerabilities.
 
-\emph{All DMA attacks stem from sub-page vulnerabilities - Simply stop sharing restricted data.}
+\emph{All DMA attacks stem from \subpage{} vulnerabilities - Simply stop sharing restricted data.}
+
 
 \smallskip
 \textcolor{olive}{Its important to note, that while our static analysis tool is able to flag potential \simple vulnerabilities fairly easily; the tool has trouble \compound attacks, due to the complexity of the kernel. This work also does not claim to cover all possible \compound attacks, and only provides a glimpse at the possible. Several attacks we have considered, but were not able to implement. We could modify the \emph{accomplice} attack, in a way that the user send a callback pointer in user space instead of a ROP attack, this attack unfortunately doesn't work due to Kernel smep/smap defences. Another attack; can exploit attempt exploiting ICMP packets. In the ICMP code we have noticed that RX skbs can be reused as TX skbs in ICMP replys. Eventualy, we couldnt generate a flow that fill force such a reuse; this might just be because of lack of trying on our part. Forcing such a scenario is helpfull to an attacker, with write access to \shinfo{}, for a TX packet can create a scenario allowing a memory dump just like we have shown.... :(- All Ive got... }
+
+\SV{modified... still requires some work}
+
+It is also important to note that while our static analysis tool is able to flag potential \simple{} vulnerabilities fairly easily, the tool is less effishient in detecting a potential to \compound{} attacks, mainly, due to the complexity of the kernel. That is, while the tool detects potential trifecta members, there is a need for a human expert to analyze the findings. 
+
+This work also does not claim to cover all possible \compound{} attacks, and only provides a glimpse at the possible using the trifecta principle. 
+
+That are also several attacks that we have considered but were not able to successfully execute: (1) we attempted to modify the \emph{accomplice} attack in a way that the user sends a callback pointer in user space instead of a ROP attack. This attack fails due to the Kernel smep/smap defences; (2) we attempted to exploit ICMP packets. In the ICMP code we have noticed that RX skbs can be reused as TX skbs in ICMP replays. Eventually, we could not generate a flow that fill force such a reuse. \SV{next sentence is unclear}Forcing such a scenario is helpful to an attacker, with write access to \shinfo{}, for a TX packet can create a scenario allowing a memory dump.
+
+
+
+
+
+
+
+
+
+
