@@ -7,7 +7,6 @@ Our attacks are designed with the following assumptions:
     \item We assume the existence of a malicious DMA capable device attached to the system.
     \item The actual attack is performed solely by a DMA-capable malicious device.
     \item Any hardware aside from the specific malicious device is working as expected.
-    \item Any ports intended for debugging (e.g., jtag), are not considered.
  \end{enumerate}
 
 The most significant potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Another potential consequence we consider is a full system memory dump. These are harder to thwart and even harder to detect. Lastly, a consequence of a possible failed attack is random memory corruption, resulting in a denial of service \cite{MMT16}, where the OS panics. Ideally, malformed devices should not be able to crash the entire system. 
@@ -65,12 +64,12 @@ We classify the different types of potentially co-located data, into four catego
 
 In the next sections we demonstrate how a \emph{straight-forward} (Sec. \ref{sec:sbp2_attack}) attack utilizes type (a) vulnerability. A \emph{compound attack} (Sec. \ref{sec:linux_net}), on the other hand, uses types (b) and (c) vulnerability. Both attack types use type (d) vulnerability to compromise KASLR: KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage.
 
-\begin{figure*}[t]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=1.3\columnwidth]{figs/deferred.png}
+    \includegraphics[width=1\columnwidth]{figs/strict.pdf}
     \caption{Strict vs. deferred IOTLB invalidation. In \emph{deferred} mode, there is a time window where the data is accessible to the device, but the mapping no longer appears in the page table.}
     \label{fig:deferred}
-\end{figure*}
+\end{figure}
 \subsection{Static Analysis Tool}
 
 Inspired by the MMO schema, we devise a static code analysis tool to classify device drivers by levels of risk. With well over a 1000 \texttt{dma\_map*} (i.e., the set of functions implementing the DMA API) function calls, in the Linux Kernel alone, a manual process would be arduous.

@@ -1,3 +1,11 @@
+\textcolor{red}{
+\subsection{A Foreigner in a Foreign Land}
+Must validate feasibility: An accomplice in user space, can attempt running arbitrary code in kernel context without resolving to ROP attacks; the usef, can instead write a function and a \texttt{ubuf\_info} in an unprivileged binary and send the \texttt{ubuf\_info} address to the NIC. The \shinfo callback must be called with the users page tables loaded - this is a likely scenario as it seems that the \skb is freed inside the recv() sys\_call callback.}
+
+
+\textcolor{red}{\subsection{ICMP}
+In the ICMP code I have noticed; what seems to be a reuse of RX skbs for TX, resulting in READ/WRITE mapping - this can allow the device to read all server memory. Unfortunately privilege escalation is infeasible due to lack of \means, until of-course we find a scenario where ICMP adds, write accessible frags.} 
+
 \begin{comment}
 \section{RDMA}
 Remote DMA(RDMA)\footnote{Member Companies of Openfabrics alliance are mostly behind these technologies \url{https://www.openfabrics.org/}} is a set of protocols(Infiniband,IWARP,RoCE) that facilitate access to the main memory of a remote machines. We wanted to see if some of the attacks could be perpetrated via a malicious peer.  
