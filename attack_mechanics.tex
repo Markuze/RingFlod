@@ -62,7 +62,7 @@ We classify the different types of potentially co-located data, into four catego
 
 \end{enumerate}
 
-In the next sections we demonstrate how a \emph{straight-forward} (Sec. \ref{sec:sbp2_attack}) attack utilizes type (a) vulnerability. A \emph{compound attack} (Sec. \ref{sec:linux_net}), on the other hand, uses types (b) and (c) vulnerability. Both attack types use type (d) vulnerability to compromise KASLR: KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage.
+In the next sections we demonstrate how a \simple{} (Sec. \ref{sec:sbp2_attack}) attack utilizes type (a) vulnerability. A \emph{compound attack} (Sec. \ref{sec:linux_net}), on the other hand, uses type (b) and (c) vulnerabilities. Both attack types use type (d) vulnerability to compromise KASLR: KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage.
 
 \begin{figure}[t]
     \centering

