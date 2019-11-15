@@ -13,7 +13,7 @@ However, unlike processes that operate in page granularity, I/O buffers can be s
 
 Malicious devices can exploit this vulnerability to construct their attacks. These range from simple random memory access exploits (e.g., memory corruption that can be used to crash the kernel) to the more dire privilege escalation attacks, where the attacker gains control over the victim machine.
 
-Previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. We argue that a structured approach is needed as it can lead to better threat detection and analysis, precipitating a more secure OS. Accordingly, in this work, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,~\motivation{} and \oportunity~(MMO) a trifecta of attributes, sufficient to lay out the space of DMA attacks (Section \ref{sec:mmo}):
+Previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. We argue that a structured approach is needed as it can lead to better threat detection and analysis, precipitating a more secure OS. Accordingly, in this work, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,~\motivation{} and \oportunity~(MMO) a trifecta of attributes, sufficient to lay out the space of DMA attacks (Sec. \ref{sec:mmo}):
 \begin{enumerate}
     \item \motivation: A kernel buffer filled with malicious executable code; a \mabaf.
     \item \means: The kernel virtual address (\kva) of a \mabaf.
@@ -30,8 +30,8 @@ We focus on more complex attacks; situations, where the MMO trifecta is incomple
 
 To assess and validate our findings, we use a recent Linux kernel (version 5.3) that utilizes best practices for code injection mitigation, i.e., KASLR, NX-bit and has IOMMU enabled by default. Furthermore, Linux is the de facto OS of the cloud and runs on most of the world's servers. Linux also has no known DMA attacks against it, though some were theorized \cite{MMT16,thunder}. 
 
-Nevertheless, in this work, we demonstrate how MMO can be used systematically to expose DMA vulnerabilities in the Linux kernel. For example, we demonstrate a \simple{} attack on the FireWire \spb{} driver (Section \ref{sec:sbp2_attack}) and show how this driver is marked by our static analysis tool. 
-We then continue to tackle harder cases where the identified trifecta attributes are initially incomplete (i.e., \compound{} attacks), and human expertise is needed to exploit these vulnerabilities (Section \ref{sec:linux_net}). To summarize, our contributions in this paper are as follows:
+Nevertheless, in this work, we demonstrate how MMO can be used systematically to expose DMA vulnerabilities in the Linux kernel. For example, we demonstrate a \simple{} attack on the FireWire \spb{} driver (Sec. \ref{sec:sbp2_attack}) and show how this driver is marked by our static analysis tool. 
+We then continue to tackle harder cases where the identified trifecta attributes are initially incomplete (i.e., \compound{} attacks), and human expertise is needed to exploit these vulnerabilities (Sec. \ref{sec:linux_net}). To summarize, our contributions in this paper are as follows:
 \begin{itemize}
     \item We introduce the MMO Schema for evaluating kernel vulnerabilities to DMA attacks. 
     \item We develop an MMO inspired, static code analysis tool. We use it to evaluate the Linux kernel device drivers; and find numerous device drivers, at a high level of risk to DMA attack.

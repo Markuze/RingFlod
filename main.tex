@@ -131,25 +131,11 @@ Technion, VMware Research
 %-------------------------------------------------------------------------------
 %\textcolor{red}{Before: chaos Now Oder == MMO, taxonomy of DMA vulnerabilities Result \compound attacks. + tool. We expose  a deep-rooted issue in OS design rather than ad-hoc buggies... The language:\simple vs. \compound, MMO, \subpage types.}
 
-Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which IO devices access memory regions not intended for their use.
-Hardware IOMMU protection is unable to fully prevent DMA attacks, because it restricts DMA at page-level granularity, whereas DMA buffers can reside on the same page as other data.  However, conventional wisdom is that DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
+Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware IOMMU protection is unable to entirely prevent DMA attacks, because it restricts DMA at page-level granularity, whereas DMA buffers can reside on the same page as other data. Conventional wisdom is that DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
 
-This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack.  To this end, we introduce Motive, Means $\&$ Opportunity (MMO), a trifecta of attributes that characterize any DMA attack.  
-We further develop an MMO inspired static code analysis tool capable of identifying device drivers susceptible to DMA attacks.
+This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. To this end, we introduce Motive, Means $\&$ Opportunity (MMO), a trifecta of attributes that characterize any DMA vulnerability. We then further develop an MMO-inspired static code analysis tool identifying device drivers susceptible to DMA attacks.
 
-We find that previously reported DMA attacks fall into a category we term \simple{} attacks, cases where the trifecta is present in a single memory page. We then present \compound{} attacks: situations where the trifecta is initially incomplete but can be collected by carefully exploiting standard OS behavior.
-We focus on code injection attacks targeting the Linux kernel. We demonstrate both previously unreported \simple{} attacks and continue to the more complex \compound{} attacks.
-
-
-
-\begin{comment}
-Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, where IO devices, can access memory regions not intended for their use. Recent findings have shown that IOMMU is unable to provide adequate protection against DMA attacks, leaving the system unprotected from multiple exploits. However, previously reported vulnerabilities have an ad-hoc nature rather than a structured top-down approach. Such cases create a dangerous misconception; that buggy device drivers or poor but isolated design choices are to blame for DMA vulnerabilities. 
-
-We demonstrate that, in fact, it is often the Kernel itself that supplements the missing pieces needed for the attack, revealing that DMA vulnerability is deeply rooted in OS design rather than a collection of disjoint incidents. 
-
-Accordingly, we introduce Motive, Means $\&$ Opportunity (MMO), a trifecta of attributes for identifying viable DMA attacks and develop an MMO inspired static code analysis tool capable of identifying device drivers at a high level of risk to DMA attack. We contend that previous attacks and vulnerabilities fall into a category we term \simple{} attacks, cases where the trifecta is present in a single page. We then present \compound{} attacks; situations, where the trifecta is initially incomplete but can be collected by carefully exploiting standard OS behavior. Finally, in our attacks, we focus on code injection attacks targeting the Linux kernel. We demonstrate both previously unreported \simple{} attacks and continue to the more complex \compound{} attacks.
-\end{comment}
-
+Utilizing the MMO schema, we find that previously reported DMA attacks fall into a category we term \simple{} attacks, cases where the trifecta of vulnerability attributes is present in a single memory page. We then continue to present a new type of more complex DMA attacks we term \compound{} attacks. Namely, situations where \simple{} attacks are inviable since the trifecta of vulnerability attribute is initially incomplete. Nevertheless, as we show, they can be collected by carefully exploiting standard OS behavior. We focus on code injection attacks targeting the Linux kernel and, demonstrate both previously unreported \simple{} attacks and new, more complex, \compound{} attacks.
 
 \begin{comment}
 
@@ -161,11 +147,12 @@ TODO:
     \item \st{Introduce Compound DMA attacks vs. straightforward -- add in intro and contribution list.}
     \item \st{Connect type (c) opportunity gaining vulnerability is not connected to paper...
     add examples.}
-    \item Conclusions: add communication with Linux
+    \item \st{Conclusions: add communication with Linux}
     \item Go over ndss references and copy everything relevant to our related work.
+    \item Mention smep/smap in either sec. 6 or related...
     \item Check and then update all access dates in ferences links.
-    \item Check: Section -> Sec. , Figure-> Fig. ... ect.
-    \item check smallskip consistency.
+    \item \st{Check: Section -> Sec. , Figure-> Fig. ... ect.}
+    \item \st{check smallskip consistency.}
     \item \st{change bnx2 to tg3 (NetXtreme BCM5720)- (napi\_alloc\_frag - type (c))}
 \end{enumerate}
 \end{comment}
