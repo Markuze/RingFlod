@@ -2,7 +2,7 @@
 
 \section{Discussion and conclusions}
 
-Hardware attacks are often considered to be harder to implement than software attacks. Nevertheless, once a malicious device is built, launching the attack boils down to connecting the device to an external port and for only a few seconds. Furthermore, recent leaks from clandestine agencies show that they have been attacked both by shipping infected hardware \cite{Gal14} and by connecting external malicious devices \cite{Fin14}. 
+Once a malicious device exists, launching a DMA attack boils down to connecting the device to an external port and only for a few seconds. Furthermore, recent leaks from clandestine agencies show that they have been attacked by both shipping infected hardware \cite{Gal14} and connecting external malicious devices \cite{Fin14}. 
 
 \begin{comment}
 \footnote{\url{https://lore.kernel.org/lkml/20180510230948.GF190385@bhelgaas-glaptop.roam.corp.google.com/}}.
@@ -14,14 +14,14 @@ Clearly, the root cause, for DMA attacks is \subpage{} vulnerability. Namely, no
     \item API: 
     \begin{itemize}
         \item The \textit{dma\_map\_single} call accepts a pointer and the buffer length. This API insinuates that only the mapped bytes are exposed, when, in fact, the whole page is accessible.
-        \item \textit{dma\_unmap\_single}, insinuates that the buffer is not accessible to the device after the call; this does not hold both due to deferred protection and type (c) \subpage{} vulnerabilities.
+        \item \textit{dma\_unmap\_single}, insinuates that the buffer is not accessible to the device after the call. This does not hold both due to deferred protection and type (c) \subpage{} vulnerabilities.
         \item \textit{build\_skb} facilitates building an \skb{} around an arbitrary I/O buffer, in turn, embedding critical data structures inside an I/O buffer.
         \item While \texttt{page\_frag} is an efficient allocator, it inherently creates a type (c) \subpage{} vulnerability.
     \end{itemize} 
     \item Tools/Infrastructure: 
     \begin{itemize}
             \item \texttt{page\_pool} API, by caching I/O buffers and avoiding expensive unmaps, the drivers \emph{circumvent} the security techniques of the OS. 
-            \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) \subpage{} vulnerabilities impose a challenge.
+            \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) \subpage{} vulnerabilities imposes a challenge.
             \item No dedicated allocates for I/O such as proposed in previous works (e.g., \cite{MSMT18,MMT16}).
     \end{itemize}
 \end{enumerate}
