@@ -1,5 +1,10 @@
 \section{\Simple{} Attacks}\label{sec:attack_setup}
-
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{figs/sbp.png}
+    \caption{\texttt{spb2\_management\_orb} struct with fields relevant to the DMA attack.}
+    \label{fig:orb}
+\end{figure}
 In this section, we discuss \simple{} attacks, i.e., exploits in which the trifecta appears within a single page.
 We find several such potential \simple{} exploits in the Linux kernel. We detail such an example in the FireWire driver, as this is the hardware we have in our setup. 
 
@@ -23,12 +28,6 @@ A SCSI connection consists of two endpoints: an initiator' (i.e., OS), which ini
 Linux has a Linux-IO (LIO) module, which allows for a Linux machine to act as a SCSI target. One can boot the machine in \emph{target disk mode}, such that it acts as a disk (i.e., SCSI target) when connected to another computer. When the connection is via FireWire, the SPB2 protocol is used.
 
 \subsection{Linux FireWire Exploit} \label{sec:sbp2_attack}
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{figs/sbp.png}
-    \caption{\texttt{spb2\_management\_orb} struct with fields relevant to the DMA attack.}
-    \label{fig:orb}
-\end{figure}
 
 The Linux FireWire driver has a type (a) (Fig. \ref{fig:colocation} (a)) \subpage{} vulnerability and the exploit we demonstrate, falls under the category of a \simple{} attack. Both the device metadata and the I/O buffers for the \spb{} protocol implemented by the spb2 driver are contained inside the \texttt{spb2\_management\_orb} struct (Fig. \ref{fig:orb}). This provides the attacker with both \means{} and \oportunity{}.
 

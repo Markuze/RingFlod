@@ -13,12 +13,12 @@ The most significant potential consequence of our attacks is privilege escalatio
 
 \section{MMO}\label{sec:mmo}
 
-In this section, we introduce the MMO (\motivation, \means, \oportunity) schema. We contend that a malicious device, just like a human criminal, needs Motive, Means, and Opportunity to perpetuate its attack. Using this schema, we can better understand the DMA vulnerabilities of an OS, the viability of possible DMA attacks, and their prevention. 
+In this section, we introduce the MMO (\motivation, \means, \oportunity) schema. We contend that a malicious device, just like a human criminal, needs Motive, Means, and Opportunity to perpetrate its attack. Using this schema, we can better understand the DMA vulnerabilities of an OS, the viability of possible DMA attacks, and their prevention. 
 
-For example, using MMO schema, we are able to lay out the necessary conditions for a successful privilege escalation attack (i.e., code injection). Specifically, a malicious device needs all three prerequisites:
+For example, using the MMO schema, we are able to lay out the necessary conditions for a successful privilege escalation attack (i.e., code injection). Specifically, a malicious device needs all three prerequisites:
 \begin{enumerate}
     \item \motivation: A kernel buffer filled with malicious code (e.g., a valid ROP attack) -- a \mabaf.
-    \item \means: The kernel virtual address (\kva) of a \mabaf. Given the device is using \iova, the attacker needs to obtain the malicious buffer's \kva{}, for example, by observing leaked pointers. 
+    \item \means: The \kva{} of a \mabaf. Given the device is using \iova, the attacker needs to obtain the malicious buffer's \kva{}, for example, by observing leaked pointers. 
     \item \oportunity: Write access to a known pointer, which can alter the CPU control flow and execute the malicious code. For example, write access to a data structure that holds a function callback pointer, at a known offset.\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation \cite{rand_layout}.}
 \end{enumerate}
 
@@ -27,7 +27,7 @@ Another example is a full memory dump attack, which can be executed by merely ha
 To further emphasize the significance of the MMO attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing an RX packet (i.e., a received packet). Due to \subpage{} vulnerability and a random allocation coincidence, a structure with a callback pointer is inadvertently accessible with write permission. Also, the malicious device is able to create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks two essential prerequisites.
 
 \begin{itemize}
-    \item Missing \means: Without a valid \kva{} of the writable page, the device can not modify the callback function pointer to indicate the \mabaf.
+    \item Missing \means: Without a valid \kva{} of the writable page, the device cannot modify the callback function pointer to indicate the \mabaf.
     \item Missing \oportunity: Although a callback function pointer is available for modifications, the device has no way of knowing: 
     \begin{enumerate}
         \item[(a)] That a callback function pointer is available for sabotage.
