@@ -62,6 +62,7 @@
 \usepackage{enumitem}
 %striketrough
 \usepackage[normalem]{ulem}
+\usepackage{soul}
 
 % inlined bib file
 \usepackage{filecontents}
@@ -119,21 +120,33 @@ Technion, VMware Research
 %-------------------------------------------------------------------------------
 \begin{abstract}
 %-------------------------------------------------------------------------------
-\textcolor{magenta}{Your abstract text goes here. Just a few facts. Whet our appetites.
-Not more than 200 words, if possible, and preferably closer to 150.\newline
-We ignore the NDSS paper, the Linux attacks it mentions are at best half backed, which makes our contribution valid. We will still need to address it because the whole \subpage{} thing; but really its the Copy paper that introduced that notion and this is how we should frame it. The steps are \#1 Write paper as if NDSS doesn't exist. \#2 Add some defensive text when \#1 is complete}
+%\textcolor{red}{Before: chaos Now Oder == MMO, taxonomy of DMA vulnerabilities Result \compound attacks. + tool. We expose  a deep-rooted issue in OS design rather than ad-hoc buggies... The language:\simple vs. \compound, MMO, \subpage types.}
+
+
+Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, where IO devices, can access memory regions not intended for their use. Recent findings have shown that IOMMU is unable to provide adequate protection against DMA attacks, leaving the system unprotected from multiple exploits. However, previously reported vulnerabilities have an ad-hoc nature rather than a structured top-down approach. Such cases create a dangerous misconception; that buggy device drivers or poor but isolated design choices are to blame for DMA vulnerabilities. 
+
+We demonstrate that, in fact, it is often the Kernel itself that supplements the missing pieces needed for the attack, revealing that DMA vulnerability is deeply rooted in OS design rather than a collection of disjoint incidents. 
+
+Accordingly, we introduce Motive, Means $\&$ Opportunity (MMO), a trifecta of attributes for identifying viable DMA attacks and develop an MMO inspired static code analysis tool capable of identifying device drivers at a high level of risk to DMA attack. We contend that previous attacks and vulnerabilities fall into a category we term \simple{} attacks, cases where the trifecta is present in a single page. We then present \compound{} attacks; situations, where the trifecta is initially incomplete but can be collected by carefully exploiting standard OS behavior. Finally, in our attacks, we focus on code injection attacks targeting the Linux kernel. We demonstrate both previously unreported \simple{} attacks and continue to the more complex \compound{} attacks.
+
+\begin{comment}
+
+
+\smallskip
+TODO:
 
 \begin{enumerate}
-    \item Introduce Compound DMA attacks vs. straightforward -- add in intro and contribution list.
-    \item Connect type (c) opportunity gaining vulnerability is not connected to paper...
-    add examples.
+    \item \st{Introduce Compound DMA attacks vs. straightforward -- add in intro and contribution list.}
+    \item \st{Connect type (c) opportunity gaining vulnerability is not connected to paper...
+    add examples.}
     \item Conclusions: add communication with Linux
     \item Go over ndss references and copy everything relevant to our related work.
     \item Check and then update all access dates in ferences links.
     \item Check: Section -> Sec. , Figure-> Fig. ... ect.
     \item check smallskip consistency.
-    \item change bnx2 to tg3 (NetXtreme BCM5720)- (napi\_alloc\_frag - type (c))
+    \item \st{change bnx2 to tg3 (NetXtreme BCM5720)- (napi\_alloc\_frag - type (c))}
 \end{enumerate}
+\end{comment}
 
 \end{abstract}
 %-------------------------------------------------------------------------------
@@ -156,7 +169,7 @@ We ignore the NDSS paper, the Linux attacks it mentions are at best half backed,
 \appendix
 
 \input{appendixes/shellcode.tex}
-\input{appendixes/dma_bidir.tex}
+%\input{appendixes/dma_bidir.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

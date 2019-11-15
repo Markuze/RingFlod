@@ -22,7 +22,7 @@ Clearly, the root cause, for DMA attacks is \subpage{} vulnerability. Namely, no
     \begin{itemize}
             \item \texttt{page\_pool} API, by caching I/O buffers and avoiding expensive unmaps, the drivers \emph{circumvent} the security techniques of the OS. 
             \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) \subpage{} vulnerabilities impose a challenge.
-            \item No dedicated allocators for I/O such as proposed in previous works (e.g., \cite{MSMT18,MMT16}).
+            \item No dedicated allocates for I/O such as proposed in previous works (e.g., \cite{MSMT18,MMT16}).
     \end{itemize}
 \end{enumerate}
 
@@ -31,16 +31,16 @@ We contend that a better API and better mechanisms can provide driver authors wi
 \emph{All DMA attacks stem from \subpage{} vulnerabilities - Simply stop sharing restricted data.}
 
 
-\smallskip
-\textcolor{olive}{Its important to note, that while our static analysis tool is able to flag potential \simple vulnerabilities fairly easily; the tool has trouble \compound attacks, due to the complexity of the kernel. This work also does not claim to cover all possible \compound attacks, and only provides a glimpse at the possible. Several attacks we have considered, but were not able to implement. We could modify the \emph{accomplice} attack, in a way that the user send a callback pointer in user space instead of a ROP attack, this attack unfortunately doesn't work due to Kernel smep/smap defences. Another attack; can exploit attempt exploiting ICMP packets. In the ICMP code we have noticed that RX skbs can be reused as TX skbs in ICMP replys. Eventualy, we couldnt generate a flow that fill force such a reuse; this might just be because of lack of trying on our part. Forcing such a scenario is helpfull to an attacker, with write access to \shinfo{}, for a TX packet can create a scenario allowing a memory dump just like we have shown.... :(- All Ive got... }
+%\smallskip
+%\textcolor{olive}{Its important to note, that while our static analysis tool is able to flag potential \simple vulnerabilities fairly easily; the tool has trouble \compound attacks, due to the complexity of the kernel. This work also does not claim to cover all possible \compound attacks, and only provides a glimpse at the possible. Several attacks we have considered, but were not able to implement. We could modify the \emph{accomplice} attack, in a way that the user send a callback pointer in user space instead of a ROP attack, this attack unfortunately doesn't work due to Kernel smep/smap defences. Another attack; can exploit attempt exploiting ICMP packets. In the ICMP code we have noticed that RX skbs can be reused as TX skbs in ICMP replies. Eventually, we couldnt generate a flow that fill force such a reuse; this might just be because of lack of trying on our part. Forcing such a scenario is helpful to an attacker, with write access to \shinfo{}, for a TX packet can create a scenario allowing a memory dump just like we have shown.... :(- All Ive got... }
 
-\SV{modified... still requires some work}
+%\SV{modified... still requires some work}
 
-It is also important to note that while our static analysis tool is able to flag potential \simple{} vulnerabilities fairly easily, the tool is less effishient in detecting a potential to \compound{} attacks, mainly, due to the complexity of the kernel. That is, while the tool detects potential trifecta members, there is a need for a human expert to analyze the findings. 
+%It is also important to note that while our static analysis tool is able to flag potential \simple{} vulnerabilities fairly easily, the tool is less efficient in detecting a potential to \compound{} attacks, mainly, due to the complexity of the kernel. That is, while the tool detects potential trifecta members, there is a need for a human expert to analyze the findings. 
 
-This work also does not claim to cover all possible \compound{} attacks, and only provides a glimpse at the possible using the trifecta principle. 
+%This work also does not claim to cover all possible \compound{} attacks, and only provides a glimpse at the possible using the trifecta principle. 
 
-That are also several attacks that we have considered but were not able to successfully execute: (1) we attempted to modify the \emph{accomplice} attack in a way that the user sends a callback pointer in user space instead of a ROP attack. This attack fails due to the Kernel smep/smap defences; (2) we attempted to exploit ICMP packets. In the ICMP code we have noticed that RX skbs can be reused as TX skbs in ICMP replays. Eventually, we could not generate a flow that fill force such a reuse. \SV{next sentence is unclear}Forcing such a scenario is helpful to an attacker, with write access to \shinfo{}, for a TX packet can create a scenario allowing a memory dump.
+%That are also several attacks that we have considered but were not able to successfully execute: (1) we attempted to modify the \emph{accomplice} attack in a way that the user sends a callback pointer in user space instead of a ROP attack. This attack fails due to the Kernel smep/smap defences; (2) we attempted to exploit ICMP packets. In the ICMP code we have noticed that RX skbs can be reused as TX skbs in ICMP replays. Eventually, we could not generate a flow that fill force such a reuse. \SV{next sentence is unclear}Forcing such a scenario is helpful to an attacker, with write access to \shinfo{}, for a TX packet can create a scenario allowing a memory dump.
 
 
 

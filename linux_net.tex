@@ -21,7 +21,7 @@ Struct \skb{} is a common data structure, used by the Linux network stack, to ho
 
 This separation means that \skb{} is \emph{never} (intentionally) mapped to the device. Indeed, it is a common belief, pointed out in literature \cite{thunder}, that the Linux network stack is not susceptible to DMA attacks via the \texttt{data} pointer. In this work, we show that this belief is misplaced.
 
-The Linux network stack supports packet cloning by merely copying \skb{} metadata. This includes the \texttt{data} pointer. That is, the resulting \skb{} and the original one share the data buffer \cite{drivers2005linux}. Note that the \texttt{data} buffer of the \skb{} is the \emph{linear} part of the payload but \skb{} also supports \emph{non-linear} buffers, i.e., buffers described by their \page{}, length and offset in the \texttt{frags} array of \shinfo (Fig. \ref{fig:sh_info}). 
+The Linux network stack supports packet cloning by merely copying \skb{} metadata. This includes the \texttt{data} pointer. That is, the resulting \skb{} and the original one share the data buffer \cite{drivers2005linux}. Note that the \texttt{data} buffer of the \skb{} is the \emph{linear} part of the payload but \skb{} also supports \emph{non-linear} buffers, i.e., buffers described by their \page{}, length and offset in the \texttt{frags} array of \shinfo{} (Fig. \ref{fig:sh_info}). 
 
 To support these non-linear buffers, the \shinfo{} metadata structure is used.
 Struct \shinfo{}, in contrast to \skb{}, is always allocated as part of the data buffer. Therefore it is always mapped to the device. \shinfo is unwittingly mapped with the permissions of the packet, i.e., WRITE for RX packets, READ for TX packets, and in some cases, such as XDP/XSK \cite{xdp} with BIDIRECTIONAL.
@@ -51,7 +51,7 @@ We now detail the different ways in which a malicious device can obtain \oportun
 \begin{enumerate}[label=(\roman*)]
 
 \item Presumably, a correct use of the DMA API should thwart the attack outlined in the previous section (Fig. \ref{fig:sh_info}). Namely, unmapping the buffer and only then initializing \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated. 
-As it turns out, prevalent device drivers (Appendix \ref{apndx:wrong_order}) first create an \skb{} and only then unmap the buffer. This order of execution allows the \emph{device} to undo legitimate changes to \shinfo{} by the CPU. 
+As it turns out, prevalent device drivers (i.e., Intel 40GbE NIC driver, i40e) first create an \skb{} and only then unmap the buffer. This order of execution allows the \emph{device} to undo legitimate changes to \shinfo{} by the CPU. 
 
 \item Nevertheless, even when the order is correct, i.e., the unmapping of the buffer occurs before the creation of the \skb{}, still \shinfo{} is not safe from later modifications. As the default IOMMU mode in Linux is \emph{deferred} protection (Sec. \ref{sec:deferred}), the unmap order is made irrelevant. That is, even though the unmap function is invoked in the correct order, the device can still corrupt \shinfo{} due to the IOTLB. Namely, the device can control which \iova{} are cached in the IOTLB by accessing only the addresses it needs cached. 
 
@@ -155,7 +155,7 @@ The fact that the NIC has both read and write access to \shinfo, allows the NIC 
 The difference between this flow and a regular receive flow is the additional read capability the NIC has due to XDP. That is, the last step, where \means{} is obtained, is possible only with READ access granted due to XDP.
 
 \smallskip
-\noindent\textbf{Remark.} Other drivers that support XDP, show similar behaviour\footnote{\textcolor{red}{Add a list of drivers to Appendix}}. Also, its important to note that the mlx5\_core driver has two modes of operation; linear - where an skb is built around an RX buffer and non-linear where the driver is is filling up the \texttt{frags} of \shinfo, which was never mapped. The former is the default, and the later is actually secure. The non-linear mode of option is secure because \shinfo{} is never accessible to the device; and thus the NIC never has the \oportunity{} to attack.
+\noindent\textbf{Remark.} Other drivers that have XDP support, also tend to map RX buffers with BIDIRECTIONAL (e.g., bnxt,i40e,mlx4\_en). Interestingly, the mlx5\_core driver has two modes of operation; linear - where an skb is built around an RX buffer and non-linear where the driver is is filling up the \texttt{frags} of \shinfo, which was never mapped. The former is the default, and the later is actually secure. The non-linear mode of option is secure because \shinfo{} is never accessible to the device; and thus the NIC never has the \oportunity{} to attack.
 
 \begin{comment}
 %The linear skbs in mlx5 are mapping sh\_info as BI\_DIR, need to see when linear used vs non-linear and to check othe XDP drivers. When sh\_info is mapped BI\_DIR its all we need to attack.\newline It seems linear skb (No (HW?)LRO and MTU<1500 : verify with experimnt or Boris) means no frags, while \begin{enumerate}

@@ -40,7 +40,7 @@ And while corrupting random kernel memory is still a possibility and may even ca
 
 
 \smallskip
-\noindent\textbf{Remark.} The MMO schema covers both random and deterministic attacks. In this paper, we focus on demonstrating and addressing deterministic attacks, where the device knows which data structures are targeted. Random access attacks, also exploit the sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks requires a more in-depth analysis to produce a viable chance of success. Such attacks are out of the scope of this paper. 
+\noindent\textbf{Remark.} The MMO schema covers both random and deterministic attacks. In this paper, we focus on demonstrating and addressing deterministic attacks, where the attacker is able to deduce the layout of the targeted data structure and its location on a page. Random access attacks, also exploit the sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks requires a more in-depth analysis to produce a viable chance of success. Such attacks are out of the scope of this paper. 
 
 \begin{figure}[t]
     \centering
@@ -72,11 +72,13 @@ In the next sections we demonstrate how a \emph{straight-forward} (Sec. \ref{sec
 \end{figure}
 \subsection{Static Analysis Tool}
 
-Inspired by the MMO schema, we devise a static code analysis tool to classify device drivers by levels of risk. With well over a 1000 \texttt{dma\_map*} (i.e., the set of functions implementing the DMA API) function calls, in the Linux Kernel alone, a manual process would be arduous.
-Our static analysis tool flags drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device has legitimate write access and can freely write a poisoned ROP stack in any legitimate write accessible buffer. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig. \ref{fig:colocation} (a)). Additionally we look for hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig. \ref{fig:colocation} (b)). The risk is classified according to the access permission. \means{} is implied by a READ permission and \oportunity{} is implied by a WRITE/BIDIRECTIONAL permission. The case of multiple \iova{} (Fig. \ref{fig:colocation} (c)), is not a risk category by itself, rather a possible exploit. The tool flags use of functions (e.g., netdev\_alloc\_skb, napi\_alloc\_skb) that may result in this type of vulnerability. \textcolor{blue}{Currently, human expert input is needed to determine which functions are \emph{hazardous}, as a result the tool determine type (a) vulnerabilities automatically; type (b) and (c) only with sufficient human expert input. }
-Finally, the output of the tool presents structured and filtered findings conductive for more in-depth human expert analysis to determine if a viable attack is feasible. 
+Inspired by the MMO schema, we devise a static code analysis tool to classify device drivers by levels of risk. With well over a 1000 \texttt{dma\_map*} (i.e., the set of functions implementing the DMA API) function calls, in the Linux Kernel alone, a manual process would be arduous. Our static analysis tool flags drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device has legitimate write access and can freely write a poisoned ROP stack in any legitimate write accessible buffer. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig. \ref{fig:colocation} (a)). Additionally we look for potentially hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig. \ref{fig:colocation} (b)). The risk is classified according to the access permission. \means{} is implied by a READ permission and \oportunity{} is implied by a WRITE/BIDIRECTIONAL permission. The case of multiple \iova{} (Fig. \ref{fig:colocation} (c)), is not a risk category by itself, rather a possible exploit. The tool flags use of functions (e.g., netdev\_alloc\_skb, napi\_alloc\_skb) that may result in this type of vulnerability. 
 
-\noindent\textbf{Remark.} Type (d) vulnerability falls under the category of random access attacks and as such, requires a more profound human expert dynamic analysis. As mentioned, this is out of the scope of this paper.
+Currently, human expert input is needed to determine which functions are truly \emph{hazardous}. As a result the tool determine type (a) vulnerabilities automatically and types (b) and (c) only with sufficient human expert input. 
+
+The output of the tool presents structured and filtered findings conductive for more in-depth human expert analysis to determine if a viable attack is feasible. 
+
+Type (d) vulnerability falls under the category of random access attacks and as such, requires a more profound human expert \emph{dynamic} analysis. As mentioned, this is out of the scope of this paper.
 
 
 \subsection{Deferred Invalidation vulnerability}\label{sec:deferred}
