@@ -67,6 +67,12 @@
 % inlined bib file
 \usepackage{filecontents}
 
+% break long urls
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
 
 \providecommand{\data}{\textit{data}}
 \providecommand{\shinfo}{\texttt{skb\_shared\_info}}
