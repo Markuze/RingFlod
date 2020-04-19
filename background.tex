@@ -1,12 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% force figure to page 3... belongs to the next section.
 \begin{figure*}[t]
+
         \begin{lstlisting}[
-        %basicstyle = \small,
-        basicstyle=\ttfamily,
+        basicstyle = \small,
+        %basicstyle=\ttfamily,
         columns = fixed,
         tabsize=8,
         %frame = l,
+        xleftmargin=.1\textwidth,
         language = C
         ]
 ==================================================================================
@@ -24,6 +26,7 @@ ffffffff80000000 |   -2    GB | ffffffff9fffffff |  512 MB | kernel text mapping
                 \end{lstlisting}
         \caption{ Linux Kernel memory layout.}
         \label{fig:mem_layot}
+
 \end{figure*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

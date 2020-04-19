@@ -2,7 +2,7 @@
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{figs/page_frag.pdf}
-    \caption{Allocation of B bytes from page\_frag}
+    \caption{Allocation of B bytes from page\_frag \SV{ fix figure}}
     \label{fig:page_frags}
 \end{figure}
 
@@ -50,7 +50,7 @@ We now detail the different ways in which a malicious device can obtain \oportun
 
 \begin{enumerate}[label=(\roman*)]
 
-\item Presumably, a correct use of the DMA API should thwart the attack outlined in the previous section (Fig. \ref{fig:sh_info}). Namely, unmapping the buffer and only then initializing \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated. 
+\item Presumably, a correct use of the DMA API should thwart the attack outlined in the previous section (Fig. \ref{fig:sh_info}). Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated. 
 As it turns out, prevalent device drivers (e.g., Intel 40GbE driver, i40e) first create an \skb{} and only then unmap the buffer. This order of execution allows the \emph{device} to undo legitimate changes to \shinfo{} by the CPU. 
 
 \item Nevertheless, even when the order is correct, i.e., the unmapping of the buffer occurs before the creation of the \skb{}, still \shinfo{} is not safe from later modifications. As the default IOMMU mode in Linux is \emph{deferred} protection (Sec. \ref{sec:deferred}), the unmap order is made irrelevant. That is, even though the unmap function is invoked in the correct order, the device can still corrupt \shinfo{} due to the IOTLB.
@@ -59,7 +59,7 @@ As it turns out, prevalent device drivers (e.g., Intel 40GbE driver, i40e) first
 \end{enumerate}
 
 \smallskip
-\noindent\textbf{Our setup.} tg3 and mlx5\_core are both vulnerable. The tg3 driver uses the correct unmapping order, but uses the \texttt{netdev\_alloc\_frag} function that results in a type (c) \subpage{} vulnerability. The mlx5\_core driver avoids unmapping the RX buffers altogether. In kernel 5.0, the driver uses a \texttt{page\_pool} mechanism\cite{page_pool} and in kernel 4.15, the driver uses an ad-hoc mechanism to achieve the same effect as \texttt{page\_pool}. These design choices, in both cases, leave \shinfo{} vulnerable, regardless of the IOMMU policy (i.e., \emph{deferred} or \emph{strict}). 
+\noindent\textbf{Our setup.} tg3 and mlx5\_core are both vulnerable. The tg3 driver uses the correct unmapping order, but uses the \texttt{netdev\_alloc\_frag} function that results in a type (c) \subpage{} vulnerability. mlx5\_core driver avoids unmapping the RX buffers altogether. In kernel 5.0, the driver uses a \texttt{page\_pool} mechanism\cite{page_pool} and in kernel 4.15, the driver uses an ad-hoc mechanism to achieve the same effect as \texttt{page\_pool}. These design choices leave \shinfo{} vulnerable, in both cases, regardless of the IOMMU policy (i.e., \emph{deferred} or \emph{strict}). 
 
 
 Interestingly, as it stands today, it seems that the only way to secure \shinfo{} is to never map it. Finally, from this point on, we assume that the attacker has unimpeded access to \oportunity{}. In the next subsections, we demonstrate various compound DMA attacks where an attacker can exploit OS behavior  to gain \means{} and \motivation{} completing the trifecta.
@@ -109,6 +109,13 @@ Namely, the only requirement for the success of this attack is an accomplice, wi
 \smallskip
 \noindent\textbf{Remark.} An attacker could try storing the \mabaf{} and code in user-space. Such and attempt would fail due to SMEP/SMAP \cite{smep} as the kernel will not be able to directly execute user-space code.
 
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figs/gro.pdf}
+    \caption{An RX \skb{} after GRO used as a \means{} for a DMA attack.}
+    \label{fig:gro}
+\end{figure*}
+
 \subsection{Forward Thinking}\label{sec:forward}
 
 Packet forwarding is a standard Linux feature that allows a Linux machine to serve as a router or a load balancer. Packet forwarding functionality is usually disabled by default on Linux servers.
@@ -128,14 +135,6 @@ To avoid detection and, more importantly, preserve OS stability, the device must
 
 \smallskip
 \noindent\textbf{Remark.} Having an accomplice in the form of an unprivileged user provides an additional vectors of attack. In addition to running ROP attacks, the NIC can also leak the content of arbitrary memory pages to the user. Assuming that the NIC has WRITE access to \shinfo{} after it has been sent up the network stack (for example, in case of deferred protection or when page\_pool is used, Sec. \ref{sec:xdp}), the NIC can modify the \page{} address in the \texttt{frag} entries, letting the Linux network stack copy the context of arbitrary memory pages to an unprivileged user. A likely side effect of this attack is memory corruption and Kernel panic, so caution is advised. The reason being, that the \texttt{skb\_free} function attempts to free pages never owned by the network stack.
-
-
-\begin{figure*}[t]
-    \centering
-    \includegraphics[width=\linewidth]{figs/gro.pdf}
-    \caption{An RX \skb{} after GRO used as a \means{} for a DMA attack.}
-    \label{fig:gro}
-\end{figure*}
 
 \subsection{eXpress Data Path}\label{sec:xdp}
 
@@ -158,19 +157,6 @@ The difference between this flow and a regular receive flow is the additional re
 
 \smallskip
 \noindent\textbf{Remark.} Other drivers that have XDP support, also tend to map RX buffers with BIDIRECTIONAL (e.g., bnxt, i40e, mlx4\_en). Interestingly, the mlx5\_core driver has two modes of operation: (1) linear - where an skb is built around an RX buffer and, (2) non-linear where the driver is filling up the \texttt{frags} of \shinfo, which was never mapped. The former is the default, and the later is actually secure. The non-linear mode is secure because \shinfo{} is \emph{never} accessible to the device. Thus the NIC never gains the \oportunity{} to attack.
-
-\begin{comment}
-%The linear skbs in mlx5 are mapping sh\_info as BI\_DIR, need to see when linear used vs non-linear and to check othe XDP drivers. When sh\_info is mapped BI\_DIR its all we need to attack.\newline It seems linear skb (No (HW?)LRO and MTU<1500 : verify with experimnt or Boris) means no frags, while \begin{enumerate}
-%    \item build\_skb is used on a mapped page
-%    \item page is unmapped in a deferred way, regardless of iommu policy; a driver hack.
-%\end{enumerate} 
- \begin{enumerate}
-    \item skb\_try\_coalesce
-    \item SW LRO/GRO
-\end{enumerate}.
-\newline
-\textcolor{magenta}{In addition reviewing other drivers for the intersection of DMA\_BIDIR \^ (skb\_add\_rx\_frag||skb\_fill\_page\_descriptor)}
-\end{comment}
 
 
 

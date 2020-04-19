@@ -1,0 +1,90 @@
+\section{Static Analysis Tool}
+
+Inspired by the MMO schema, we devise a static code analysis tool to identify vulnerabilities to DMA attacks. With well over a 1000 \texttt{dma\_map*} (i.e., the set of functions implementing the DMA API) function calls, in the Linux Kernel, a manual process would be arduous. Our static analysis tool flags drivers where \oportunity{} is present. In the case of I/O devices \motivation{} is usually trivial as the device has legitimate write access and can freely write a poisoned ROP stack in any legitimate write accessible buffer. \means{}, is often hardest to identify and calls for human expertise. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig. \ref{fig:colocation} (a)). Additionally we look for potentially hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig. \ref{fig:colocation} (b)). 
+%The risk is classified according to the access permission. \means{} is implied by a READ permission and \oportunity{} is implied by a WRITE/BIDIRECTIONAL permission. 
+The case of multiple \iova{} (Fig. \ref{fig:colocation} (c)), is also flagged by the tool, which flags use of functions (e.g., netdev\_alloc\_skb, napi\_alloc\_skb) that may result in this type of vulnerability or any other function that uses the page frag api. 
+
+Currently, human expert input is needed to determine which functions are truly \emph{hazardous}. As a result the tool determine type (a) vulnerabilities automatically and types (b) and (c) only with sufficient human expert input. 
+
+%The output of the tool presents structured and filtered findings conductive for more in-depth human expert analysis to determine if a viable attack is feasible. 
+
+Type (d) vulnerability fall under the category of random access 
+%attacks and as such, requires a more profound human expert \emph{dynamic} analysis. As mentioned, this 
+which is out of the scope of this paper.
+
+\subsection{Tool Design}
+The \tool operates recursively starting from a set of \textit{root functions} (e.g., dma\_mag\_single) (i.e., collecting all the function calls). The \tool utilises Cscope \cite{cscope,cscope_92} to navigate the Kernel code. Cscope is an open source tool for browsing C source code. From this initial set of calls, the \tool identifies the mapped variables and backtracks their declarations and assignments to these variables. When a data structure is identified as exposed, the \tool searches
+exposed callback pointers or mapped heap pointers. The \tool also utilises \texttt{pahole}\cite{dwarves} to explore the compiled binaries for the layout of the exposed data structures. Pahole, is a tool that uses the DWARF\cite{dwarf} standardized debugging data format to examine data structure layout.
+
+This tool is applicable to any Kernel code written in C. We intend to make the \tool available on github to benefit the research community.
+
+%The algorithm performs the following:
+%\begin{enumerate}
+%    \item Identify the mapped variable.
+%    \item Locate variable declaration
+%        \begin{itemize}
+%            \item Identify biggest enclosing data structure that is mapped.
+%            \item If callbacks located stop.
+%        \end{itemize}
+%    \item Locate Relevant assignments. For each:
+%        \begin{itemize}
+%            \item In case variable is assigned from new var restart from 2. 
+%            \item in case of allocation: stop.
+%        \end{itemize}
+%    \item If declaration is reached:
+%        \begin{itemize}
+%            \item If function Call: Locate all calls and return to 1.
+%            \item If on heap - check if heap is mapped: stop.
+%        \end{itemize}
+%\end{enumerate}
+
+\subsection{Analysis Results}
+We use the tool over Linux Kernel 5.3 and find and analyse 1019\\ dma\_map\_single calls over 447 files. We dedicate a special attention to struct \shinfo which is ubiquitously in Linux networking, as nearly 60\% of the mapping calls expose \shinfo either by directly mapping the \texttt{skb->data} or via the \texttt{build\_skb} API. We also find 88 cases in which callback pointers are exposed or can be spoofed (i.e., a pointer to a data structure which contains callbacks is exposed). Additionally, \textcolor{red}{??} data structures were exposed via APIs that store \texttt{private} data structures on the same page as vulnerable meta-data, e.g., netdev\_priv, aead\_request\_ctx and scsi\_cmd\_priv. 
+We summarize the results in table \ref{tab:static_analysis}. 
+
+\begin{table}[]
+    \centering
+    \begin{tabular}{l|c|c}
+        Stat & \# Calls total & \# Files/drivers\\\hline\hline
+         Total calls & 1019 & 447\\\hline
+         \shinfo mapped & 547 & 232\\
+         build\_skb & 46 & 35\\
+         type C vulnerability & & \\
+         Callbacks Exposed & 92 & 44\\ 
+         Callbacks Exposed directly & 26 \\
+         Private data exposing parent & ?\\ 
+         Heap Mapped & 3\\\hline
+    \end{tabular}
+    \caption{\tool results}
+    \label{tab:static_analysis}
+\end{table}
+
+\subsection{Tool output}
+For each mapping call, the \tool shows the line number of relevant declarations and assignments before the variable is mapped, allowing for a human expert to trace back and validate the vulnerability. An example output is shown in Fig. \ref{fig:tool_example}.
+
+\SV{ Explain the example here...}
+
+\begin{figure*}[t]
+
+        \begin{lstlisting}[
+        basicstyle = \small,
+        %basicstyle=\ttfamily,
+        columns = fixed,
+        tabsize=8,
+        %frame = l,
+        xleftmargin=.1\textwidth,
+        language = C
+        ]
+
+**Vulnerability**: 2644 callbacks reachable via struct mtk_aes_base_ctx
+*Exposed*: struct mtk_aes_base_ctx *ctx = aes->ctx;
+DECLARATION[mtk_aes_map:370]: struct mtk_aes_base_ctx *ctx = aes->ctx;
+ASSIGNMENT[mtk_aes_map:371]: struct mtk_aes_info *info = &ctx->info;
+*Exposed*: struct mtk_aes_info *info = &ctx->info;
+DECLARATION[mtk_aes_map:371]: struct mtk_aes_info *info = &ctx->info;
+CALL[mtk_aes_map:374]: ctx->ct_dma = dma_map_single(cryp->dev, info, sizeof(*info), DMA_TO_DEVICE);
+                \end{lstlisting}
+        \caption{ Tool output example.}
+        \label{fig:tool_example}
+
+\end{figure*}

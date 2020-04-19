@@ -28,8 +28,7 @@ Clearly, the root cause, for DMA attacks is \subpage{} vulnerability. Namely, no
 
 We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we urge the use of pointer obfuscation \cite{Coo17}, and solely non-linear RX buffers as an alternative to a new design. Additionally, we urge the use of static code analysis that detects \subpage{} vulnerabilities.
 
-\smallskip
-\emph{All DMA attacks stem from \subpage{} vulnerabilities - Simply stop sharing restricted data.}
+
 
 
 %\smallskip

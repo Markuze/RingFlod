@@ -1,0 +1,17 @@
+\clearpage
+\section{Additional Compound attacks}
+
+
+
+\begin{comment}
+%The linear skbs in mlx5 are mapping sh\_info as BI\_DIR, need to see when linear used vs non-linear and to check othe XDP drivers. When sh\_info is mapped BI\_DIR its all we need to attack.\newline It seems linear skb (No (HW?)LRO and MTU<1500 : verify with experimnt or Boris) means no frags, while \begin{enumerate}
+%    \item build\_skb is used on a mapped page
+%    \item page is unmapped in a deferred way, regardless of iommu policy; a driver hack.
+%\end{enumerate} 
+ \begin{enumerate}
+    \item skb\_try\_coalesce
+    \item SW LRO/GRO
+\end{enumerate}.
+\newline
+\textcolor{magenta}{In addition reviewing other drivers for the intersection of DMA\_BIDIR \^ (skb\_add\_rx\_frag||skb\_fill\_page\_descriptor)}
+\end{comment}

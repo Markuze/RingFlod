@@ -70,16 +70,6 @@ In the next sections we demonstrate how a \simple{} attack utilizes type (a) vul
     \caption{Strict vs. deferred IOTLB invalidation. In \emph{deferred} mode, there is a time window where the data is accessible to the device, but the mapping no longer appears in the page table.}
     \label{fig:deferred}
 \end{figure}
-\subsection{Static Analysis Tool}
-
-Inspired by the MMO schema, we devise a static code analysis tool to classify device drivers by levels of risk. With well over a 1000 \texttt{dma\_map*} (i.e., the set of functions implementing the DMA API) function calls, in the Linux Kernel, a manual process would be arduous. Our static analysis tool flags drivers where \means{} or \oportunity{} are present. In the case of I/O devices \motivation{} is usually trivial as the device has legitimate write access and can freely write a poisoned ROP stack in any legitimate write accessible buffer. The tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig. \ref{fig:colocation} (a)). Additionally we look for potentially hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig. \ref{fig:colocation} (b)). The risk is classified according to the access permission. \means{} is implied by a READ permission and \oportunity{} is implied by a WRITE/BIDIRECTIONAL permission. The case of multiple \iova{} (Fig. \ref{fig:colocation} (c)), is not a risk category by itself, rather a possible exploit. The tool flags use of functions (e.g., netdev\_alloc\_skb, napi\_alloc\_skb) that may result in this type of vulnerability. 
-
-Currently, human expert input is needed to determine which functions are truly \emph{hazardous}. As a result the tool determine type (a) vulnerabilities automatically and types (b) and (c) only with sufficient human expert input. 
-
-The output of the tool presents structured and filtered findings conductive for more in-depth human expert analysis to determine if a viable attack is feasible. 
-
-Type (d) vulnerability falls under the category of random access attacks and as such, requires a more profound human expert \emph{dynamic} analysis. As mentioned, this is out of the scope of this paper.
-
 
 \subsection{Deferred Invalidation vulnerability}\label{sec:deferred}
 
