@@ -60,9 +60,8 @@ We summarize the results in table \ref{tab:static_analysis}.
 \end{table}
 
 \subsection{Tool output}
-For each mapping call, the \tool shows the line number of relevant declarations and assignments before the variable is mapped, allowing for a human expert to trace back and validate the vulnerability. An example output is shown in Fig. \ref{fig:tool_example}.
-
-\SV{ Explain the example here...}
+For each dma-mapping call, the \tool shows the line number of relevant declarations, function calls, and assignments, allowing for a human expert to trace back and validate the vulnerability. We present an example output of a vulnerability found in the NVMe host driver in Fig. \ref{fig:tool_example}.
+The output starts from the impact evaluation, and continues with pertinent code lines. Starred lines contain script analysis. In Fig. \ref{fig:tool_example}, line 7 tells us that a single callback pointer is mapped in the mapped \texttt{nvme\_fc\_fcp\_op} data structure (i.e., \texttt{fcp\_req.done}) and line 8 tells us that its possible to spoof another 931 callback pointers by rewriting contained pointers to data structures that contain other callback pointers. On Line 6, the tool after finding the variable  declaration (i.e., line 5) and looking at the mapped pointer (i.e., \texttt{\&op->rsp\_iu} on line 4), concludes that the whole \texttt{struct nvme\_fc\_fcp\_op} is exposed to the device. Lines 3-1 repeat the same analysis process to the \texttt{dma\_map\_single} call that exposes the data structure to the device. 
 
 \begin{figure*}[t]
 
@@ -73,18 +72,26 @@ For each mapping call, the \tool shows the line number of relevant declarations 
         tabsize=8,
         %frame = l,
         xleftmargin=.1\textwidth,
-        language = C
+        language = C,
         ]
+[8]*** Spoofed Vulnerability: 931 Callbcks reachable via sturct nvme_fc_fcp_op : DMA_FROM_DEVICE
+[7]*** Direct Vulnerability: 1 Callbacks exposed in nvme_fc_fcp_op : DMA_FROM_DEVICE
+[6]*mapped type: struct nvme_fc_fcp_op
+[5]DECLARATION[__nvme_fc_init_request:1698]:__nvme_fc_init_request(struct nvme_fc_ctrl *ctrl,
+                                                                struct nvme_fc_queue *queue, 
+                                                                struct nvme_fc_fcp_op *op, 
+                                                                struct request *rq, u32 rqno) {
+[4]CALL[__nvme_fc_init_request:1731]: fc_dma_map_single(ctrl->lport->dev,
+                                                        &op->rsp_iu, sizeof(op->rsp_iu),
+                                                        DMA_FROM_DEVICE);
+[3]*mapped type: void
+[2]DECLARATION[fc_dma_map_single:935]:fc_dma_map_single(struct device *dev, void *ptr, size_t size, 
+                                                    enum dma_data_direction dir) {
+[1]CALL[fc_dma_map_single:939]: return dev ? dma_map_single(dev, ptr, size, dir) : (dma_addr_t)0L;
 
-**Vulnerability**: 2644 callbacks reachable via struct mtk_aes_base_ctx
-*Exposed*: struct mtk_aes_base_ctx *ctx = aes->ctx;
-DECLARATION[mtk_aes_map:370]: struct mtk_aes_base_ctx *ctx = aes->ctx;
-ASSIGNMENT[mtk_aes_map:371]: struct mtk_aes_info *info = &ctx->info;
-*Exposed*: struct mtk_aes_info *info = &ctx->info;
-DECLARATION[mtk_aes_map:371]: struct mtk_aes_info *info = &ctx->info;
-CALL[mtk_aes_map:374]: ctx->ct_dma = dma_map_single(cryp->dev, info, sizeof(*info), DMA_TO_DEVICE);
                 \end{lstlisting}
         \caption{ Tool output example.}
         \label{fig:tool_example}
 
 \end{figure*}
+%[4]RECURSION:1:drivers/nvme/host/fc.c __nvme_fc_init_request 1731
