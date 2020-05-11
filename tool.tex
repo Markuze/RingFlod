@@ -84,15 +84,16 @@ For each dma-mapping call, \tool outputs the line numbers of relevant declaratio
 
 The output starts from the impact evaluation, and continues with pertinent code lines. Starred lines contain script analysis. In Fig. \ref{fig:tool_example}, line 7 tells us that a single callback pointer is mapped in the mapped \texttt{nvme\_fc\_fcp\_op} data structure (i.e., \texttt{fcp\_req.done}) and line 8 tells us that its possible to spoof another 931 callback pointers by rewriting contained pointers to data structures that contain other callback pointers. On Line 6, \tool, after finding the variable declaration (i.e., line 5) and looking at the mapped pointer (i.e., \texttt{\&op->rsp\_iu} on line 4), concludes that the whole \texttt{struct nvme\_fc\_fcp\_op} is exposed to the device. Lines 3-1 repeat the same analysis process for the \texttt{dma\_map\_single} call that exposes the data structure to the device. 
 
+%.1\textwidth,
 \begin{figure*}[t]
 
         \begin{lstlisting}[
         basicstyle = \small,
         %basicstyle=\ttfamily,
         columns = fixed,
-        tabsize=8,
+        tabsize=4,
         %frame = l,
-        xleftmargin=.1\textwidth,
+        xleftmargin=0in,
         language = C,
         ]
 [8]*** Spoofed Vulnerability: 931 Callbcks reachable via sturct nvme_fc_fcp_op : DMA_FROM_DEVICE
