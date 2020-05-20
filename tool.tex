@@ -16,7 +16,7 @@ which is out of the scope of this paper.
 \tool operates recursively starting from a set of \textit{root functions} (e.g., dma\_mag\_single) (i.e., collecting all the function calls). \tool utilises Cscope \cite{cscope,cscope_92} to navigate the Kernel code. Cscope is an open source tool for browsing C source code. From this initial set of calls, \tool identifies the mapped variables and backtracks their declarations and assignments to these variables. When a data structure is identified as exposed, \tool searches
 exposed callback pointers or mapped heap pointers. \tool also utilises \texttt{pahole} \cite{dwarves} to explore the compiled binaries for the layout of the exposed data structures. Pahole, is a tool that uses the DWARF \cite{dwarf} standardized debugging data format to examine data structure layout.
 
-\tool is applicable to any Kernel code written in C. We intend to make the \tool available on github to benefit the research community.
+\tool is applicable to any Kernel code written in C. We intend to make the \tool publicly available for benefit of the research community.
 
 %The algorithm performs the following:
 %\begin{enumerate}
@@ -39,44 +39,27 @@ exposed callback pointers or mapped heap pointers. \tool also utilises \texttt{p
 %\end{enumerate}
 
 \subsection{Analysis and Results}
-We use \tool over Linux Kernel 5.3 and find and analyse 1019\\ dma\_map\_single calls over 447 files. We dedicate a special attention to struct \shinfo which is ubiquitously in Linux networking, as nearly 60\% of the mapping calls expose \shinfo either by directly mapping the \texttt{skb->data} or via the \texttt{build\_skb} API. We also find 88 cases in which callback pointers are exposed or can be spoofed (i.e., a pointer to a data structure which contains callbacks is exposed). Additionally, \textcolor{red}{??} data structures were exposed via APIs that store \texttt{private} data structures on the same page as vulnerable meta-data, e.g., netdev\_priv, aead\_request\_ctx and scsi\_cmd\_priv. 
-We summarize the results in table \ref{tab:static_analysis}. 
+We use \tool over Linux Kernel 5.3 code,
+analysing 1019 dma\_map\_single calls over 447 files. We present the results in table \ref{tab:static_analysis}. We dedicate special attention to struct \shinfo, which is used ubiquitously in Linux networking. This data structure is \textit{always} located on the same page as the \texttt{skb->data}, and it also contains a callback pointer. We discuss the vulnerabilities related to \shinfo in Sec. \ref{sec:linux_net}. We find that more than 50\% of the dma-mapp calls expose \shinfo either by directly mapping the \texttt{skb->data} or via the \texttt{build\_skb} API (lines 2 \& 7 in Fig. \ref{tab:static_analysis}). The OS provides this data structure layout and API rather than being an isolated driver bug. Additionally, we find 19 data structures that are exposed via APIs that store \texttt{private} data structures on the same page as vulnerable meta-data, e.g., netdev\_priv, aead\_request\_ctx and scsi\_cmd\_priv. We find 156 cases in which device drivers inadvertently expose callback pointers. Of these, 54 are cases where the pointers are exposed directly, and the rest are cases where callback pointers can be spoofed (i.e., a pointer to a data structure which contains callbacks is exposed). Our analysis also finds three instances where the stack pointer is mapped. In addition to exposed callback pointers, \tool has flagged 344 cases where type C vulnerability is present. 
+%We summarize the results in table \ref{tab:static_analysis}. 
 
 \begin{table}[]
-\centering
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{c|l|c|c|}
-\cline{2-4}
-\multicolumn{1}{l|}{} & \multicolumn{1}{c|}{Stat} & \# Calls total & \# Files/drivers \\ \hline\hline
-\multicolumn{1}{|c|}{1} & Type C vulnerability &  &  \\ \hline
-\multicolumn{1}{|c|}{2} & Callbacks Exposed & 92 & 44 \\ \hline
-\multicolumn{1}{|c|}{3} & Callbacks Exposed directly & 26 &  \\ \hline
-\multicolumn{1}{|c|}{4} & Private data exposing parent & ? &  \\ \hline
-\multicolumn{1}{|c|}{5} & Heap Mapped & 3 &  \\ \hline\hline
-\multicolumn{1}{|c|}{6} & \shinfo mapped & 547 & 232 \\ \hline
-\multicolumn{1}{|c|}{7} & build\_skb & 46 & 35 \\ \hline\hline
- & \textbf{Total calls} & \textbf{1019} & \textbf{447} \\ \cline{2-4} 
-\end{tabular}%
-}
-\caption{\tool results}
-\label{tab:static_analysis}
-\end{table}
+\normalsize
 
-\begin{table}[]
-    \centering
-    \begin{tabular}{c|l|c|c}
-        &Stat & \# Calls total & \# Files/drivers\\\hline\hline
-         & Total calls & 1019 & 447\\\hline\hline
-         1.& type C vulnerability & & \\
-         2.& Callbacks Exposed & 92 & 44\\ 
-         3.& Callbacks Exposed directly & 26 \\
-         4.& Private data exposing parent & ?\\ 
-         5.& Heap Mapped & 3\\\hline
-         6.& \shinfo mapped & 547 & 232\\
-         7.& build\_skb & 46 & 35\\\hline
-    \end{tabular}
-    \caption{\tool results}
-    \label{tab:static_analysis}
+\begin{tabular}{l|c|c}
+   Stat  & \#API calls   & \#Files      \\ \hline
+1. Callbacks exposed          & 156 (15.3\%) & 57 (12.8\%) \\
+2. \texttt{skb\_shared\_info} mapped   & 464 (45.5\%) & 232 (51.9\%) \\
+3. Callbacks exposed Directly & 54            & 28           \\
+4. Private data mapped        & 19            & 7            \\
+5. Heap Mapped                &     3          &         3     \\
+6. Type C vulnerability       & 344           & 227          \\
+7. \texttt{build\_skb} used            & 46            & 40           \\ \hline
+Total dma-map calls        & 1019          & 447       \\  
+\end{tabular}
+
+        \caption{\tool result summary.}
+        \label{tab:static_analysis}
 \end{table}
 
 \subsection{Output}

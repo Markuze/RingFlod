@@ -21,7 +21,7 @@ Previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Be
 
 The MMO schema is especially useful for vulnerability analysis. For example, we show that a privilege escalation attack requires the full trifecta to be realized. Other high impact attacks, such as a full memory dump, may still be viable with only \oportunity{} given. 
 
-We build a static code analysis tool inspired by MMO to flag high-risk device drivers. We use our tool on Linux Kernels 4.15 and 5.0 and identify numerous device drivers at risk for high impact DMA attacks such as privilege escalation by code injection and a full memory dump. 
+We build a static code analysis tool inspired by MMO to flag high-risk device drivers. We use our tool on Linux Kernels 4.15 and 5.0 and identify numerous device drivers at risk for high impact DMA attacks such as privilege escalation by code injection and a full memory dump. Specifically, using the tool, we find that 11\% of the device drivers expose sensitive callback pointers, where as 60\% of device drivers are vulnerable to DMA attacks due to OS design choices. 
 
 Often, the trifecta is present in a single buffer; this makes some DMA attacks straight forward (i.e., \simple{}). This apparent simplicity of known DMA attacks, where a single mistake in a data structure design compromises an entire system, is actually a bane to security. The anecdotal nature of these issues often leads to a patchwork of localized fixes rather than a comprehensive solution. 
 

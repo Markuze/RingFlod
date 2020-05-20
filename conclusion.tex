@@ -2,13 +2,13 @@
 
 \section{Discussion and conclusions}
 
-Once a malicious device exists, launching a DMA attack boils down to connecting the device to an external port and only for a few seconds. Furthermore, recent leaks from clandestine agencies show that they have been attacked by both shipping infected hardware \cite{Gal14} and connecting external malicious devices \cite{Fin14}. 
+Once a malicious device exists, launching a DMA attack boils down to connecting the device to an external port and only for a few seconds. Furthermore, recent leaks from clandestine agencies show that they have been attacked by both shipping infected hardware \cite{Gal14} and connecting external malicious devices \cite{Fin14}. Namely, no DMA attack could work without the unintentional exposure of restricted fields.
 
 \begin{comment}
 \footnote{\url{https://lore.kernel.org/lkml/20180510230948.GF190385@bhelgaas-glaptop.roam.corp.google.com/}}.
 \end{comment}
 
-Clearly, the root cause, for DMA attacks is \subpage{} vulnerability. Namely, no DMA attack could work without the unintentional exposure of restricted fields. The blame is not with the device drivers alone. With the existing API used for I/O operations and due to performance considerations, it is extremely difficult not to create a \subpage{} vulnerability. Thus, even well-written drivers can be subverted by the OS (e.g., bnx2 by deferred protection). Examples to this include:
+As we demonstrate in this paper, the blame is not with the device drivers alone, rather, more often it is the OS design choices that open up the system to DMA attacks. With the existing API used for I/O operations and due to performance considerations, it is extremely difficult not to create a \subpage{} vulnerability. Thus, even well-written drivers can be subverted by the OS (e.g., bnx2 by deferred protection). Examples to this include:
 
 \begin{enumerate}
     \item API: 
@@ -26,9 +26,7 @@ Clearly, the root cause, for DMA attacks is \subpage{} vulnerability. Namely, no
     \end{itemize}
 \end{enumerate}
 
-We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we urge the use of pointer obfuscation \cite{Coo17}, and solely non-linear RX buffers as an alternative to a new design. Additionally, we urge the use of static code analysis that detects \subpage{} vulnerabilities.
-
-
+We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we urge the use of pointer obfuscation \cite{Coo17}, and solely non-linear RX buffers as an alternative to a new design. Additionally, we urge the use of static code analysis that detects \subpage{} vulnerabilities and offer \tool{} as a starting point towards a more secure DMA.
 
 
 %\smallskip
@@ -41,13 +39,3 @@ We contend that a better API and better mechanisms can provide driver authors wi
 %This work also does not claim to cover all possible \compound{} attacks, and only provides a glimpse at the possible using the trifecta principle. 
 
 %That are also several attacks that we have considered but were not able to successfully execute: (1) we attempted to modify the \emph{accomplice} attack in a way that the user sends a callback pointer in user space instead of a ROP attack. This attack fails due to the Kernel smep/smap defences; (2) we attempted to exploit ICMP packets. In the ICMP code we have noticed that RX skbs can be reused as TX skbs in ICMP replays. Eventually, we could not generate a flow that fill force such a reuse. \SV{next sentence is unclear}Forcing such a scenario is helpful to an attacker, with write access to \shinfo{}, for a TX packet can create a scenario allowing a memory dump.
-
-
-
-
-
-
-
-
-
-
