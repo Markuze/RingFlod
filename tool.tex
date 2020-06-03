@@ -80,6 +80,7 @@ The output starts from the impact evaluation, and continues with pertinent code 
         %frame = l,
         xleftmargin=0in,
         language = C,
+       % moredelim=**[is][\color{red}]{@}{@},
         ]
 [8]*** Spoofed Vulnerability: 931 Callbcks reachable via sturct nvme_fc_fcp_op : DMA_FROM_DEVICE
 [7]*** Direct Vulnerability: 1 Callbacks exposed in nvme_fc_fcp_op : DMA_FROM_DEVICE
@@ -98,7 +99,7 @@ The output starts from the impact evaluation, and continues with pertinent code 
 
                 \end{lstlisting}
 \end{adjustbox}
-        \caption{ Tool output example.\SV{the example looks ``heavy''... do we need all lines and all details?... also, you must increase the size of the captions... also added ``adjustbox'' for listings...}}
+        \caption{Tool output example. Showing one path in the nvme\_fc driver where a callback pointer was exposed with write access.}
         \label{fig:tool_example}
 
 \end{figure*}

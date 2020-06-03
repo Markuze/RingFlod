@@ -44,7 +44,7 @@ And while corrupting random kernel memory is still a possibility and may even ca
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=1\columnwidth]{figs/subpage.pdf}
+    \includegraphics[width=0.9\columnwidth]{figs/subpage.pdf}
     \caption{\subpage{} DMA vulnerabilities when the I/O buffer shares a page with other data: (a) I/O buffer metadata; (b) OS
 metadata; (c) a page mapped by multiple \iova; (d) randomly co-located sensitive buffers.}
     \label{fig:colocation}
@@ -66,7 +66,7 @@ In the next sections we demonstrate how a \simple{} attack utilizes type (a) vul
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=1\columnwidth]{figs/strict.pdf}
+    \includegraphics[width=0.9\columnwidth]{figs/strict.pdf}
     \caption{Strict vs. deferred IOTLB invalidation. In \emph{deferred} mode, there is a time window where the data is accessible to the device, but the mapping no longer appears in the page table.}
     \label{fig:deferred}
 \end{figure}
