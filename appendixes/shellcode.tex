@@ -42,6 +42,7 @@ ret
 
 
 \begin{figure}[b]
+\begin{adjustbox}{width=\linewidth}
         \begin{lstlisting}[
         basicstyle = \footnotesize,
         columns = fullflexible,
@@ -109,6 +110,7 @@ page[0xFE8] = KERNEL_BASE + 0x0896a0; // &call_usermodehelper
 page[0xFF0] = KERNEL_BASE + 0x4c0f0e; // xor rax, rax ; ret
 page[0xFF8] = KERNEL_BASE + 0x003795; // leave ; ret
         \end{lstlisting}
+\end{adjustbox}
         %\vspace{-5mm}
         \caption{
                 ROP attack to open a remote shell on the attacker's machine. The pivoting code uses \texttt{rdi} register, which points to the page, providing \means{}.}

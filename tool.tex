@@ -44,8 +44,8 @@ analysing 1019 dma\_map\_single calls over 447 files. We present the results in 
 %We summarize the results in table \ref{tab:static_analysis}. 
 
 \begin{table}[]
-\normalsize
-
+\centering
+\resizebox{1.0\linewidth}{!}{%
 \begin{tabular}{l|c|c}
    Stat  & \#API calls   & \#Files      \\ \hline
 1. Callbacks exposed          & 156 (15.3\%) & 57 (12.8\%) \\
@@ -57,9 +57,11 @@ analysing 1019 dma\_map\_single calls over 447 files. We present the results in 
 7. \texttt{build\_skb} used            & 46            & 40           \\ \hline
 Total dma-map calls        & 1019          & 447       \\  
 \end{tabular}
-
-        \caption{\tool result summary.}
-        \label{tab:static_analysis}
+%
+}
+\vspace{1mm}
+\caption{\tool result summary.}
+\label{tab:static_analysis}
 \end{table}
 
 \subsection{Output}
@@ -69,7 +71,7 @@ The output starts from the impact evaluation, and continues with pertinent code 
 
 %.1\textwidth,
 \begin{figure*}[t]
-
+\begin{adjustbox}{width=\linewidth}
         \begin{lstlisting}[
         basicstyle = \small,
         %basicstyle=\ttfamily,
@@ -95,7 +97,8 @@ The output starts from the impact evaluation, and continues with pertinent code 
 [1]CALL[fc_dma_map_single:939]: return dev ? dma_map_single(dev, ptr, size, dir) : (dma_addr_t)0L;
 
                 \end{lstlisting}
-        \caption{ Tool output example.}
+\end{adjustbox}
+        \caption{ Tool output example.\SV{the example looks ``heavy''... do we need all lines and all details?... also, you must increase the size of the captions... also added ``adjustbox'' for listings...}}
         \label{fig:tool_example}
 
 \end{figure*}
