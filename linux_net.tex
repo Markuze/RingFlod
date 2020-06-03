@@ -33,7 +33,7 @@ To expand this scenario into a complete attack, the attacker must complete the M
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.8\linewidth]{figs/page_frag.pdf}
+    \includegraphics[width=0.8\linewidth,trim=0 6.5cm 0 6cm, clip]{figs/page_frag.pdf}
     \caption{Allocation of B bytes from page\_frag}
     \label{fig:page_frags}
 \end{figure}
@@ -49,7 +49,7 @@ To expand this scenario into a complete attack, the attacker must complete the M
 
 We now detail the different ways in which a malicious device can obtain \oportunity{} (Fig. \ref{fig:road_to_op}).
 
-\begin{enumerate}[label=(\roman*)]
+\begin{enumerate}[label=(\roman*),wide, labelwidth=!, labelindent=0pt]
 
 \item Presumably, a correct use of the DMA API should thwart the attack outlined in the previous section (Fig. \ref{fig:sh_info}). Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated. 
 As it turns out, prevalent device drivers (e.g., Intel 40GbE driver, i40e) first create an \skb{} and only then unmap the buffer. This order of execution allows the \emph{device} to undo legitimate changes to \shinfo{} by the CPU. 
@@ -91,9 +91,10 @@ RingFlood (Sec. \ref{sec:ringflod}) allows a NIC to execute arbitrary code with 
 
 Since a NIC has READ access to the \shinfo{} of a TX packet, this, in particular, provides the NIC with READ access to the \texttt{frags} (Fig. \ref{fig:payload}) array of \shinfo{}. This array contains \page{} pointers, and thus both leaks kernel pointers that allow the attacker to compromise KASLR, and provides the PFNs of specific pages containing data sent from userspace; pages, the device has READ access to.
 
-Assuming an unprivileged accomplice (witing or unwitting) can open a UDP/TCP socket in user space, this user can transmit a poisoned ROP buffer. For a ROP attack (where the kernel text offset is required), the NIC spoofs an RX packet with the poisoned ROP stack to the accomplice, which in turn is sent back as a TX packet. 
+%\st{Assuming an unprivileged accomplice (witing or unwitting) can open a UDP/TCP socket in user space, this user can transmit a poisoned ROP buffer. For a ROP attack (where the kernel text offset is required), the NIC spoofs an RX packet with the poisoned ROP stack to the accomplice, which in turn is sent back as a TX packet. Once an accomplice sends the packet,}
 
-Once an accomplice sends the packet, the device can execute a code injection attack in 4 steps (Fig. \ref{fig:payload}):
+Assuming the device can trick a userspace process into echoing a malicious buffer's contents, the device can execute a code injection attack in 4 steps (Fig. \ref{fig:payload}):
+
 \begin{enumerate}
     \item The TX \data{} and the fragments are mapped for the NIC to read.
     \item The NIC spoofs an RX packet and delays the completion notification of the TX packets (so that the \mabaf{} will not be released prematurely).
@@ -101,14 +102,16 @@ Once an accomplice sends the packet, the device can execute a code injection att
     \item The NIC overwrites \shinfo{} with the \kva{} retrieved during step 2. 
 \end{enumerate}
 
-A TX completion event that fails to appear in due time will trigger a TX T/O error that flushes all buffers and resets the driver. The T/O is set by the driver usually to a few seconds, which is more than enough to complete the attack.
+Tricking a userspace process into echoing a malicious buffer's contents can be archived in various ways. For example, a proxy server, a key/value store, streaming service, etc; another type of accomplice can be a cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device\footnote{Indeed, Googles OpenTitan \cite{opentitan} exemplifies that cloud providers actively worry about root of trust for their servers.}.
+
+\textbf{Timing concerns.} A TX completion event that fails to appear in due time will trigger a TX T/O error that flushes all buffers and resets the driver. The T/O is set by the driver usually to a few seconds, which is more than enough to complete the attack.
  
-In this scenario, the attacker does not require prior knowledge regarding the physical setup since both \means{} and \motivation{} are provided externally by the accomplice (recall that \oportunity{} is already given, Sec. \ref{sec:shinfo}).  
+In this scenario, the attacker does not require prior knowledge regarding the physical setup since both \means{} and \motivation{} are provided by the echoing buffer (recall that \oportunity{} is already given, Sec. \ref{sec:shinfo}).  
 
 Namely, the only requirement for the success of this attack is an accomplice, witting (e.g., an unprivileged user) or unwitting (e.g., a proxy server) that can open a socket in user-space. For that matter, a socket in user-space of a \emph{guest machine} makes any cloud VM a valid intrusion tool in the presence of a malicious device.
 
 \smallskip
-\noindent\textbf{Remark.} An attacker could try storing the \mabaf{} and code in user-space. Such and attempt would fail due to SMEP/SMAP \cite{smep} as the kernel will not be able to directly execute user-space code.
+\noindent\textbf{User buffer.} An attacker could try storing the \mabaf{} and code in user-space. Such and attempt would fail due to SMEP/SMAP \cite{smep} as the kernel will not be able to directly execute user-space code.
 
 
 

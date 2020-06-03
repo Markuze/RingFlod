@@ -39,8 +39,7 @@ Under the hypothesized circumstance, and without additional information, a malic
 And while corrupting random kernel memory is still a possibility and may even cause a kernel panic \cite{MMT16}, it does not achieve the goal of privilege escalation.
 
 
-\smallskip
-\noindent\textbf{Remark.} The MMO schema covers both random and deterministic attacks. In this paper, we focus on demonstrating and addressing deterministic attacks, where the attacker is able to deduce the layout of the targeted data structure and its location on a page. Random access attacks, also exploit the sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks requires a more in-depth analysis to produce a viable chance of success. Accordingly, in Sec. \ref{sec:dma-kasan}, we present a run-time analysis tool capable of identifying such vulnerabilities. 
+The MMO schema covers both random and deterministic attacks. In this paper, we focus on demonstrating and addressing deterministic attacks, where the attacker is able to deduce the layout of the targeted data structure and its location on a page. Random access attacks, also exploit the sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks requires a more in-depth analysis to produce a viable chance of success. Accordingly, in Sec. \ref{sec:dma-kasan}, we present a run-time analysis tool capable of identifying such vulnerabilities. 
 
 \begin{figure}[t]
     \centering

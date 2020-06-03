@@ -12,14 +12,14 @@ As we demonstrate in this paper, the blame is not with the device drivers alone,
 
 \begin{enumerate}
     \item API: 
-    \begin{itemize}
+    \begin{itemize}[wide, labelwidth=!, labelindent=0pt]
         \item The \textit{dma\_map\_single} call accepts a pointer and the buffer length. This API insinuates that only the mapped bytes are exposed, when, in fact, the whole page is accessible.
         \item \textit{dma\_unmap\_single}, insinuates that the buffer is not accessible to the device after the call. This does not hold both due to deferred protection and type (c) \subpage{} vulnerabilities.
         \item \textit{build\_skb} facilitates building an \skb{} around an arbitrary I/O buffer, in turn, embedding critical data structures inside an I/O buffer.
         \item While \texttt{page\_frag} is an efficient allocator, it inherently creates a type (c) \subpage{} vulnerability.
     \end{itemize} 
     \item Tools/Infrastructure: 
-    \begin{itemize}
+    \begin{itemize}[wide, labelwidth=!, labelindent=0pt]
             \item \texttt{page\_pool} API, by caching I/O buffers and avoiding expensive unmaps, the drivers \emph{circumvent} the security techniques of the OS. 
             \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) \subpage{} vulnerabilities imposes a challenge.
             \item No dedicated allocates for I/O such as proposed in previous works (e.g., \cite{MSMT18,MMT16}).

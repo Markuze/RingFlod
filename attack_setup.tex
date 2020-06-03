@@ -36,10 +36,9 @@ Additionally, the \texttt{spb2\_management\_orb} struct contains a callback func
 
 The \texttt{spb2\_management\_orb} struct also holds its own address in the \texttt{base.t.link} field, and thus provides the attacker with \means{}. At this point, the attacker can create a \mabaf{} on the same page and complete the MMO trifecta. 
 
-The code of the \mabaf{} appears in Appendix \ref{apx:shellcode}. It is also important to note that in this attack KASLR is irrelevant, as the critical \kva{} appeared within the readable page.
+The code of the \mabaf{} appears in Appendix \ref{apx:shellcode}. We also note that in this attack KASLR is irrelevant, as the critical \kva{} appeared within the readable page.
 
-\smallskip
-\noindent \textbf{Remark 1.} To date (kernel 5.3), the \texttt{spb2\_management\_orb} struct has not changed.
+To date (kernel 5.3), the \texttt{spb2\_management\_orb} struct has not changed.
 
-\smallskip
-\noindent\textbf{Remark 2.} An additional such exploit also appear in FC-NVME driver via \texttt{struct nvmefc\_ls\_req}. The difference in detailing such an exploit would extend only to the struct field names.
+%\smallskip
+%\noindent\textbf{Remark 2.} An additional such exploit also appear in FC-NVME driver via \texttt{struct nvmefc\_ls\_req}. The difference in detailing such an exploit would extend only to the struct field names.
