@@ -12,7 +12,7 @@ However, unlike processes that operate in page granularity, I/O buffers can be s
 
 Consequently, sub-page vulnerability was used as a basis for several recent DMA exploits. However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. We argue that a structured approach is needed as it can lead to better threat detection and analysis, precipitating a more secure OS. Accordingly, in this work, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,~\motivation{} and \oportunity~(MMO) a trifecta of attributes, sufficient to layout the space of DMA attacks (Sec. \ref{sec:mmo}):
 \begin{enumerate}
-    \item \motivation: A kernel buffer filled with malicious executable code; a \mabaf.
+    \item \motivation: A kernel buffer filled with malicious executable code, a \mabaf.
     \item \means: The kernel virtual address (\kva) of a \mabaf.
     \item \oportunity: Write access to a pointer that can alter the CPU control flow.
 \end{enumerate} 
