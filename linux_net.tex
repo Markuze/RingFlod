@@ -11,7 +11,7 @@ are initially missing but are attainable via compound steps, leaving room to dan
     \label{fig:sh_info}
 \end{figure}
 
-Struct \skb{} is a common data structure, used by the Linux network stack, to hold information representing a network packet. Struct \skb{} holds the metadata of a network packet (e.g., its size, associated socket). One of these fields is a pointer to a data buffer. The data is allocated separately, and thus, does not share a page with its \skb{} (Fig. \ref{fig:sh_info}). 
+Struct \skb{} is a common data structure, used by the Linux network stack, to hold information representing a network packet. Struct \skb{} holds the metadata of a network packet (e.g., packet size, associated socket). One of these fields is a pointer to a data buffer. The data is allocated separately, and thus, does not share a page with its \skb{} (Fig. \ref{fig:sh_info}). 
 
 This separation means that \skb{} is \emph{never} (intentionally) mapped to the device. Indeed, it is a common belief, pointed out in literature \cite{thunder}, that the Linux network stack is not susceptible to DMA attacks via the \texttt{data} pointer. In this work, we show that this belief is misplaced.
 
