@@ -1,19 +1,3 @@
-\section{\dkasan}\label{sec:dma-kasan} 
-
-In section Sec. \ref{sec:static-analysis}, we have shown that more than 60\% of dma-map operations result in exposed pointers. Exposed pointers may be used in a DMA attack either passively to subvert KASLR or actively to execute an attack. Most of the remaining 40\% dma-map operations are executed on allocated objects that are by design, presumably, not co-located on the same page with vulnerable meta-data. However, this is often not the case in practice.
-Indeed, objects allocated via the kmalloc API~\cite{Cor07}, may share a page with objects of similar size. As a result vulnerable meta-data may still be inadvertently mapped. 
-%
-Such a vulnerability is not visible to \tool as it is of a random access nature. Accordingly, we have developed a run-time tool that reports such vulnerabilities. 
-
-Our solution is based on an existing kernel tool, KASAN~\cite{kasan}, which is a dynamic memory error detector designed to detect out-of-bound and use-after-free bugs. KASAN uses shadow memory to record whether a memory byte is safe to access. KASAN uses compile-time instrumentation to insert checks of shadow memory on each memory access. 
-We modify KASAN to record DMA-map operations in addition to memory allocations. Our tool, termed DMA-KASAN (\dkasan) reports alloc-after-map, map-after-alloc\footnote{We term by ``alloc-after-map'' a situation in which kmalloc object is allocated from a mapped page. Likewise, we term by ``map-after-alloc'' is a situation in which the containing page is mapped after an object was allocated.}, and cases when a DMA mapped page is accessed by the CPU. \dkasan, therefore, identifies all cases where an allocated object was inadvertently dma-mapped after allocation or has already been allocated on a dma-mapped page. We tested \dkasan using our setup. In our experiment we cloned a large project from a git repository and compiled it concurrently with light network traffic (i.e., ICMP ping). In this experiment, we have identified numerous cases where a dma-mapped page is used to allocate file system metadata; example results are shown in Fig. \ref{fig:dkasan-report}. 
-%
-In these cases, pages that were used for RX were promptly re-purposed\cite{hotcold} for kmalloc and were still accessible to the device. 
-%
-This is due to the (default) deferred protection policy. That is, the IOTLB has not been invalidated for these pages.
-
-It is important to note that even if these pages are invalidated, an access attempt by the device will simply result in a dmesg warning line. Namely, the device may repeatedly probe pages for access.
-
 \begin{figure}[t]
 \begin{adjustbox}{width=\linewidth}
         \begin{lstlisting}[
@@ -24,12 +8,27 @@ It is important to note that even if these pages are invalidated, an access atte
         %frame = l,
         language = C
         ]
-$ size 48 [READ] ext4_ext_remove_space+0x881/0x2340
-$ size 48 [WRITE] ext4_readdir+0x103a/0x1520
-$ size 64 [WRITE] ext4_htree_store_dirent+0x60/0x200
-$ size 64 [WRITE] sock_alloc_inode+0x4f/0x120
+[1]$ size 512 [READ|WRITE] __alloc_skb+0xe0/0x3f0
+[2]$ size 512 [WRITE] load_elf_phdrs+0xbf/0x130
+[3]$ size 512 [WRITE] __do_execve_file.isra.0+0x287/0x1080
+[4]$ size 64  [WRITE] sock_alloc_inode+0x4f/0x120
         \end{lstlisting}
 \end{adjustbox}
-        \caption{\dkasan report example}
+        \caption{\dkasan report example.}
         \label{fig:dkasan-report}
 \end{figure}
+
+
+\section{\dkasan}\label{sec:dma-kasan} 
+
+In section Sec. \ref{sec:static-analysis}, we have shown that more than 60\% of dma-map operations result in exposed pointers. Exposed pointers may be used in a DMA attack either passively to subvert KASLR or actively to execute an attack. Most of the remaining 40\% dma-map operations are executed on allocated objects that are presumably, not co-located on the same page with vulnerable meta-data. However, this is often not the case in practice.
+Indeed, objects allocated via the kmalloc API~\cite{Cor07}, may share a page with objects of similar size. As a result vulnerable meta-data may still be inadvertently mapped. 
+%
+Such a vulnerability is not visible to \tool as it is of a random access nature. Accordingly, we have developed a run-time tool that reports such vulnerabilities. 
+
+Our solution is based on an existing kernel tool, KASAN~\cite{kasan}, which is a dynamic memory error detector designed to detect out-of-bound and use-after-free bugs. KASAN uses shadow memory to record whether a memory byte is safe to access. KASAN uses compile-time instrumentation to insert checks of shadow memory on each memory access. 
+We modify KASAN to record DMA-map operations in addition to memory allocations. Our tool, termed DMA-KASAN (\dkasan) reports alloc-after-map, map-after-alloc\footnote{We term by ``alloc-after-map'' a situation in which kmalloc object is allocated from a mapped page. Likewise, we term by ``map-after-alloc'' a situation in which the containing page is mapped after an object was allocated.}, and cases when a DMA mapped page is accessed by the CPU. \dkasan, therefore, identifies all cases where an allocated object was inadvertently dma-mapped after allocation or has already been allocated on a dma-mapped page. We tested \dkasan using our setup. In our experiment we cloned a large project from a git repository and compiled it concurrently with light network traffic (i.e., ICMP ping). In this experiment, we have identified numerous cases where a dma-mapped page is used to allocate network and file system metadata. Example results are shown in Fig. \ref{fig:dkasan-report}. 
+For example, we have identified cases (e.g., line 1 in Fig. \ref{fig:dkasan-report}) where a kernel buffer is simultaneously mapped with READ and WRITE\footnote{The same physical page mapped twice, once for read and once for write.}. Such cases greatly simplify the attackers effort. In the interest of space, such example attack is described in detail in Appendix \ref{sec:xdp}. 
+%
+%In case of deferred protection
+%It is important to note that even if these pages are invalidated, an access attempt by the device will %simply result in a dmesg warning line. Namely, the device may repeatedly probe pages for access.

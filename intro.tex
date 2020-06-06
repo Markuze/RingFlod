@@ -1,16 +1,14 @@
 \section{Introduction}
 
-Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access the memory without CPU involvement, improving system performance.
-DMA capable devices include internal devices, such as GPUs, Network Interface Cards (NICs), storage devices (e.g., NVMe) and other peripheral devices, and external devices such as FireWire and Thunderbolt devices.\footnote{Currently, the Linux kernel (version 5.0) has as much as 700 such device drivers, where a third of those are network device drivers.} However, in its basic form, DMA makes the system vulnerable to DMA attacks. Cases where malicious DMA-capable devices (e.g., compromised firmware \cite{Gal14,Ben17a}) access sensitive memory regions not intended for their use. 
+Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access memory without CPU involvement, improving system performance.
+DMA capable devices include internal devices, such as GPUs, Network Interface Cards (NICs), storage devices (e.g., NVMe) and other peripheral devices, and external devices such as FireWire and Thunderbolt devices.\footnote{Currently, the Linux kernel (version 5.0) has as much as 700 such device drivers, where a third of those are network device drivers.} However, in its basic form, DMA makes the system vulnerable to DMA attacks. Namely, cases where malicious DMA-capable devices (e.g., compromised firmware \cite{Gal14,Ben17a}) access sensitive memory regions not intended for their use. 
 
 
-Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}; these range from stealing and manipulating sensitive data to taking over the victim machine. Widespread attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; or extracting a full memory dump of a victim machine \cite{MM, Vol, Fin14, GA10}. 
+Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealing and manipulating sensitive data to taking over the victim machine. Widespread attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; extracting a full memory dump of a victim machine \cite{MM, Vol, Fin14, GA10}. These threats are mitigated by the Input–Output Memory Management Unit (IOMMU). IOMMU adds a layer of virtual memory to devices. IOMMU brokers all I/O requests, translating these I/O virtual addresses (IOVA) to physical addresses. IOMMU provides address space isolation, allowing devices access only to dma-mapped pages, rendering all other memory inaccessible.
 
-I/O memory management unit (IOMMU) mitigates known exploits. Inspired by the design of the processor MMU, IOMMU adds a layer of virtual memory to devices. IOMMU brokers all I/O requests, translating these I/O virtual addresses(IOVA) to physical addresses. IOMMU provides address space isolation by design, allowing devices access only to dma-mapped pages, rendering all other memory pages inaccessible.
+However, unlike processes that operate in page granularity, I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these Kernel buffers to the device. For this reason, known as the \subpage{} vulnerability \cite{MMT16,thunder}, IOMMU fails to protect the Kernel from unprivileged access. Consequently, sub-page vulnerability was used as a basis for several recent DMA exploits. 
 
-However, unlike processes that operate in page granularity, I/O buffers can be significantly smaller than a page. Today I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these Kernel buffers to the device. For this reason, known as the \subpage{} vulnerability \cite{MMT16,thunder}, IOMMU fails to protect the Kernel from unprivileged access. 
-
-Consequently, sub-page vulnerability was used as a basis for several recent DMA exploits. However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. We argue that a structured approach is needed as it can lead to better threat detection and analysis, precipitating a more secure OS. Accordingly, in this work, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,~\motivation{} and \oportunity~(MMO) a trifecta of attributes, sufficient to layout the space of DMA attacks (Sec. \ref{sec:mmo}):
+However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. We argue that a structured approach is needed as it can lead to better threat detection and analysis, precipitating a more secure OS. Accordingly, in this work, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,~\motivation{} and \oportunity~(MMO) a trifecta of attributes, sufficient to layout the space of DMA attacks (Sec. \ref{sec:mmo}):
 \begin{enumerate}
     \item \motivation: A kernel buffer filled with malicious executable code, a \mabaf.
     \item \means: The kernel virtual address (\kva) of a \mabaf.
@@ -21,21 +19,27 @@ The MMO schema is especially useful for vulnerability analysis. For example, we 
 
 We build a static code analysis tool inspired by MMO to flag high-risk device drivers. We use our tool on Linux Kernels 5.0 and identify numerous device drivers at risk for high impact DMA attacks such as privilege escalation by code injection. Specifically, using the tool, we find that 12\% of the device drivers expose sensitive callback pointers, where as much as 50\% of device drivers are vulnerable to DMA attacks due to OS design choices.
 
+Since static analysis may not reveal opportunities for random access attacks, we further develop a run-time analysis tool that reports dynamic DMA vulnerabilities. These include random access, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer.
+
+
 Often, the trifecta is present in a single buffer; this makes some DMA attacks straight forward (i.e., \simple{}). This apparent simplicity of known DMA attacks, where a single mistake compromises an entire system, is a bane to security research. The anecdotal nature of these vulnerabilities often leads to a patchwork of localized fixes rather than a comprehensive solution. 
 
 We focus on more sophisticated attacks, i.e., situations where the MMO trifecta is incomplete. Analysis of such cases, as we find in this work, reveals a dangerous misconception. It is assumed, that buggy device drivers or poor but isolated design choices, are to blame for DMA vulnerabilities. We demonstrate that, it is often the kernel itself, that supplements the missing pieces of the trifecta, showing that this is a deep-rooted issue rather than a collection of disjoint incidents.
-
-To assess and validate our findings, we use a recent Linux Kernel (5.0) that utilizes state-of-the-art practices for code injection mitigation, i.e., KASLR, NX-bit and have IOMMU enabled by default. Furthermore, Linux is the de facto OS of the cloud and runs on most of the world's servers. Linux also has no known DMA attacks against it, though some were theorized \cite{MMT16,thunder}. 
-
-Nevertheless, in this work, we demonstrate how MMO can be used systematically to expose DMA vulnerabilities in the Linux Kernel. For example, we demonstrate a \simple{} attack on the FireWire \spb{} driver (Sec. \ref{sec:sbp2_attack}) marked by our static analysis tool. 
-We then continue to tackle harder cases, i.e., \compound{} attacks. Cases where the identified trifecta attributes are initially incomplete, and human expertise is needed to exploit these vulnerabilities (Sec. \ref{sec:linux_net}). 
-
-Furthermore, we present a run-time analysis tool that reports dynamic DMA vulnerabilities. These include random access, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer.
-
-To summarize, our contributions in this paper are as follows:
+%
+To summarize, our contributions in this paper are:
 \begin{itemize}
     \item We introduce the MMO Schema for evaluating Kernel vulnerabilities to DMA attacks. 
     \item We develop an MMO inspired, static code analysis tool. We use it to evaluate the Linux kernel device drivers and find numerous device drivers at a high level of risk to DMA attack.
-    \item We demonstrate, various MMO inspired DMA attacks on the Linux kernel, both \simple{} and \compound{}, i.e., such where initially the trifecta is seemingly incomplete. 
-    \item We develop a run-time tool to identify \subpage{} vulnerabilities, including random access.
+    \item Since static analysis maynot reveal opportunities for random access attacks, we develop a run-time tool to identify \subpage{} vulnerabilities, including random access.
+    \item We demonstrate various MMO inspired DMA attacks on the Linux kernel. These include both \simple{} and \compound{} attacks where initially the trifecta is seemingly incomplete. 
+
 \end{itemize}
+
+
+
+% To assess and validate our findings, we use a recent Linux Kernel (5.0) that utilizes state-of-the-art practices for code injection mitigation, i.e., KASLR, NX-bit and have IOMMU enabled by default. Furthermore, Linux is the de facto OS of the cloud and runs on most of the world's servers. Linux also has no known DMA attacks against it, though some were theorized \cite{MMT16,thunder}. 
+
+% For example, \SV{add here an example for compaund...}\SV{remove until the end of the paragraph??}we demonstrate a \simple{} attack on the FireWire \spb{} driver (Sec. \ref{sec:sbp2_attack}) marked by our static analysis tool. 
+% We then continue to tackle harder cases, i.e., \compound{} attacks. Cases where the identified trifecta attributes are initially incomplete, and human expertise is needed to exploit these vulnerabilities (Sec. \ref{sec:linux_net}). 
+
+

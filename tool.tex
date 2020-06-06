@@ -8,9 +8,7 @@ Currently, human expert input is needed to determine which functions are truly \
 
 %The output of the tool presents structured and filtered findings conductive for more in-depth human expert analysis to determine if a viable attack is feasible. 
 
-Type (d) vulnerability fall under the category of random access 
-%attacks and as such, requires a more profound human expert \emph{dynamic} analysis. As mentioned, this 
-which is out of the scope of this paper.
+Type (d) vulnerability falls under the category of random access and discussed further in  Sec.~\ref{sec:dma-kasan}.
 
 \subsection{Design}
 \tool operates recursively starting from a set of \textit{root functions} (e.g., dma\_mag\_single) (i.e., collecting all the function calls). \tool utilises Cscope \cite{cscope,cscope_92} to navigate the Kernel code. Cscope is an open source tool for browsing C source code. From this initial set of calls, \tool identifies the mapped variables and backtracks their declarations and assignments to these variables. When a data structure is identified as exposed, \tool searches
@@ -99,7 +97,7 @@ The output starts from the impact evaluation, and continues with pertinent code 
 
                 \end{lstlisting}
 \end{adjustbox}
-        \caption{Tool output example. Showing one path in the nvme\_fc driver where a callback pointer was exposed with write access.}
+        \caption{\tool output example. Showing one path in the nvme\_fc driver where a callback pointer was exposed with write access.}
         \label{fig:tool_example}
 
 \end{figure*}
