@@ -13,16 +13,21 @@ The most significant potential consequence of our attacks is privilege escalatio
 
 \section{MMO}\label{sec:mmo}
 
-In this section, we introduce the MMO (\motivation, \means, \oportunity) schema. We contend that a malicious device, just like a human criminal, needs Motive, Means, and Opportunity to perpetrate its attack. Using this schema, we can better understand the DMA vulnerabilities of an OS, the viability of possible DMA attacks, and their prevention. 
+In this section, we introduce the MMO (\motivation, \means, \oportunity) schema. Using this schema, we can better understand the DMA vulnerabilities of an OS, the viability of possible DMA attacks, and their prevention. 
+As mentioned, MMO lays out the space of DMA attack.
 
-For example, using the MMO schema, we are able to lay out the necessary conditions for a successful privilege escalation attack (i.e., code injection). Specifically, a malicious device needs all three prerequisites:
+For example, to execute a successful privilege escalation attack (i.e., code injection), a malicious device, just like a human criminal, needs Motive, Means, and Opportunity:
 \begin{enumerate}
     \item \motivation: A kernel buffer filled with malicious code (e.g., a valid ROP attack) -- a \mabaf.
     \item \means: The \kva{} of a \mabaf. Given the device is using \iova, the attacker needs to obtain the malicious buffer's \kva{}, for example, by observing leaked pointers. 
     \item \oportunity: Write access to a known pointer, which can alter the CPU control flow and execute the malicious code. For example, write access to a data structure that holds a function callback pointer, at a known offset.\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation \cite{rand_layout}.}
 \end{enumerate}
 
-Another example is a full memory dump attack, which can be executed by merely having \oportunity. In this case, we are able to modify the kernel control flow in such a way as to cause it to map arbitrary kernel addresses. In order to achieve this, an attacker needs to modify a kernel pointer once before it is mapped and, for a second time before send (i.e., TX) completion in order to avoid memory corruption (Sec. \ref{sec:linux_net}). 
+On the other hand, a full memory dump attack can be executed by merely having \oportunity.
+%\adam{this looks weird. MMO can describe \emph{any} attack. For example, motive: read all memory; means: some kernel pointer; opportunity: the kernel pointer is DMA-writable}
+That is, with \oportunity given, an attacker is able to modify the kernel control flow in such a way as to cause it to map arbitrary kernel addresses. For example, with write access to an I/O scatter-gather list a malicious device can control which memory pages are mapped to the device. This would result in a full memory dump.
+%\adam{description isn't clear: it's modifying control-flow, so is it a code injection attack?} 
+%In order to achieve this, an attacker needs to modify a kernel pointer once before it is mapped and, for a second time before send (i.e., TX) completion in order to avoid memory corruption (Sec. \ref{sec:linux_net}). 
 
 To further emphasize the significance of the MMO attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing an RX packet (i.e., a received packet). Due to \subpage{} vulnerability and a random allocation coincidence, a structure with a callback pointer is inadvertently accessible with write permission. Also, the malicious device is able to create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks two essential prerequisites.
 
@@ -39,7 +44,9 @@ Under the hypothesized circumstance, and without additional information, a malic
 And while corrupting random kernel memory is still a possibility and may even cause a kernel panic \cite{MMT16}, it does not achieve the goal of privilege escalation.
 
 
-The MMO schema covers both random and deterministic attacks. In this paper, we focus on demonstrating and addressing deterministic attacks, where the attacker is able to deduce the layout of the targeted data structure and its location on a page. Random access attacks, also exploit the sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks requires a more in-depth analysis to produce a viable chance of success. Accordingly, in Sec. \ref{sec:dma-kasan}, we present a run-time analysis tool capable of identifying such vulnerabilities. 
+%The MMO schema covers both random and deterministic attacks. 
+%In this paper, we focus on demonstrating and addressing deterministic attacks, where the attacker is able to deduce the layout of the targeted data structure and its location on a page. 
+%Random access attacks, also exploit the sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks requires a more in-depth analysis to produce a viable chance of success. Accordingly, in Sec. \ref{sec:dma-kasan}, we present a run-time analysis tool capable of identifying such vulnerabilities. \adam{if there's a whole section about it, why the disclaimer that the paper focuses on deterministic attacks?}
 
 \begin{figure}[t]
     \centering

@@ -38,7 +38,12 @@ exposed callback pointers or mapped heap pointers. \tool also utilises \texttt{p
 
 \subsection{Analysis and Results}
 We use \tool over Linux Kernel 5.3 code,
-analysing 1019 dma\_map\_single calls over 447 files. We present the results in table \ref{tab:static_analysis}. We dedicate special attention to struct \shinfo, which is used ubiquitously in Linux networking. This data structure is \textit{always} located on the same page as the \texttt{skb->data}, and it also contains a callback pointer. We discuss the vulnerabilities related to \shinfo in Sec. \ref{sec:linux_net}. We find that more than 50\% of the dma-mapp calls expose \shinfo either by directly mapping the \texttt{skb->data} or via the \texttt{build\_skb} API (lines 2 \& 7 in Fig. \ref{tab:static_analysis}). The OS provides this data structure layout and API rather than being an isolated driver bug. Additionally, we find 19 data structures that are exposed via APIs that store \texttt{private} data structures on the same page as vulnerable meta-data, e.g., netdev\_priv, aead\_request\_ctx and scsi\_cmd\_priv. We find 156 cases in which device drivers inadvertently expose callback pointers. Of these, 54 are cases where the pointers are exposed directly, and the rest are cases where callback pointers can be spoofed (i.e., a pointer to a data structure which contains callbacks is exposed). Our analysis also finds three instances where the stack pointer is mapped. In addition to exposed callback pointers, \tool has flagged 344 cases where type C vulnerability is present. 
+analysing 1019 dma\_map\_single calls over 447 files. We present the results in table \ref{tab:static_analysis}. We dedicate special attention to struct \shinfo, which is used ubiquitously in Linux networking. This data structure is \textit{always} located on the same page as the \texttt{skb->data}, and it also contains a callback pointer. We discuss the vulnerabilities related to \shinfo in Sec. \ref{sec:linux_net}. We find that more than 50\% of the dma-map calls expose \shinfo either by directly mapping the \texttt{skb->data} or via the \texttt{build\_skb} API (lines 2 \& 7 in Fig. \ref{tab:static_analysis}). The OS provides this data structure layout and API rather than being an isolated driver bug. Additionally, we find 19 data structures that are exposed via APIs that store \texttt{private} data structures on the same page as vulnerable meta-data, e.g., netdev\_priv, aead\_request\_ctx and scsi\_cmd\_priv. We find 156 cases in which device drivers inadvertently expose callback pointers. Of these, 54 are cases where the pointers are exposed directly, and the rest are cases where callback pointers can be spoofed\footnote{In this case, spoofing means replacing this pointer to an instance of the structure created by the device, with its own callback pointers}.
+%(i.e., a pointer to a data structure which contains callbacks is exposed).
+%\adam{unclear what pointer spoofing means, and why having a pointer to a data structure with a callback is useful. Is the ? Need to say this explicitly}
+Our analysis also finds three instances where the stack pointer is mapped
+%\adam{the table says ``heap mapped'', not stack}.
+In addition to exposed callback pointers, \tool has flagged 344 cases where type C vulnerability is present. 
 %We summarize the results in table \ref{tab:static_analysis}. 
 
 \begin{table}[]
@@ -50,7 +55,7 @@ analysing 1019 dma\_map\_single calls over 447 files. We present the results in 
 2. \texttt{skb\_shared\_info} mapped   & 464 (45.5\%) & 232 (51.9\%) \\
 3. Callbacks exposed Directly & 54            & 28           \\
 4. Private data mapped        & 19            & 7            \\
-5. Heap Mapped                &     3          &         3     \\
+5. Stack Mapped                &     3          &         3     \\
 6. Type C vulnerability       & 344           & 227          \\
 7. \texttt{build\_skb} used            & 46            & 40           \\ \hline
 Total dma-map calls        & 1019          & 447       \\  

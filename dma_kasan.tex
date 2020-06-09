@@ -12,6 +12,7 @@
 [2]$ size 512 [WRITE] load_elf_phdrs+0xbf/0x130
 [3]$ size 512 [WRITE] __do_execve_file.isra.0+0x287/0x1080
 [4]$ size 64  [WRITE] sock_alloc_inode+0x4f/0x120
+[5]$ size 328 [READ|WRITE] assoc_array_insert+0xa9/0x7e0
         \end{lstlisting}
 \end{adjustbox}
         \caption{\dkasan report example.}
@@ -19,7 +20,7 @@
 \end{figure}
 
 
-\section{\dkasan}\label{sec:dma-kasan} 
+\section{Run-time Analysis Tool}\label{sec:dma-kasan} 
 
 In section Sec. \ref{sec:static-analysis}, we have shown that more than 60\% of dma-map operations result in exposed pointers. Exposed pointers may be used in a DMA attack either passively to subvert KASLR or actively to execute an attack. Most of the remaining 40\% dma-map operations are executed on allocated objects that are presumably, not co-located on the same page with vulnerable meta-data. However, this is often not the case in practice.
 Indeed, objects allocated via the kmalloc API~\cite{Cor07}, may share a page with objects of similar size. As a result vulnerable meta-data may still be inadvertently mapped. 
@@ -27,8 +28,21 @@ Indeed, objects allocated via the kmalloc API~\cite{Cor07}, may share a page wit
 Such a vulnerability is not visible to \tool as it is of a random access nature. Accordingly, we have developed a run-time tool that reports such vulnerabilities. 
 
 Our solution is based on an existing kernel tool, KASAN~\cite{kasan}, which is a dynamic memory error detector designed to detect out-of-bound and use-after-free bugs. KASAN uses shadow memory to record whether a memory byte is safe to access. KASAN uses compile-time instrumentation to insert checks of shadow memory on each memory access. 
-We modify KASAN to record DMA-map operations in addition to memory allocations. Our tool, termed DMA-KASAN (\dkasan) reports alloc-after-map, map-after-alloc\footnote{We term by ``alloc-after-map'' a situation in which kmalloc object is allocated from a mapped page. Likewise, we term by ``map-after-alloc'' a situation in which the containing page is mapped after an object was allocated.}, and cases when a DMA mapped page is accessed by the CPU. \dkasan, therefore, identifies all cases where an allocated object was inadvertently dma-mapped after allocation or has already been allocated on a dma-mapped page. We tested \dkasan using our setup. In our experiment we cloned a large project from a git repository and compiled it concurrently with light network traffic (i.e., ICMP ping). In this experiment, we have identified numerous cases where a dma-mapped page is used to allocate network and file system metadata. Example results are shown in Fig. \ref{fig:dkasan-report}. 
-For example, we have identified cases (e.g., line 1 in Fig. \ref{fig:dkasan-report}) where a kernel buffer is simultaneously mapped with READ and WRITE\footnote{The same physical page mapped twice, once for read and once for write.}. Such cases greatly simplify the attackers effort. In the interest of space, such example attack is described in detail in Appendix \ref{sec:xdp}. 
+We modify KASAN to record DMA-map operations in addition to memory allocations. Our tool, termed DMA-KASAN (\dkasan) reports: 
+\begin{enumerate}
+    \item alloc-after-map:  kmalloc object is allocated from a mapped page.
+    \item map-after-alloc:  the containing page is mapped after an object was allocated.
+    \item access-after-map: DMA mapped page is accessed by the CPU.
+    \item multiple-map: an object is inadvertently mapped multiple times with possibly different permissions.
+\end{enumerate}
+%alloc-after-map, map-after-alloc.We term by ``alloc-after-map'' a situation in which kmalloc object is allocated from a mapped page. Likewise, we term by ``map-after-alloc'' a situation in which the containing page is mapped after an object was allocated.
+%\adam{the meaning of these terms shouldn't be in a footnote, it's important}
+%The tool also detects cases when a DMA mapped page is accessed by the CPU. 
+%\dkasan, therefore, identifies all cases where an allocated object was inadvertently dma-mapped after allocation or has already been allocated on a dma-mapped page. 
+We tested \dkasan using our setup. In our experiment we cloned a large project from a git repository and compiled it concurrently with light network traffic (i.e., ICMP ping). In this experiment, we have identified numerous cases where a dma-mapped page is used to allocate network and file system metadata. Example results are shown in Fig. \ref{fig:dkasan-report}. 
+For example, we have identified cases (e.g., line 1 in Fig. \ref{fig:dkasan-report}) where a network I/O buffer is simultaneously mapped with READ and WRITE\footnote{The same physical page mapped twice, once for read and once for write.}. Such cases greatly simplify the attackers effort. In the interest of space, such example attacks are described in detail in Appendix \ref{appx:additional_compound}. 
+
+We have also encountered cases where random kernel data structures are mapped for READ/WRITE. Some of these mapped data structures also contain callback pointers. For example, \texttt{struct assoc\_array\_edit} is exposed (line 5 in Fig. \ref{fig:dkasan-report}) creating an \oportunity. 
 %
 %In case of deferred protection
 %It is important to note that even if these pages are invalidated, an access attempt by the device will %simply result in a dmesg warning line. Namely, the device may repeatedly probe pages for access.
