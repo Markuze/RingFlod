@@ -1,26 +1,21 @@
 
+\section{Organizing DMA risks}\label{sec:dma-risks}
+\textcolor{olive}{In this section we attempt to organize and categorize the risks associated with DMA operations.
+We first categorize the types of DMA vulnerabilities in MMO, then we categorise the different \subpage{} vulnerabilities. These categories paint a clear picture of risks and dangers posed by DMA capable devices.
+Previous works have painted DMA attacks in broad strokes only, without delving into details \cite{MMT16,MSMT18,thunder}. 
+In this section we also discuss dangerous trade-offs and discuss the threat model.}
 
-\section{Threat Model}\label{sec:threat_model}
+\subsection{MMO}\label{sec:mmo}
 
-Our attacks are designed with the following assumptions:
-\begin{enumerate}
-    \item We assume the existence of a malicious DMA capable device attached to the system.
-    \item The actual attack is performed solely by a DMA-capable malicious device.
-    \item Any hardware aside from the specific malicious device is working as expected.
- \end{enumerate}
+We introduce the \motivation, \means, \oportunity (MMO) schema. MMO categorizes DMA vulnerabilities, defining building blocks for reasoning about DMA attacks. 
+%Using this schema, we can better understand the DMA vulnerabilities of an OS, the viability of possible DMA attacks, and their prevention. 
 
-The most significant potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Another potential consequence we consider is a full system memory dump. These are harder to thwart and even harder to detect. Lastly, a consequence of a possible failed attack is random memory corruption, resulting in a denial of service \cite{MMT16}, where the OS panics. Ideally, malformed devices should not be able to crash the entire system. 
-
-\section{MMO}\label{sec:mmo}
-
-In this section, we introduce the MMO (\motivation, \means, \oportunity) schema. Using this schema, we can better understand the DMA vulnerabilities of an OS, the viability of possible DMA attacks, and their prevention. 
 As mentioned, MMO lays out the space of DMA attack.
-
 For example, to execute a successful privilege escalation attack (i.e., code injection), a malicious device, just like a human criminal, needs Motive, Means, and Opportunity:
 \begin{enumerate}
     \item \motivation: A kernel buffer filled with malicious code (e.g., a valid ROP attack) -- a \mabaf.
     \item \means: The \kva{} of a \mabaf. Given the device is using \iova, the attacker needs to obtain the malicious buffer's \kva{}, for example, by observing leaked pointers. 
-    \item \oportunity: Write access to a known pointer, which can alter the CPU control flow and execute the malicious code. For example, write access to a data structure that holds a function callback pointer, at a known offset.\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation \cite{rand_layout}.}
+    \item \oportunity: Write access to a known pointer, which can alter the CPU control flow and execute the malicious code. For example, write access to a data structure that holds a function callback pointer, at a known offset\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation \cite{rand_layout}.}.
 \end{enumerate}
 
 On the other hand, a full memory dump attack can be executed by merely having \oportunity.
@@ -96,3 +91,13 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
 \end{enumerate}
 
 %We demonstrate in Section \ref{sec:linux_net}, how an adversary can take advantage of \emph{deferred} mode.
+\subsection{Threat Model}\label{sec:threat_model}
+
+Our attacks are designed with the following assumptions:
+\begin{enumerate}
+    \item We assume the existence of a malicious DMA capable device attached to the system.
+    \item The actual attack is performed solely by a DMA-capable malicious device.
+    \item Any hardware aside from the specific malicious device is working as expected.
+ \end{enumerate}
+
+The most significant potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Another potential consequence we consider is a full system memory dump. These are harder to thwart and even harder to detect. Lastly, a consequence of a possible failed attack is random memory corruption, resulting in a denial of service \cite{MMT16}, where the OS panics. Ideally, malformed devices should not be able to crash the entire system. 

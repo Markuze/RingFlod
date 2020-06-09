@@ -1,7 +1,7 @@
 \section{Introduction}
 
 Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access memory without CPU involvement, improving system performance.
-DMA capable devices include internal devices, such as GPUs, Network Interface Cards (NICs), storage devices (e.g., NVMe) and other peripheral devices, and external devices such as FireWire and Thunderbolt devices.\footnote{Currently, the Linux kernel (version 5.0) has as much as 700 such device drivers, where a third of those are network device drivers.} However, in its basic form, DMA makes the system vulnerable to DMA attacks. Namely, cases where malicious DMA-capable devices (e.g., compromised firmware \cite{Gal14,Ben17a}) access sensitive memory regions not intended for their use. 
+DMA capable devices include internal devices, such as GPUs, Network Interface Cards (NICs), storage devices (e.g., NVMe) and other peripheral devices, and external devices such as FireWire and Thunderbolt devices\footnote{Currently, the Linux kernel (version 5.0) has as much as 700 such device drivers, where a third of those are network device drivers.}. However, in its basic form, DMA makes the system vulnerable to DMA attacks. Namely, cases where malicious DMA-capable devices (e.g., compromised firmware \cite{Gal14,Ben17a}) access sensitive memory regions not intended for their use. 
 
 
 Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealing and manipulating sensitive data to taking over the victim machine. Widespread attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; extracting a full memory dump of a victim machine \cite{MM, Vol, Fin14, GA10}. These threats are mitigated by the Input–Output Memory Management Unit (IOMMU). The IOMMU adds a layer of virtual memory to devices. The IOMMU brokers all I/O requests, translating their target I/O virtual addresses (IOVAs) to physical addresses. In the process, the IOMMU provides address space isolation, allowing devices access only to permitted pages
@@ -58,10 +58,14 @@ To summarize, our contributions in this paper are:
 \end{itemize}
 
 
-
 % To assess and validate our findings, we use a recent Linux Kernel (5.0) that utilizes state-of-the-art practices for code injection mitigation, i.e., KASLR, NX-bit and have IOMMU enabled by default. Furthermore, Linux is the de facto OS of the cloud and runs on most of the world's servers. Linux also has no known DMA attacks against it, though some were theorized \cite{MMT16,thunder}. 
 
 % For example, \SV{add here an example for compaund...}\SV{remove until the end of the paragraph??}we demonstrate a \simple{} attack on the FireWire \spb{} driver (Sec. \ref{sec:sbp2_attack}) marked by our static analysis tool. 
 % We then continue to tackle harder cases, i.e., \compound{} attacks. Cases where the identified trifecta attributes are initially incomplete, and human expertise is needed to exploit these vulnerabilities (Sec. \ref{sec:linux_net}). 
+
+
+\textcolor{olive}{The rest of the paper has the following structure,
+in Sec. \ref{sec:background} we first provide the necessary background for the topics discussed in the rest of the paper. In Sec. \ref{sec:dma-risks} we provide the theoretical basis to reason about DMA vulnerabilities.
+Next, in Sec. \ref{sec:static-analysis} and \ref{sec:dma-kasan} we describe and evaluate the tools we built to discover DMA vulnerabilities. In Sec. \ref{sec:attack_setup} we describe a \simple attack discovered by our \tool, and in Sec. \ref{sec:linux_net} we discuss novel \compound attacks where human expertise are needed to complete the necessary attack ingredients.}
 
 
