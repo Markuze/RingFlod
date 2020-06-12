@@ -1,13 +1,14 @@
 
-\section{Organizing DMA risks}\label{sec:dma-risks}
-\textcolor{olive}{In this section we attempt to organize and categorize the risks associated with DMA operations.
-We first categorize the types of DMA vulnerabilities in MMO, then we categorise the different \subpage{} vulnerabilities. These categories paint a clear picture of risks and dangers posed by DMA capable devices.
-Previous works have painted DMA attacks in broad strokes only, without delving into details \cite{MMT16,MSMT18,thunder}. 
-In this section we also discuss dangerous trade-offs and discuss the threat model.}
+\section{Organizing DMA Risks}\label{sec:dma-risks}
+In this section we organize and categorize the risks associated with DMA operations.
+We first categorize the types of DMA vulnerabilities by introducing MMO. 
+Then, we categorise the different \subpage{} vulnerabilities. 
+These categories paint a clear picture of risks and dangers posed by DMA capable devices.
+We also discuss dangerous trade-offs and discuss the threat model.
 
 \subsection{MMO}\label{sec:mmo}
 
-We introduce the \motivation, \means, \oportunity (MMO) schema. MMO categorizes DMA vulnerabilities, defining building blocks for reasoning about DMA attacks. 
+We introduce the \motivation, \means, \oportunity (MMO) schema to categorizes DMA vulnerabilities. The goal of MMO is to define building blocks for reasoning about DMA attacks.
 %Using this schema, we can better understand the DMA vulnerabilities of an OS, the viability of possible DMA attacks, and their prevention. 
 
 As mentioned, MMO lays out the space of DMA attack.
@@ -63,7 +64,13 @@ We classify the different types of potentially co-located data, into four catego
 
 \end{enumerate}
 
-In the next sections we demonstrate how a \simple{} attack utilizes type (a) vulnerability (Sec. \ref{sec:sbp2_attack}). A \emph{compound attack}, on the other hand, uses type (b) and (c) vulnerabilities (Sec. \ref{sec:linux_net}). Both attack types use type (d) vulnerability to compromise KASLR: KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage.
+In the next sections we demonstrate how a \simple{} attack utilizes type (a) vulnerability (Sec. \ref{sec:sbp2_attack}). A \emph{compound attack}, on the other hand, uses type (b) and (c) vulnerabilities (Sec. \ref{sec:linux_net}). 
+We also demonstrate the risks associated with type (d) vulnerability in Sec. \ref{fig:dkasan-report}. Essentially, type (d) vulnerability simplifies KASLR subversion~(\ref{sec:kaslr}) and opens viable attack vectors. 
+
+
+%KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage.
+
+%Both attack types use type (d) vulnerability to compromise KASLR. KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage. \textcolor{olive}{We demonstrate the risks associated with type (d) vulnerability in Sec. \ref{fig:dkasan-report}.}
 
 \begin{figure}[t]
     \centering

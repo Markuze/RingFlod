@@ -1,7 +1,12 @@
 \section{\Compound{} DMA attacks}\label{sec:linux_net}
 
-So far, we have demonstrated a \simple{} attack by exploiting type (a) \subpage{} vulnerability of the FireWire driver. In this section we explore new attacks on the Linux network stack where \means{} and \oportunity{} 
-are initially missing but are attainable via compound steps, leaving room to dangerous privilege escalations attacks.
+%So far, we have demonstrated a \simple attack by exploiting type (a) \subpage vulnerability of the FireWire driver. 
+In this section we explore new attacks on the Linux network stack where \means and \oportunity are initially missing but are attainable via compound steps.
+%\st{, leaving room to dangerous privilege escalations attacks}.
+We focus on the Linux network stack which initially seems secure \cite{thunder}. 
+But, by \tool and as we demonstrate in this section, the Linux network stack is actually responsible for \%60 of DMA vulnerabilities we have found. 
+We first describe the vulnerable data structures shared by \emph{all} Linux network drivers. We then show how \oportunity is often achievable. Then, we discuss various methods to achieve \means and \motivation. 
+In the interest of space, additional DMA attacks also appear in \ref{appx:additional_compound}.
 
 \subsection{\shinfo}
 \begin{figure}[t]

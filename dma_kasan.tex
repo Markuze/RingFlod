@@ -1,5 +1,8 @@
 \begin{figure}[t]
 \begin{adjustbox}{width=\linewidth}
+\lstset{
+    escapechar={|},
+}
         \begin{lstlisting}[
         basicstyle = \small,
         %basicstyle=\ttfamily,
@@ -8,11 +11,11 @@
         %frame = l,
         language = C
         ]
-[1]$ size 512 [READ|WRITE] __alloc_skb+0xe0/0x3f0
-[2]$ size 512 [WRITE] load_elf_phdrs+0xbf/0x130
-[3]$ size 512 [WRITE] __do_execve_file.isra.0+0x287/0x1080
-[4]$ size 64  [WRITE] sock_alloc_inode+0x4f/0x120
-[5]$ size 328 [READ|WRITE] assoc_array_insert+0xa9/0x7e0
+[1] size 512 [|\color{purple}READ,WRITE|] __alloc_skb+0xe0/0x3f0
+[2] size 512 [|\color{purple}WRITE|] load_elf_phdrs+0xbf/0x130
+[3] size 512 [|\color{purple}WRITE|] __do_execve_file.isra.0+0x287/0x1080
+[4] size 64  [|\color{purple}WRITE|] sock_alloc_inode+0x4f/0x120
+[5] size 328 [|\color{purple}READ,WRITE|] assoc_array_insert+0xa9/0x7e0
         \end{lstlisting}
 \end{adjustbox}
         \caption{\dkasan report example.}

@@ -75,6 +75,16 @@ The output starts from the impact evaluation, and continues with pertinent code 
 %.1\textwidth,
 \begin{figure*}[t]
 \begin{adjustbox}{width=\linewidth}
+\lstset{
+    escapechar={|}, 
+    keywords=[2]{Callbacks},
+    keywordstyle=[2]\color{gray},
+    basicstyle=\color{red},
+    keywordstyle=\color{purple},
+    commentstyle=\color{teal},
+    %morecomment=[s][\color{teal}]{/**}{*/}
+    stringstyle=\color{blue},
+}
         \begin{lstlisting}[
         basicstyle = \small,
         %basicstyle=\ttfamily,
@@ -85,20 +95,20 @@ The output starts from the impact evaluation, and continues with pertinent code 
         language = C,
        % moredelim=**[is][\color{red}]{@}{@},
         ]
-[8]*** Spoofed Vulnerability: 931 Callbcks reachable via sturct nvme_fc_fcp_op : DMA_FROM_DEVICE
-[7]*** Direct Vulnerability: 1 Callbacks exposed in nvme_fc_fcp_op : DMA_FROM_DEVICE
-[6]*mapped type: struct nvme_fc_fcp_op
-[5]DECLARATION[__nvme_fc_init_request:1698]:__nvme_fc_init_request(struct nvme_fc_ctrl *ctrl,
+[8]/*** Spoofed Vulnerability:*/ |\color{red}931| Callbacks reachable via sturct nvme_fc_fcp_op : DMA_FROM_DEVICE
+[7]/*** Direct Vulnerability: */ |\color{red}1 |  Callback exposed in    struct nvme_fc_fcp_op : DMA_FROM_DEVICE
+[6]/*mapped type:*/ struct nvme_fc_fcp_op
+[5]/*DECLARATION*/["__nvme_fc_init_request:1698"]:__nvme_fc_init_request(struct nvme_fc_ctrl *ctrl,
                                                                 struct nvme_fc_queue *queue, 
                                                                 struct nvme_fc_fcp_op *op, 
                                                                 struct request *rq, u32 rqno) {
-[4]CALL[__nvme_fc_init_request:1731]: fc_dma_map_single(ctrl->lport->dev,
+[4]/*CALL*/["__nvme_fc_init_request:1731"]: fc_dma_map_single(ctrl->lport->dev,
                                                         &op->rsp_iu, sizeof(op->rsp_iu),
                                                         DMA_FROM_DEVICE);
-[3]*mapped type: void
-[2]DECLARATION[fc_dma_map_single:935]:fc_dma_map_single(struct device *dev, void *ptr, size_t size, 
+[3]/*mapped type:*/ void
+[2]/*DECLARATION*/["fc_dma_map_single:935"]:fc_dma_map_single(struct device *dev, void *ptr, size_t size, 
                                                     enum dma_data_direction dir) {
-[1]CALL[fc_dma_map_single:939]: return dev ? dma_map_single(dev, ptr, size, dir) : (dma_addr_t)0L;
+[1]/*CALL*/["fc_dma_map_single:939"]: return dev ? dma_map_single(dev, ptr, size, dir) : (dma_addr_t)0L;
 
                 \end{lstlisting}
 \end{adjustbox}
