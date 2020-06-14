@@ -112,7 +112,7 @@ Assuming the device can trick a userspace process into echoing a malicious buffe
     \item The NIC overwrites \shinfo{} with the \kva{} retrieved during step 2. 
 \end{enumerate}
 
-Tricking a userspace process into echoing a malicious buffer's contents can be archived in various ways. For example, a proxy server, a key/value store, streaming service, etc; another type of accomplice can be a cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device\footnote{Indeed, Googles OpenTitan \cite{opentitan} exemplifies that cloud providers actively worry about root of trust for their servers.}.
+Tricking a userspace process into echoing a malicious buffer's contents can be archived in various ways. For example, a proxy server, a key/value store, streaming service, etc; another type of accomplice can be a cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device.\footnote{Indeed, Googles OpenTitan \cite{opentitan} exemplifies that cloud providers actively worry about root of trust for their servers.}
 
 \textbf{Timing concerns.} A TX completion event that fails to appear in due time will trigger a TX T/O error that flushes all buffers and resets the driver. The T/O is set by the driver usually to a few seconds, which is more than enough to complete the attack.
  

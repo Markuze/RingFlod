@@ -57,3 +57,14 @@ In fact, during our investigation, we have found that there is a symbol visible 
 
 The direct mapping base (\texttt{page\_offset\_base}) and virtual memory map (\texttt{vmemmap\_base}) are also randomized (Fig. \ref{fig:mem_layot}), where each regions base pointer is randomized respecting a 1~GB alignment. This means that the lower 30 bits are unmodified and can leak both the PFN numbers and the randomized offset. This alignment is also due to page table considerations. That is, the page upper table (PUD) has a 30~bit shift. Once the random offsets \textit{PAGE\_OFFSET} and \textit{vmemmap} for direct mapping base and virtual memory map are known it is possible to transition between a \kva{} (kernel virtual addresses within the direct mapping region) its PFN and, its \page{} address (virtual memory map region). The translation macros are shown in Fig. \ref{fig:mem_model}. 
 
+\section{Threat Model}\label{sec:threat_model}
+
+Our attacks are designed with the following assumptions:
+\begin{enumerate}
+    \item We assume the existence of a malicious DMA capable device attached to the system.
+    \item The actual attack is performed solely by a DMA-capable malicious device.
+    \item Any hardware aside from the specific malicious device is working as expected.
+ \end{enumerate}
+
+The most significant potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Another potential consequence we consider is a full system memory dump. These are harder to thwart and even harder to detect. Lastly, a consequence of a possible failed attack is random memory corruption, resulting in a denial of service \cite{MMT16}, where the OS panics. Ideally, malformed devices should not be able to crash the entire system. 
+

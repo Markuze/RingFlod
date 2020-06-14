@@ -1,7 +1,7 @@
 \section{Introduction}
 
 Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access memory without CPU involvement, improving system performance.
-DMA capable devices include internal devices, such as GPUs, Network Interface Cards (NICs), storage devices (e.g., NVMe) and other peripheral devices, and external devices such as FireWire and Thunderbolt devices\footnote{Currently, the Linux kernel (version 5.0) has as much as 700 such device drivers, where a third of those are network device drivers.}. However, in its basic form, DMA makes the system vulnerable to DMA attacks. Namely, cases where malicious DMA-capable devices (e.g., compromised firmware \cite{Gal14,Ben17a}) access sensitive memory regions not intended for their use. 
+DMA capable devices include internal devices, such as GPUs, Network Interface Cards (NICs), storage devices (e.g., NVMe) and other peripheral devices, and external devices such as FireWire and Thunderbolt devices.\footnote{Currently, the Linux kernel (version 5.0) has as much as 700 such device drivers, where a third of those are network device drivers.} However, in its basic form, DMA makes the system vulnerable to DMA attacks. Namely, cases where malicious DMA-capable devices (e.g., compromised firmware \cite{Gal14,Ben17a}) access sensitive memory regions not intended for their use. 
 
 
 Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealing and manipulating sensitive data to taking over the victim machine. Widespread attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; extracting a full memory dump of a victim machine \cite{MM, Vol, Fin14, GA10}. These threats are mitigated by the Input–Output Memory Management Unit (IOMMU). The IOMMU adds a layer of virtual memory to devices. The IOMMU brokers all I/O requests, translating their target I/O virtual addresses (IOVAs) to physical addresses. In the process, the IOMMU provides address space isolation, allowing devices access only to permitted pages
@@ -10,10 +10,11 @@ Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealin
 
 However, unlike processes that operate in page granularity, I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these Kernel buffers to the device. For this reason, known as the \subpage{} vulnerability \cite{MMT16,thunder}, IOMMU fails to protect the Kernel from unprivileged access. Consequently, sub-page vulnerability was used as a basis for several recent DMA exploits. 
 
-However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. We argue that a structured approach is needed as it can lead to better threat detection and analysis, precipitating a more secure OS.
+However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. \st{We argue that a structured approach is needed as it can lead to better threat detection and analysis, precipitating a more secure OS.}
 \adam{I suggest removing the preceding sentences, and replace them with the
 following message: there is no systematic study of how sub-page vulnerabilities can occur,
 and how they can be exploited.  And this is what the paper does.}
+\textcolor{olive}{Consequently there is no systematic study of sub-page vulnerabilities and their exploits. We propose a remedy to this situation in the following sections.}
 Accordingly, in this work, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,~\motivation{} and \oportunity~(MMO) a trifecta of attributes, sufficient to layout the space of DMA attacks (Sec. \ref{sec:mmo}):
 %\adam{the list below appears to target code execution exploits (e.g., if the attack is to steal secret data, there's no need for malicious code or write access). Perhaps say up front that these are the attacks under consideration.}
 \begin{enumerate}
@@ -22,8 +23,9 @@ Accordingly, in this work, we present a schema for identifying viable attack vec
     \item \oportunity: Write access to a pointer that can alter the CPU control flow.
 \end{enumerate} 
 
-The MMO schema is especially useful for vulnerability analysis. For example, we show that a privilege escalation attack requires the full trifecta to be realized. Other high impact attacks, such as a full memory dump, may still be viable with only \oportunity{} given. \adam{this paragraph can be dropped}
+\st{The MMO schema is especially useful for vulnerability analysis. For example, we show that a privilege escalation attack requires the full trifecta to be realized. Other high impact attacks, such as a full memory dump, may still be viable with only \oportunity{} given.}\adam{this paragraph can be dropped}
 
+\textcolor{olive}{Additionally, we categorize the four types of the \subpage{} vulnerability, providing insight into the structure of DMA vulnerabilities.}
 \adam{add a paragraph on the categorization of various ways sub-page vulns can occur (S3.2), and that they are sometimes caused by the OS design and not by a driver issue}
 
 \adam{make the following relate to MMO.  IIUC, the tools are for identifying Opportunity, and then S7 discusses various ways of completing Motive and Means,}

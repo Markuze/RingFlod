@@ -58,6 +58,3 @@ The page table also holds page access rights for each \iova. An access right can
 
 IOMMUs were not designed primarily with regard to providing security \cite{DWT79}. IOMMUs were used to allow devices that did not support vectored I/O, to access contiguous virtual memory, which may map non-contiguous physical memory \cite{Chu96, WMM97}. IOMMUs also enabled legacy devices that only supported limited address width (32-bit), to access high memory (64 bit). More recently, IOMMUs were used to assign I/O devices directly to virtual machines while maintaining their isolation properties \cite{Int16b, AMD16}. 
 %Throughout this period, OS developers did not appear to consider protection against malicious devices important. To date, Windows 10 is the first Windows version that uses IOMMU for protection \cite{Mic17}.\adam{aren't these two sentences detracting from the paper? The premise is that IOMMUs are used for protection, and they contradict this premise.}
-
-
-
