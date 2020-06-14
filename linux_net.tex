@@ -47,6 +47,31 @@ To expand this scenario into a complete attack, the attacker must complete the M
     \label{fig:page_frags}
 \end{figure}
 
+\subsection{Deferred Invalidation vulnerability}\label{sec:deferred}
+
+To limit the overhead of multiple memory accesses when translating \iova{} using page tables, the IOMMU caches translations in an I/O translation lookaside buffer (IOTLB). 
+
+The IOTLB is analogous to the MMU TLB. IOMMU does not maintain consistency between the IOTLB and the IOMMU page tables. As a result, the OS has to explicitly invalidate the IOTLB to maintain consistency when a translation entry is removed. Namely, to ensure that the IOTLB never holds stale entries, the OS must invalidate the IOTLB immediately after it removes memory mappings. 
+
+Yet, this scheme, called the \emph{strict} mode in Linux, can degrade performance, as IOTLB invalidations can induce very high overhead \cite{MMT16,MSMT18,Peleg15}. In I/O intensive workloads, the number of required IOTLB invalidations can be extremely high, as IOMMU entries are unmapped following each I/O operation. Moreover, the overhead of each IOTLB invalidation can be as high as 2000 cycles \cite{ABYTS11}. This is considerably higher than a TLB invalidation, which takes roughly 100 cycles \cite{Han14}. 
+
+To reduce this overhead, Linux defers TLB invalidations by default and instead performs periodic global TLB invalidations. While \emph{deferred} mode, improves I/O performance, it also breaks the stipulation, that after unmapping (e.g., \texttt{dma\_unmap\_page}), the physical page should no longer be accessible by the device. This \emph{deferred} time frame (Fig. \ref{fig:deferred}), may be as high as 10 milliseconds \cite{MSMT18}.
+
+The repercussions of \emph{deferred} mode are that a malicious device can take advantage of this time window, where it has access to memory pages, effectively, unbeknownst to the CPU. This opens up two distinct attack options:
+
+\begin{enumerate}
+    \item A device can alter data structures that the CPU has modified \emph{after} unmapping (e.g., calling \texttt{dma\_unmap\_page}).
+    \iova{} mappings, as a rule, are short-lived as they should be used only for the duration of I/O, usually for a few microseconds. The additional milliseconds provide the attacker with a wide time-window sufficient to conduct her attack.
+    \item The page can be freed, and then immediately reused by the OS. In fact, this is a common scenario, as Linux reuses \emph{hot} pages (i.e., recently used pages), as they are likely, to already reside in the CPU caches \cite{hotcold}. In turn, this opens up the kernel to additional random access attacks.
+\end{enumerate}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{figs/strict.pdf}
+    \caption{Strict vs. deferred IOTLB invalidation. In \emph{deferred} mode, there is a time window where the data is accessible to the device, but the mapping no longer appears in the page table.}
+    \label{fig:deferred}
+\end{figure}
+
 \subsection{Hacking~\oportunity{}}\label{sec:shinfo}
 
 \begin{figure}[t]
