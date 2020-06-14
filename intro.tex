@@ -10,7 +10,11 @@ Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealin
 
 However, unlike processes that operate in page granularity, I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these Kernel buffers to the device. For this reason, known as the \subpage{} vulnerability \cite{MMT16,thunder}, IOMMU fails to protect the Kernel from unprivileged access. Consequently, sub-page vulnerability was used as a basis for several recent DMA exploits. 
 
-However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. We argue that a structured approach is needed as it can lead to better threat detection and analysis, precipitating a more secure OS. Accordingly, in this work, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,~\motivation{} and \oportunity~(MMO) a trifecta of attributes, sufficient to layout the space of DMA attacks (Sec. \ref{sec:mmo}):
+However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. We argue that a structured approach is needed as it can lead to better threat detection and analysis, precipitating a more secure OS.
+\adam{I suggest removing the preceding sentences, and replace them with the
+following message: there is no systematic study of how sub-page vulnerabilities can occur,
+and how they can be exploited.  And this is what the paper does.}
+Accordingly, in this work, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,~\motivation{} and \oportunity~(MMO) a trifecta of attributes, sufficient to layout the space of DMA attacks (Sec. \ref{sec:mmo}):
 %\adam{the list below appears to target code execution exploits (e.g., if the attack is to steal secret data, there's no need for malicious code or write access). Perhaps say up front that these are the attacks under consideration.}
 \begin{enumerate}
     \item \motivation: A kernel buffer filled with malicious executable code, a \mabaf.
@@ -18,17 +22,22 @@ However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder
     \item \oportunity: Write access to a pointer that can alter the CPU control flow.
 \end{enumerate} 
 
-The MMO schema is especially useful for vulnerability analysis. For example, we show that a privilege escalation attack requires the full trifecta to be realized. Other high impact attacks, such as a full memory dump, may still be viable with only \oportunity{} given. 
+The MMO schema is especially useful for vulnerability analysis. For example, we show that a privilege escalation attack requires the full trifecta to be realized. Other high impact attacks, such as a full memory dump, may still be viable with only \oportunity{} given. \adam{this paragraph can be dropped}
+
+\adam{add a paragraph on the categorization of various ways sub-page vulns can occur (S3.2), and that they are sometimes caused by the OS design and not by a driver issue}
+
+\adam{make the following relate to MMO.  IIUC, the tools are for identifying Opportunity, and then S7 discusses various ways of completing Motive and Means,}
 
 We build a static code analysis tool inspired by MMO to flag high-risk device drivers. 
 We use our tool on Linux Kernel 5.0 and find that as much as 62\% of device drivers are vulnerable to various DMA attacks (Sec.~\ref{sec:static-analysis}). 
-These include high impact privilege escalation attacks by code injection in which the attacker gains full control of the victim machine.
+These include high impact privilege escalation attacks by code injection in which the attacker gains full control of the victim machine.\adam{this paragraph needs to be more explicit: what does high-risk mean? Say exactly what the tool finds.}
 
 %identify numerous device drivers at risk for high impact DMA attacks such as privilege escalation by code injection. 
 %\adam{is it ``such as'' or only these attacks? (related to the above comment)}
 %Specifically, using the tool, we find that as much as 62\% of device drivers are vulnerable to DMA attacks (Sec .\ref{sec:static-analysis}).
 %\adam{the second part of the sentence isn't very clear: which types of DMA attacks are these? What OS design choices?}.
 
+\adam{instead of this "Since...", make the focus on the scenario, i.e.: "Sub-vulnerabilities can also manifest dynamically at run-time, if a memory buffer is inadvertently ..."}
 Since static analysis may not reveal opportunities for random access attacks, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer, we further develop a run-time analysis tool that reports such vulnerabilities and exemplify its use. The run-time analysis tool reports on all cases where a kernel-buffer is exposed. 
 
 % \adam{what's a random access attack? The term hasn't been defined} we further develop a run-time analysis tool that reports dynamic DMA vulnerabilities. These include\adam{include random access, or only random access?} random access, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer\adam{aha, here's the definition... should come earlier, maybe even in the above paragraph, as I assume this is an instance (or ``the'' instance) of OS design choices leading to attacks}.
@@ -47,6 +56,8 @@ We focus on more sophisticated attacks, i.e., situations where the MMO trifecta 
 %\adam{how is ``trifecta is incomplete'' in contrast with the previous paragraph, which talked about MMO being present in a single buffer?}
 Analysis of such cases, as we find in this work, reveals a dangerous misconception. It is assumed, that buggy device drivers or poor but isolated design choices, are to blame for DMA vulnerabilities. 
 We demonstrate that, it is often the kernel itself, that supplements the missing pieces of the trifecta, showing that this is a deep-rooted issue rather than a collection of disjoint incidents.
+\adam{is it "often"? I think everything described in S7 is kernel-related.  So maybe be more explicit and say that we identify design flaws in the Linux that enable NIC devices with Opportunity to gain Motive and Means}
+
 %\adam{this text seems like it should come earlier, since earlier you talk about OS design choices}
 %
 To summarize, our contributions in this paper are:
