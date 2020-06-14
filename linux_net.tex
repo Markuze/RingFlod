@@ -82,11 +82,14 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
 \end{figure}
 
 \adam{IMPORTANT POINT: To me, it seemed that the tool sections were about gaining Opportunity.  Why do we now need another section on "Hacking" it? Do the tools not flag the skb-shared-info? If they do, and it's still not enough, how do we know Opportunity exists in the other cases they flag?  Perhaps, the exact goal of the tools and what they find should be described more precisely.}
-We now detail the different ways in which a malicious device can obtain \oportunity{} (Fig. \ref{fig:road_to_op}).
+
+\st{We now detail the different ways in which a malicious device can obtain} \oportunity{} (Fig. \ref{fig:road_to_op}).
+\textcolor{olive}{In this section we discuss the Linux network stack where \oportunity is seemingly missing, as 
+\st{Presumably,}} a correct use of the DMA API should thwart the attack outlined in the previous section (Fig. \ref{fig:sh_info}). Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated. \textcolor{olive}{But, as we demonstrate \oportunity is often easily achievable even after the CPU has made its changes.}
 
 \begin{enumerate}[label=(\roman*),wide, labelwidth=!, labelindent=0pt]
 
-\item Presumably, a correct use of the DMA API should thwart the attack outlined in the previous section (Fig. \ref{fig:sh_info}). Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated. 
+\item \st{Presumably, a correct use of the DMA API should thwart the attack outlined in the previous section} (Fig. \ref{fig:sh_info}).\st{Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated.} 
 As it turns out, prevalent device drivers (e.g., Intel 40GbE driver, i40e) first create an \skb{} and only then unmap the buffer. This order of execution allows the \emph{device} to undo legitimate changes to \shinfo{} by the CPU. 
 
 \item Nevertheless, even when the order is correct, i.e., the unmapping of the buffer occurs before the creation of the \skb{}, still \shinfo{} is not safe from later modifications. As the default IOMMU mode in Linux is \emph{deferred} protection (Sec. \ref{sec:deferred}), the unmap order is made irrelevant. That is, even though the unmap function is invoked in the correct order, the device can still corrupt \shinfo{} due to the IOTLB.  \adam{instead of a backreference, S3.3 should be put here to describe the vuln}
@@ -101,8 +104,8 @@ As it turns out, prevalent device drivers (e.g., Intel 40GbE driver, i40e) first
 Interestingly, as it stands today, it seems that the only way to secure \shinfo{} is to never map it. Finally, from this point on, we assume that the attacker has unimpeded access to \oportunity{}. In the next subsections, we demonstrate various compound DMA attacks where an attacker can exploit OS behavior  to gain \means{} and \motivation{} completing the trifecta.
 
 \subsection{Ring Flood}\label{sec:ringflod}
-
-A malicious device can generate a poisoned ROP stack on each RX buffer and gain \motivation{}. At this point, the device still cannot execute a successful code injection attack since it is lacking \means{}. 
+\textcolor{olive}{As we have shown a NIC can gain \oportunity fairly easily (Fig.~\ref{fig:road_to_op}).
+Also,} a malicious device can generate a poisoned ROP stack on each RX buffer and gain \motivation{}. At this point, the device still cannot execute a successful code injection attack since it is lacking \means{}. 
 
 Due to the IOMMU, the device has all the \iova{} for the RX buffers, but not the \kva{}. In this attack, we take advantage of the fact that the boot process is \emph{deterministic}. Each reboot, the same set of commands is executed in the same order initiating the same kernel modules and starting the same processes. While the pages each module receives may vary in a multi-core environment due to timing issues, the drift is not expected to be too large. 
 
@@ -122,8 +125,11 @@ For example, some NICs have a HW LRO capability\cite{mlx5_lro}, where a NIC can 
 \end{figure*}
 \subsection{Poisoned TX}\label{sec:posion}
 
-RingFlood (Sec. \ref{sec:ringflod}) allows a NIC to execute arbitrary code with high chances of success. However, the prerequisite is enough information regarding the physical layout of the server and a sufficiently high driver memory footprint. When deducing a valid PFN is not an option (e.g., due to a low memory footprint) another way of acquiring a valid \kva{} is needed.
+RingFlood (Sec. \ref{sec:ringflod}) allows a NIC to execute arbitrary code with high chances of success. However, the prerequisite is enough information regarding the physical layout of the server and a sufficiently high driver memory footprint. When deducing a valid PFN is not an option (e.g., due to a low memory footprint) another way of acquiring a valid \kva{} (\textcolor{olive}{\means})is needed.
 
+\textcolor{olive}{In this attack, both \means and \motivation are achieved by spoofing a malicious TX packet.} 
+
+\textcolor{olive}{Coercing a userspace process into echoing a malicious buffer's contents can be archived in various ways. For example, a proxy server, a key/value store, streaming service, etc; another type of accomplice can be a cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device.\footnote{Indeed, Googles OpenTitan \cite{opentitan} exemplifies that cloud providers actively worry about root of trust for their servers.}}
 Since a NIC has READ access to the \shinfo{} of a TX packet, this, in particular, provides the NIC with READ access to the \texttt{frags} (Fig. \ref{fig:payload}) array of \shinfo{}. This array contains \page{} pointers, and thus both leaks kernel pointers that allow the attacker to compromise KASLR, and provides the PFNs of specific pages containing data sent from userspace; pages, the device has READ access to.
 
 %\st{Assuming an unprivileged accomplice (witing or unwitting) can open a UDP/TCP socket in user space, this user can transmit a poisoned ROP buffer. For a ROP attack (where the kernel text offset is required), the NIC spoofs an RX packet with the poisoned ROP stack to the accomplice, which in turn is sent back as a TX packet. Once an accomplice sends the packet,}
@@ -137,7 +143,8 @@ Assuming the device can trick a userspace process into echoing a malicious buffe
     \item The NIC overwrites \shinfo{} with the \kva{} retrieved during step 2. 
 \end{enumerate}
 
-Tricking a userspace process into echoing a malicious buffer's contents can be archived in various ways. For example, a proxy server, a key/value store, streaming service, etc; another type of accomplice can be a cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device.\footnote{Indeed, Googles OpenTitan \cite{opentitan} exemplifies that cloud providers actively worry about root of trust for their servers.}
+\st{Tricking a userspace process into echoing a malicious buffer's contents can be archived in various ways. For example, a proxy server, a key/value store, streaming service, etc; another type of accomplice can be a cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device.}
+%\footnote{Indeed, Googles OpenTitan \cite{opentitan} exemplifies that cloud providers actively worry about root of trust for their servers.}
 
 \textbf{Timing concerns.} A TX completion event that fails to appear in due time will trigger a TX T/O error that flushes all buffers and resets the driver. The T/O is set by the driver usually to a few seconds, which is more than enough to complete the attack.
  

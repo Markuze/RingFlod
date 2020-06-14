@@ -4,11 +4,11 @@ Inspired by the MMO schema, we devise a static code analysis tool (\tool) to ide
 %The risk is classified according to the access permission. \means{} is implied by a READ permission and \oportunity{} is implied by a WRITE/BIDIRECTIONAL permission. 
 The case of multiple \iova{} (Fig. \ref{fig:colocation} (c)), is also flagged by \tool, which flags use of functions (e.g., netdev\_alloc\_skb, napi\_alloc\_skb) that may result in this type of vulnerability or any other function that uses the page frag api. 
 
-Currently, human expert input is needed to determine which functions are truly \emph{hazardous}. As a result \tool determines type (a) vulnerabilities automatically and types (b) and (c) only with sufficient human expert input. 
+Currently, human expert input is needed to determine which functions are truly \emph{hazardous}. As a result \tool determines type (a) vulnerabilities automatically and types (b) and (c) only with sufficient human expert input. \textcolor{olive}{As we show in Sec.~\ref{sec:shinfo}, where additional actions are needed to achieve actionable \oportunity{}.}
 
 %The output of the tool presents structured and filtered findings conductive for more in-depth human expert analysis to determine if a viable attack is feasible. 
 
-Type (d) vulnerability falls under the category of random access and discussed further in  Sec.~\ref{sec:dma-kasan}.
+Type (d) vulnerability falls under the category of random access\textcolor{olive}{,and we discuss such vulnerabilities} \st{and discussed further} in  Sec.~\ref{sec:dma-kasan}.
 
 \subsection{Design}
 \tool operates recursively starting from a set of \textit{root functions} (e.g., dma\_mag\_single) (i.e., collecting all the function calls). \tool utilises Cscope \cite{cscope,cscope_92} to navigate the Kernel code. Cscope is an open source tool for browsing C source code. From this initial set of calls, \tool identifies the mapped variables and backtracks their declarations and assignments to these variables. When a data structure is identified as exposed, \tool searches
