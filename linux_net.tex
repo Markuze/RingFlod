@@ -125,7 +125,7 @@ For example, some NICs have a HW LRO capability\cite{mlx5_lro}, where a NIC can 
 \end{figure*}
 \subsection{Poisoned TX}\label{sec:posion}
 
-RingFlood (Sec. \ref{sec:ringflod}) allows a NIC to execute arbitrary code with high chances of success. However, the prerequisite is enough information regarding the physical layout of the server and a sufficiently high driver memory footprint. When deducing a valid PFN is not an option (e.g., due to a low memory footprint) another way of acquiring a valid \kva{} (\textcolor{olive}{\means})is needed.
+RingFlood (Sec. \ref{sec:ringflod}) allows a NIC to execute arbitrary code with high chances of success. However, the prerequisite is enough information regarding the physical layout of the server and a sufficiently high driver memory footprint. When deducing a valid PFN is not an option (e.g., due to a low memory footprint) another way of acquiring a valid \kva{} (\textcolor{olive}{\means}) is needed.
 
 \textcolor{olive}{In this attack, both \means and \motivation are achieved by spoofing a malicious TX packet.} 
 
