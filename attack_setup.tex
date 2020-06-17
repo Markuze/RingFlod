@@ -20,17 +20,21 @@ Linux has a Linux-IO (LIO) module, which allows for a Linux machine to act as a 
 
 \subsection{Linux FireWire Exploit} \label{sec:sbp2_attack}
 
-The Linux FireWire driver has a type (a) (Fig. \ref{fig:colocation} (a)) \subpage{} vulnerability and the exploit we demonstrate, falls under the category of a \simple{} attack. Both the device metadata and the I/O buffers for the \spb{} protocol implemented by the spb2 driver are contained inside the \texttt{spb2\_management\_orb} struct (Fig. \ref{fig:orb}). This provides the attacker with both \means{} and \oportunity{}.
+The Linux FireWire driver has a type (a) (Fig. \ref{fig:colocation} (a)) \subpage{} vulnerability and the exploit we demonstrate, falls under the category of a \simple{} attack. Both the device metadata and the I/O buffers for the \spb{} protocol implemented by the spb2 driver are contained inside the \texttt{spb2\_management\_orb} struct (Fig. \ref{fig:orb}). As we next show, this provides the attacker with both \motivation and \means{}, while \oportunity is trivially provided as the target callback pointer was already set by the CPU and is not expected to change.
 
 In particular, to enable communication between the initiator and the target, the spb2 driver maps the request and response fields. As a result, the whole 4~KB page, that contains the \texttt{spb2\_management\_orb} struct is accessible with both READ and WRITE to the device. Read access is available via the \iova{} created when the \emph{request} was mapped. Write access is available via the \iova{} created when the \emph{response} was mapped. Consequently, the device can read and manipulate both the request and response fields as well as the metadata. 
 
-Additionally, the \texttt{spb2\_management\_orb} struct contains a callback function \texttt{base.callback} which provides the \oportunity{}. Generally, to preserve normal device behavior, the original callback should also be called before or after the malicious code. However, in our experiments, we have found that ignoring the original callback has no ill side effects. 
+The \texttt{spb2\_management\_orb} struct also holds its own address in the \texttt{base.t.link} field, and thus provides the attacker with \kva of the page and the \motivation, as the device can create a \mabaf on the same page.\footnote{The \texttt{spb2\_management\_orb}'s \kva and the corresponding \iova{} have the same offset, i.e., the lower 12 bits are \emph{always} the same.}
 
-The \texttt{spb2\_management\_orb} struct also holds its own address in the \texttt{base.t.link} field, and thus provides the attacker with \means{}. At this point, the attacker can create a \mabaf{} on the same page and complete the MMO trifecta. 
+
+Additionally, the \texttt{spb2\_management\_orb} struct contains a callback function \texttt{base.callback} which provides the \means. Generally, to preserve normal device behavior, the original callback should also be called before or after the malicious code. However, in our experiments, we have found that ignoring the original callback has no ill side effects. 
+
+
+%\st{At this point, the attacker can create a \mabaf{} on the same page and complete the MMO trifecta.}
 
 The code of the \mabaf{} appears in Appendix \ref{apx:shellcode}. We also note that in this attack KASLR is irrelevant, as the critical \kva{} appeared within the readable page.
 
-To date (kernel 5.3), the \texttt{spb2\_management\_orb} struct has not changed.
+To date (kernel \latestversion), the \texttt{spb2\_management\_orb} struct has not changed.
 
 %\smallskip
 %\noindent\textbf{Remark 2.} An additional such exploit also appear in FC-NVME driver via \texttt{struct nvmefc\_ls\_req}. The difference in detailing such an exploit would extend only to the struct field names.

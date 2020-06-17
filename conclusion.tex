@@ -26,7 +26,7 @@ As we demonstrate in this paper, the blame is not with the device drivers alone,
     \end{itemize}
 \end{enumerate}
 
-We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we urge the use of pointer obfuscation \cite{Coo17}, and solely non-linear RX buffers as an alternative to a new design. Additionally, we urge the use of static code analysis that detects \subpage{} vulnerabilities and offer \tool{} as a starting point towards a more secure DMA.
+We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we urge the use of pointer obfuscation \cite{Coo17}, and solely non-linear RX buffers as an alternative to a new design. Additionally, we urge the use of analysis tools that detects \subpage{} vulnerabilities and offer \tool{} and \dkasan as a starting point towards a more secure DMA.
 
 
 %\smallskip

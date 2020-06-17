@@ -66,16 +66,10 @@ And while corrupting random kernel memory is still a possibility and may even ca
 %Random access attacks, also exploit the sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks requires a more in-depth analysis to produce a viable chance of success. Accordingly, in Sec. \ref{sec:dma-kasan}, we present a run-time analysis tool capable of identifying such vulnerabilities. \adam{if there's a whole section about it, why the disclaimer that the paper focuses on deterministic attacks?}
 
 \subsection{Extending MMO}
-\textcolor{olive}{The MMO schema is especially useful for vulnerability analysis. For example, we show that a privilege escalation attack requires the full trifecta to be realized. Other high impact attacks, such as a full memory dump, may still be viable with only \oportunity{} given.}\adam{this paragraph can be dropped}
-
+The MMO schema can be extended  for additional vulnerability analysis. For example, other high impact attacks, such as a full memory dump, may still be viable with only \means and \oportunity{} given.
 %KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage.
-
 %Both attack types use type (d) vulnerability to compromise KASLR. KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage. \textcolor{olive}{We demonstrate the risks associated with type (d) vulnerability in Sec. \ref{fig:dkasan-report}.}
-
-
-On the other hand, a full memory dump attack can be executed by merely having \oportunity.
-%\adam{this looks weird. MMO can describe \emph{any} attack. For example, motive: read all memory; means: some kernel pointer; opportunity: the kernel pointer is DMA-writable}
-That is, with \oportunity given, an attacker is able to modify the kernel control flow in such a way as to cause it to map arbitrary kernel addresses. For example, with write access to an I/O scatter-gather list a malicious device can control which memory pages are mapped to the device. This would result in a full memory dump.
+In this scenario, an attacker is able to modify the kernel control flow in such a way as to cause it to map arbitrary kernel addresses. Given write access to an I/O scatter-gather list, a malicious device can control which memory pages are mapped by the CPU to the device.\footnote{In this case we extend \means to include any kernel pointer.} This would result in a full memory dump.
 %\adam{description isn't clear: it's modifying control-flow, so is it a code injection attack?} 
 %In order to achieve this, an attacker needs to modify a kernel pointer once before it is mapped and, for a second time before send (i.e., TX) completion in order to avoid memory corruption (Sec. \ref{sec:linux_net}). 
 

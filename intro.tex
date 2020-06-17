@@ -13,10 +13,10 @@ However, unlike processes that operate in page granularity, I/O buffers can be s
 
 However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. 
 
-\textcolor{olive}{Consequently there is no systematic study of sub-page vulnerabilities and how to exploit it.}
+Consequently there is no systematic study of sub-page vulnerabilities and how to exploit it.
 
-\textcolor{olive}{Accordingly, in this paper, we first categorize the four types of the \subpage{} vulnerability, providing insight into the structure of DMA vulnerabilities.}
-Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \means,~\motivation{} and \oportunity~(MMO) a trifecta of attributes, which is sufficient and necessary to layout code injection attacks (Sec. \ref{sec:mmo}):
+Accordingly, in this paper, we first categorize the four types of the \subpage{} vulnerability, providing insight into the structure of DMA vulnerabilities.
+Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \motivation{}, \means and \oportunity~(MMO) a trifecta of attributes, which is sufficient and necessary to layout code injection attacks (Sec. \ref{sec:mmo}):
 
 \begin{itemize}
     \item \motivation: The kernel virtual address of a kernel buffer filled with malicious executable code, a \mabaf.
@@ -33,8 +33,8 @@ With the characterization of the different sub-page vulnerabilities and MMO, we 
     \item We build a static code analysis tool (\tool) inspired by MMO to flag high-risk device drivers. That is, \tool identifies drivers that provide \means.
 We use \tool on Linux Kernel 5.0 and find that as much as 73\% of device drivers are potentially vulnerable to code injection attacks (Sec.~\ref{sec:static-analysis}). 
 
-    \item \textcolor{olive}{Sub-page vulnerabilities can also manifest dynamically at run-time, potentially leading to \means and \oportunity. 
-Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool (\dkasan) that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel-buffer is exposed~(Sec. \ref{sec:dma-kasan}).}
+    \item Sub-page vulnerabilities can also manifest dynamically at run-time, potentially leading to \means and \oportunity. 
+Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool (\dkasan) that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel-buffer is exposed~(Sec. \ref{sec:dma-kasan}).
 \end{itemize}
 
 
@@ -66,7 +66,7 @@ We identify multiple kernel design flaws that facilitate the acquisition of MMO 
 %
 To summarize, our contributions are:
 \begin{itemize}
-    \item \textcolor{olive}{We provide a categorisation of the four \subpage{} vulnerability types.}
+    \item We provide a categorisation of the four \subpage{} vulnerability types.
     \item We introduce the MMO Schema which is sufficient and necessary to layout code-injection attacks.
     \item We develop an MMO inspired static code analysis tool (\tool). We use it to evaluate the Linux kernel device drivers and report our findings.
     \item We develop a run-time tool (\dkasan) to identify \subpage{} vulnerabilities, including random access.
