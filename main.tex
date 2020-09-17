@@ -1,14 +1,9 @@
-%\documentclass[sigconf]{acmart}
-%\documentclass[twocolumn]{IEEEtran}
-%\documentstyle[9pt,twocolumn,technote,twoside]{IEEEtran}
-%\settopmatter{printacmref=false}
-%\setcopyright{none}
-%\renewcommand\footnotetextcopyrightpermission[1]{}
-\documentclass[letterpaper,twocolumn,10pt]{article}
-\usepackage{usenix2019_v3}
-\pagestyle{plain}
+\documentclass[sigplan,review,anonymous]{acmart}
+\acmSubmissionID{111}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+%\pagestyle{plain}
 
-%\acmConference[CCS '20]{CCS '20: The ACM Conference on Computer and Communications Security (CCS)}{November 09--13, 2020}{Orlando, USA}
+
 
 % to be able to draw some self-contained figs
 \usepackage{tikz}
@@ -98,7 +93,6 @@
 % } % end author
 % \end{comment}
 
-\maketitle
 %-------------------------------------------------------------------------------
 \begin{abstract}
 %-------------------------------------------------------------------------------
@@ -114,7 +108,6 @@ We then build analysis tools that detect potentially hazardous sub-page vulnerab
 
 Aided by the output of the tools, we demonstrate novel attacks on the Linux kernel.
 We first introduce \emph{single-step} attacks, where the MMO trifecta is trivially provided and show that previously reported attacks fall into this category. Then, we present a new type of \compound{} attacks where the trifecta of vulnerability attributes is initially incomplete but can be attained by carefully exploiting standard OS behavior.
-
 
 
 
@@ -154,6 +147,7 @@ We first introduce \emph{single-step} attacks, where the MMO trifecta is trivial
 
 \end{abstract}
 
+\maketitle
 %-------------------------------------------------------------------------------
 %-------------------------------------------------------------------------------
 
