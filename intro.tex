@@ -8,7 +8,7 @@ Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealin
 %\adam{DMA-mapped was not defined}
 , rendering all other memory inaccessible.
 
-However, unlike processes that operate in page granularity, I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these Kernel buffers to the device. For this reason, known as the \subpage{} vulnerability \cite{MMT16,thunder}, IOMMU fails to protect the Kernel from unprivileged access. Consequently, sub-page vulnerability was used as a basis for several recent DMA exploits.
+However, unlike processes that operate in page granularity, I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these kernel buffers to the device. For this reason, known as the \subpage{} vulnerability \cite{MMT16,thunder}, IOMMU fails to protect the kernel from unprivileged access. Consequently, sub-page vulnerability was used as a basis for several recent DMA exploits.
 
 
 However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. 
@@ -31,7 +31,7 @@ With the characterization of the different sub-page vulnerabilities and MMO, we 
 
 \begin{itemize}
     \item We build a static code analysis tool (\tool) inspired by MMO to flag high-risk device drivers. That is, \tool identifies drivers that provide \means.
-We use \tool on Linux Kernel 5.0 and find that as much as 73\% of device drivers are potentially vulnerable to code injection attacks (Sec.~\ref{sec:static-analysis}). 
+We use \tool on Linux kernel 5.0 and find that as much as 73\% of device drivers are potentially vulnerable to code injection attacks (Sec.~\ref{sec:static-analysis}). 
 
     \item Sub-page vulnerabilities can also manifest dynamically at run-time, potentially leading to \means and \oportunity. 
 Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool (\dkasan) that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel-buffer is exposed~(Sec. \ref{sec:dma-kasan}).
