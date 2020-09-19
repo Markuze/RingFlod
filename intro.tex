@@ -16,24 +16,24 @@ However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder
 Consequently there is no systematic study of sub-page vulnerabilities and how to exploit it.
 
 Accordingly, in this paper, we first categorize the four types of the \subpage{} vulnerability, providing insight into the structure of DMA vulnerabilities.
-Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce \motivation{}, \means and \oportunity~(MMO) a trifecta of attributes, which is sufficient and necessary to layout code injection attacks (Sec. \ref{sec:mmo}):
+Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce a trifecta of vulnerability attributes, which is sufficient to layout code injection attacks (Sec. \ref{sec:mmo}):
 
 \begin{itemize}
-    \item \motivation: The kernel virtual address of a kernel buffer filled with malicious executable code, a \mabaf.
-    \item \means: Write access to a function callback pointer.
-    \item \oportunity: There exists a time window such that modifying \means during that time window is followed by the CPU reading the pointer without altering its content. 
+    \item A kernel virtual address of a kernel buffer filled with malicious executable code, a \mabaf.
+    \item Write access to a function callback pointer.
+    \item There exists a time window such that modifying the callback pointer during that time window is followed by the CPU reading the pointer without altering its content. 
 \end{itemize} 
 
 
 %\adam{make the following relate to MMO.  IIUC, the tools are for identifying Opportunity, and then S7 discusses various ways of completing Motive and Means,}
 
-With the characterization of the different sub-page vulnerabilities and MMO, we build analysis tools that detect potentially hazardous sub-page vulnerabilities:
+With the characterization of the different sub-page vulnerabilities and the vulnerability attributes, we build analysis tools that detect potentially hazardous sub-page vulnerabilities:
 
 \begin{itemize}
-    \item We build a static code analysis tool (\tool) inspired by MMO to flag high-risk device drivers. That is, \tool identifies drivers that provide \means.
+    \item We build a static code analysis tool (\tool) that flags high-risk device drivers. That is, \tool identifies drivers that expose callback pointers.
 We use \tool on Linux kernel 5.0 and find that as much as 73\% of device drivers are potentially vulnerable to code injection attacks (Sec.~\ref{sec:static-analysis}). 
 
-    \item Sub-page vulnerabilities can also manifest dynamically at run-time, potentially leading to \means and \oportunity. 
+    \item Sub-page vulnerabilities can also manifest dynamically at run-time, potentially exposing callback pointers and/or kernel addresses. 
 Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool (\dkasan) that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel-buffer is exposed~(Sec. \ref{sec:dma-kasan}).
 \end{itemize}
 
@@ -46,7 +46,7 @@ Static analysis may not reveal such vulnerabilities, where a memory buffer is in
 
 Using the tools output, we then continue to demonstrate attacks on the Linux kernel.
 %
-We first present straightforward DMA attacks (termed \simple attacks), where the MMO trifecta is trivially provided. Namely \means and \motivation are present in a single page and the window of \oportunity is large. Such cases often lead to localized fixes rather than a comprehensive solution \cite{thunder}.
+We first discuss straightforward DMA attacks (termed \simple attacks), where the vulnerability trifecta is trivially provided. Namely, a callback pointer and a kernel virtual address of a DMA accessible page are present in a single page and the timing is such that the modifications will not be overwritten by the CPU. Such cases often lead to localized fixes rather than a comprehensive solution \cite{thunder}.
 %Often, the MMO trifecta is present in a single buffer, this makes some DMA attacks straightforward (i.e., \simple{}). 
 %Cases where the MMO trifecta is present in a single page, make DMA attacks straightforward (i.e., \simple{}). 
 %This apparent simplicity of known DMA attacks, where a single mistake compromises an entire system, 
@@ -55,11 +55,11 @@ We first present straightforward DMA attacks (termed \simple attacks), where the
 %Often, the MMO trifecta is present in a single buffer, this makes some DMA attacks straightforward (i.e., \simple{}). This apparent simplicity of known DMA attacks, where a single mistake compromises an entire system, is a bane to security research. The anecdotal nature of these vulnerabilities often leads to a patchwork of localized fixes rather than a comprehensive solution.
 %\adam{the former two sentences a little hot air. I would simply say that such vulnerabilities are typically addressed with ``localized fixes'', explaining what such a fix looks like, and then move on to say that these types of fixes aren't enough because there are more sophisticated attacks}
 
-Then, we focus on more sophisticated attacks, i.e., situations where the MMO trifecta is initially incomplete (termed \compound attacks).
+Then, we focus on more sophisticated attacks, i.e., situations where the vulnerability trifecta is initially incomplete (termed \compound attacks).
 %\adam{how is ``trifecta is incomplete'' in contrast with the previous paragraph, which talked about MMO being present in a single buffer?}
 Analysis of such cases, as we find in this work, reveals a dangerous misconception. It is assumed, that buggy device drivers or poor but isolated design choices, are to blame for DMA vulnerabilities. 
-We demonstrate that, it is often the kernel itself, that supplements the missing pieces of the trifecta, showing that this is a deep-rooted issue rather than a collection of disjoint incidents.
-We identify multiple kernel design flaws that facilitate the acquisition of MMO by a malicious device.
+We demonstrate that, it is often the kernel itself, that supplements the missing pieces, showing that this is a deep-rooted issue rather than a collection of disjoint incidents.
+We identify multiple kernel design flaws that facilitate the acquisition of the vulnerability trifecta by a malicious device.
 %\adam{is it "often"? I think everything described in S7 is kernel-related.  So maybe be more explicit and say that we identify design flaws in the Linux that enable NIC devices with Opportunity to gain Motive and Means}
 %
 %\adam{this text seems like it should come earlier, since earlier you talk about OS design choices}
@@ -67,8 +67,8 @@ We identify multiple kernel design flaws that facilitate the acquisition of MMO 
 To summarize, our contributions are:
 \begin{itemize}
     \item We provide a categorisation of the four \subpage{} vulnerability types.
-    \item We introduce the MMO Schema which is sufficient and necessary to layout code-injection attacks.
-    \item We develop an MMO inspired static code analysis tool (\tool). We use it to evaluate the Linux kernel device drivers and report our findings.
+    \item We introduce the vulnerability trifecta which is sufficient to layout code-injection attacks.
+    \item We develop static code analysis tool (\tool). We use it to evaluate the Linux kernel device drivers and report our findings.
     \item We develop a run-time tool (\dkasan) to identify \subpage{} vulnerabilities, including random access.
     \item We demonstrate novel DMA attacks on the Linux kernel. These include both \simple{} attacks and a new type of attacks we introduce, termed \compound{} attacks.
 \end{itemize}

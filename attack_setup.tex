@@ -5,7 +5,7 @@
     \caption{\texttt{spb2\_management\_orb} struct with fields relevant to the DMA attack.}
     \label{fig:orb}
 \end{figure}
-In this section, we discuss \simple{} attacks, i.e., exploits in which the complete trifecta appears within a single page.
+In this section, we discuss \simple{} attacks, i.e., exploits in which the trifecta of vulnerabilities appears within a single page.
 We find several such potential \simple{} exploits in the Linux kernel. We demonstrate such an attack exploiting a FireWire driver vulnerability. 
 
 \subsection{FireWire Background}
@@ -20,7 +20,7 @@ Linux has a Linux-IO (LIO) module, which allows for a Linux machine to act as a 
 
 \subsection{Linux FireWire Exploit} \label{sec:sbp2_attack}
 
-The Linux FireWire driver has a type (a) (Fig. \ref{fig:colocation} (a)) \subpage{} vulnerability and the exploit we demonstrate, falls under the category of a \simple{} attack. Both the device metadata and the I/O buffers for the \spb{} protocol implemented by the spb2 driver are contained inside the \texttt{spb2\_management\_orb} struct (Fig. \ref{fig:orb}). As we next show, this provides the attacker with both \motivation and \means{}, while \oportunity is trivially provided as the target callback pointer was already set by the CPU and is not expected to change.
+The Linux FireWire driver has a type (a) (Fig. \ref{fig:colocation} (a)) \subpage{} vulnerability and the exploit we demonstrate, falls under the category of a \simple{} attack. Both the device metadata and the I/O buffers for the \spb{} protocol implemented by the spb2 driver are contained inside the \texttt{spb2\_management\_orb} struct (Fig. \ref{fig:orb}). As we next show, this provides the attacker with both a kernel virtual address of a malicious buffer and an exposed callback pointer, while \oportunity is trivially provided as the target callback pointer was already set by the CPU and is not expected to change.
 
 In particular, to enable communication between the initiator and the target, the spb2 driver maps the request and response fields. As a result, the whole 4~KB page, that contains the \texttt{spb2\_management\_orb} struct is accessible with both READ and WRITE to the device. Read access is available via the \iova{} created when the \emph{request} was mapped. Write access is available via the \iova{} created when the \emph{response} was mapped. Consequently, the device can read and manipulate both the request and response fields as well as the metadata. 
 

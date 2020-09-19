@@ -2,7 +2,7 @@
 \section{Organizing DMA Risks}\label{sec:dma-risks}
 In this section we organize and categorize the risks associated with DMA operations.
 We first we categorise the different types of \subpage{} vulnerabilities.
-Then, we categorize MMO, a trifecta of attributes, providing building blocks for reasoning about code-injection attacks.
+Then, we categorize the trifecta of vulnerability attributes, providing building blocks for reasoning about code-injection attacks.
 These paint a clear picture of risks and dangers posed by DMA capable devices.
 %We also discuss dangerous trade-offs and discuss the threat model.
 
@@ -34,27 +34,27 @@ In the next sections we demonstrate how a \simple{} attack utilizes type (a) vul
 We also demonstrate the risks associated with type (d) vulnerability in Sec. \ref{sec:dma-kasan}. Type (d) vulnerability simplifies KASLR subversion~(\ref{sec:kaslr}) and opens viable attack vectors. 
 
 
-\subsection{MMO}\label{sec:mmo}
+\subsection{Trifecta of Vulnerabilities for code injection}\label{sec:mmo}
 
-We introduce the \motivation, \means, \oportunity (MMO) schema that allows for a systematic analysis of code-injection attacks by DMA capable devices.
+We introduce a schema that allows for a systematic analysis of code-injection attacks by DMA capable devices.
 %to categorizes DMA vulnerabilities. The goal of MMO is to define building blocks for reasoning about DMA attacks.
-To execute a successful privilege escalation attack (i.e., code injection), a malicious device, just like a human criminal, needs Motive, Means, and Opportunity:
+To execute a successful privilege escalation attack (i.e., code injection), a malicious device needs the following trifecta of vulnerability attributes:
 \begin{enumerate}
-    \item \motivation: The \kva{} of a kernel buffer filled with malicious code (e.g., a ROP attack). Given the device is using \iova, the attacker needs to obtain the buffer's \kva{}, for example, by observing leaked pointers. 
-    \item \means: Write access to a function callback pointer, which can alter the CPU control flow and cause it to execute the malicious code. For example, write access to a data structure that holds a function callback pointer, at a known offset.\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation \cite{rand_layout}.} The location on the page of the callback pointer must be known to the device.
-    \item \oportunity: There exists a time window such that modifying \means during that time window is followed by the CPU reading the pointer without previously altering its content.
+    \item The \kva{} of a kernel buffer filled with malicious code (e.g., a ROP attack). Given the device is using \iova, the attacker needs to obtain the buffer's \kva{}, for example, by observing leaked pointers. 
+    \item Write access to a function callback pointer, which can alter the CPU control flow and cause it to execute the malicious code. For example, write access to a data structure that holds a function callback pointer, at a known offset.\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation \cite{rand_layout}.} The location on the page of the callback pointer must be known to the device.
+    \item There exists a time window such that modifying the function pointer during that time window is followed by the CPU reading the pointer without previously altering its content.
 \end{enumerate}
 
-To further emphasize the significance of the MMO attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing an RX packet (i.e., a received packet). Due to \subpage{} vulnerability and a random allocation coincidence (Fig. \ref{fig:colocation}, type (d)), a structure with a callback pointer is inadvertently accessible with write permission. Also, the malicious device is able to create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks MMO.
+To further emphasize the significance of these attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing an RX packet (i.e., a received packet). Due to \subpage{} vulnerability and a random allocation coincidence (Fig. \ref{fig:colocation}, type (d)), a structure with a callback pointer is inadvertently accessible with write permission. Also, the malicious device is able to create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks the following:
 
 \begin{itemize}
-    \item Missing \motivation: Without a valid \kva{} of the writable page, the device cannot modify the callback function pointer to indicate the \mabaf.
-    \item Missing \means: Although a callback function pointer is available for modifications, the device has no way of knowing: 
+    \item Without a valid \kva{} of the writable page, the device cannot modify the callback function pointer to indicate the \mabaf.
+    \item Although a callback function pointer is available for modifications, the device has no way of knowing: 
     \begin{enumerate}
         \item[(a)] That a callback function pointer is available for sabotage.
         \item[(b)] The correct offset of the callback function pointer.
     \end{enumerate}
-    \item Its not known if an \oportunity is actually available.
+    \item Its not known if the modified callback pointer will be executed.
 \end{itemize}
 
 Under the hypothesized circumstance, and without additional information, a malicious device has practically no valid attack options. 
@@ -65,11 +65,14 @@ And while corrupting random kernel memory is still a possibility and may even ca
 %In this paper, we focus on demonstrating and addressing deterministic attacks, where the attacker is able to deduce the layout of the targeted data structure and its location on a page. 
 %Random access attacks, also exploit the sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks requires a more in-depth analysis to produce a viable chance of success. Accordingly, in Sec. \ref{sec:dma-kasan}, we present a run-time analysis tool capable of identifying such vulnerabilities. \adam{if there's a whole section about it, why the disclaimer that the paper focuses on deterministic attacks?}
 
-\subsection{Extending MMO}
-The MMO schema can be extended  for additional vulnerability analysis. For example, other high impact attacks, such as a full memory dump, may still be viable with only \means and \oportunity{} given.
+\subsection{Other attacks}
+The focus of our work is on code injection attacks. 
+However other high impact attacks may still be viable with only part of the vulnerability trifecta. 
+For example, a full memory dump.
+%The MMO schema can be extended  for additional vulnerability analysis. For example, other high impact attacks, such as a full memory dump, may still be viable with only \means and \oportunity{} given.
 %KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage.
 %Both attack types use type (d) vulnerability to compromise KASLR. KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage. \textcolor{olive}{We demonstrate the risks associated with type (d) vulnerability in Sec. \ref{fig:dkasan-report}.}
-In this scenario, an attacker is able to modify the kernel control flow in such a way as to cause it to map arbitrary kernel addresses. Given write access to an I/O scatter-gather list, a malicious device can control which memory pages are mapped by the CPU to the device.\footnote{In this case we extend \means to include any kernel pointer.} This would result in a full memory dump.
+In this scenario, an attacker is able to modify the kernel control flow in such a way as to cause it to map arbitrary kernel addresses. Given write access to an I/O scatter-gather list, a malicious device can control which memory pages are mapped by the CPU to the device. This would result in a full memory dump.
 %\adam{description isn't clear: it's modifying control-flow, so is it a code injection attack?} 
 %In order to achieve this, an attacker needs to modify a kernel pointer once before it is mapped and, for a second time before send (i.e., TX) completion in order to avoid memory corruption (Sec. \ref{sec:linux_net}). 
 

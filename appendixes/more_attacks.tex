@@ -18,15 +18,15 @@ The fact that the NIC has both read and write access to \shinfo, allows the NIC 
     \item The NIC reads the updated \texttt{frag} field and translates the \page{} address to a valid \kva{}. Finally, the device fills the \texttt{destructor\_arg} field, creating a poisoned \skb{} (Fig. \ref{fig:sh_info}).
 \end{enumerate}
 
-The difference between this flow and a regular receive flow is the additional read capability the NIC has due to XDP. That is, the last step, where \means{} is obtained, is possible only due to the additional READ access.
+The difference between this flow and a regular receive flow is the additional read capability the NIC has due to XDP. That is, the last step, where \kva is obtained, is possible only due to the additional READ access.
 
 \smallskip
-\noindent\textbf{Remark.} Other drivers that have XDP support, also tend to map RX buffers with BIDIRECTIONAL (e.g., bnxt, i40e, mlx4\_en). Interestingly, the mlx5\_core driver has two modes of operation: (1) linear - where an skb is built around an RX buffer and, (2) non-linear where the driver is filling up the \texttt{frags} of \shinfo, which was never mapped. The former is the default, and the later is actually secure. The non-linear mode is secure because \shinfo{} is \emph{never} accessible to the device. Thus the NIC never gains the \oportunity{} to attack.
+\noindent\textbf{Remark.} Other drivers that have XDP support, also tend to map RX buffers with BIDIRECTIONAL (e.g., bnxt, i40e, mlx4\_en). Interestingly, the mlx5\_core driver has two modes of operation: (1) linear - where an skb is built around an RX buffer and, (2) non-linear where the driver is filling up the \texttt{frags} of \shinfo, which was never mapped. The former is the default, and the later is actually secure. The non-linear mode is secure because \shinfo{} is \emph{never} accessible to the device. Thus the NIC never gains the oportunity to attack.
 
 \begin{figure*}[t]
     \centering
     \includegraphics[width=\linewidth]{figs/gro.pdf}
-    \caption{An RX \skb{} after GRO used as a \means{} for a DMA attack.}
+    \caption{An RX \skb{} after GRO provides the \kva{} for a DMA attack.}
     \label{fig:gro_xdp}
 \end{figure*}
 
@@ -36,7 +36,7 @@ Packet forwarding is a standard Linux feature that allows a Linux machine to ser
 
 When this functionality is enabled, the NIC can independently generate an RX packet to a legitimate destination. This packet will then be forwarded to become a TX packet. However, unlike in the TCP layer that usually creates \skb{} packets with fragments, both the tg3 and the mlx5\_core drivers, usually create a linear \skb{}.
 
-Namely, the drivers do not fill the \texttt{frags}, which the attacker uses to obtain \means{}. Both drivers, use the \texttt{napi\_gro\_receive} function to pass the \skb{} to the upper layer (this is the standard for most NIC drivers\footnote{Used by 98 NIC drivers, in Linux 5.0}). 
+Namely, the drivers do not fill the \texttt{frags}, which the attacker uses to obtain a \kva. Both drivers, use the \texttt{napi\_gro\_receive} function to pass the \skb{} to the upper layer (this is the standard for most NIC drivers\footnote{Used by 98 NIC drivers, in Linux 5.0}). 
 
 In this case, the upper layer is the Generic Receive Offload (GRO) layer \cite{gro}. GRO attempts to aggregate multiple TCP segments into a single large packet. Specifically, GRO converts multiple linear \skb{} buffers (belonging to a single TCP stream) into a single \skb{} with multiple fragments. This \skb{} then traverses the Linux network stack and becomes a TX packet. The attacker can use this TX packet as described in the previous attack (Fig. \ref{fig:payload}).
 

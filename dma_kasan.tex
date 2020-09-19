@@ -20,9 +20,9 @@ We modify KASAN to record DMA-map operations in addition to memory allocations. 
 %The tool also detects cases when a DMA mapped page is accessed by the CPU. 
 %\dkasan, therefore, identifies all cases where an allocated object was inadvertently dma-mapped after allocation or has already been allocated on a dma-mapped page. 
 We tested \dkasan using our setup. In our experiment we cloned a large project from a git repository and compiled it concurrently with light network traffic (i.e., ICMP ping). In this experiment, we have identified numerous cases where a dma-mapped page is used to allocate network and file system metadata. Example results are shown in Fig. \ref{fig:dkasan-report}. 
-Among the identified vulnerabilities we have identified cases (e.g., line 1 in Fig. \ref{fig:dkasan-report}) where a network I/O buffer is simultaneously mapped with READ and WRITE.\footnote{The same physical page mapped twice, once for read and once for write.} Such cases greatly simplify the attackers effort. In the interest of space, such example attacks are described in detail in Appendix \ref{appx:additional_compound}. 
+Among the identified vulnerabilities we have identified cases (e.g., line 1 in Fig. \ref{fig:dkasan-report}) where a network I/O buffer is simultaneously mapped with READ and WRITE. The same physical page mapped twice, once for read and once for write. Such cases greatly simplify the attackers effort. In the interest of space, such examples are omitted from the paper. 
 
-We have also encountered cases where random kernel data structures are mapped for READ/WRITE. Some of these mapped data structures also contain callback pointers. For example, \texttt{struct assoc\_array\_edit} is exposed (line 5 in Fig. \ref{fig:dkasan-report}) creating \means. 
+We have also encountered cases where random kernel data structures are mapped for READ/WRITE. Some of these mapped data structures also contain callback pointers. For example, \texttt{struct assoc\_array\_edit} is mapped (line 5 in Fig. \ref{fig:dkasan-report}) exposing callback pointers to the device. 
 %
 %In case of deferred protection
 %It is important to note that even if these pages are invalidated, an access attempt by the device will %simply result in a dmesg warning line. Namely, the device may repeatedly probe pages for access.

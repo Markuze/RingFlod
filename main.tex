@@ -1,6 +1,8 @@
 \documentclass[sigplan,review,anonymous]{acmart}
 \acmSubmissionID{111}
 \renewcommand\footnotetextcopyrightpermission[1]{}
+%\documentclass[letterpaper,twocolumn,10pt]{article}
+%\usepackage{usenix2019_v3}
 %\pagestyle{plain}
 
 
@@ -43,9 +45,9 @@
 \providecommand{\iova}{IOVA\xspace}
 \providecommand{\mabaf}{malicious buffer\xspace}
 \providecommand{\spb}{SPB\-2\xspace}
-\providecommand{\oportunity}{\textit{Opportunity}\xspace}
-\providecommand{\means}{\textit{Means}\xspace}
-\providecommand{\motivation}{\textit{Motive}\xspace}
+\providecommand{\oportunity}{\textcolor{red}{Opportunity}\xspace}
+\providecommand{\means}{\textcolor{red}{Means}\xspace}
+\providecommand{\motivation}{\textcolor{red}{Motive}\xspace}
 %\providecommand{\motivation}{\textit{Ma\-buff}\xspace}
 \providecommand{\simple}{\textit{single-step}\xspace}
 \providecommand{\Simple}{\textit{Single-step}\xspace}
@@ -70,8 +72,11 @@
 %\date{}
 
 % make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-\title{\Large \bf Motive, Means \& Opportunity: The Anatomy of DMA Attacks}
-%\title{\Large \bf Buffer, Address \& Access: The Anatomy of DMA Attacks}
+%\title{\Large \bf Motive, Means \& Opportunity: The Anatomy of DMA Attacks}
+\title{\Large \bf The Anatomy of DMA Attacks}
+%\title{\Large \bf Endemic Weakness in DMA I/O: The Anatomy of DMA Attacks}
+%\title{\Large \bf Systematizing DMA Vulnerabilities}
+%\title{\Large \bf Endemic Weakness in DMA I/O: Systematizing DMA Vulnerabilities}
 
 % % USENIX Security has double blind submissions
 % \begin{comment}
@@ -93,61 +98,25 @@
 % } % end author
 % \end{comment}
 
+%\maketitle
 %-------------------------------------------------------------------------------
 \begin{abstract}
 %-------------------------------------------------------------------------------
 %\textcolor{red}{Before: chaos Now Oder == MMO, taxonomy of DMA vulnerabilities Result \compound attacks. + tool. We expose  a deep-rooted issue in OS design rather than ad-hoc buggies... The language:\simple vs. \compound, MMO, \subpage types.}
 
 
-
 Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware IOMMU protection is unable to prevent all DMA attacks because it restricts DMA at page-level granularity leading to \subpage vulnerabilities. Conventional wisdom is that \subpage vulnerabilities that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
 
-This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. To this end, we first categorize the four types of sub-page vulnerability, providing insight into the structure of DMA vulnerabilities. Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce Motive, Means and Opportunity (MMO) a trifecta of attributes, which is sufficient and necessary to layout code injection attacks. 
+This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. To this end, we first categorize the four types of sub-page vulnerability, providing insight into the structure of DMA vulnerabilities. Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we identify a trifecta of vulnerability attributes which is sufficient to layout code injection attacks. 
 
 We then build analysis tools that detect potentially hazardous sub-page vulnerabilities and analyze the Linux kernel. We find that 12\% of the device drivers expose sensitive callback pointers, and as much as 60\% of device drivers are vulnerable to DMA attacks due to OS design choices. 
 
 Aided by the output of the tools, we demonstrate novel attacks on the Linux kernel.
-We first introduce \emph{single-step} attacks, where the MMO trifecta is trivially provided and show that previously reported attacks fall into this category. Then, we present a new type of \compound{} attacks where the trifecta of vulnerability attributes is initially incomplete but can be attained by carefully exploiting standard OS behavior.
-
-
-
-%\textcolor{red}{TODO: 
-%\begin{enumerate}
-%    \item New Section 5. on tool design + figure.
-%    \begin{enumerate}
-%        \item Tool stats - Table.
-%        \item Tool limitations: False positive/negative stats + example.
-%        \item FreeBSD?.
-%        \item Add type C vulnerability finder - cscope.
-%    \end{enumerate}
-%    \item Tool output on spb2.
-%    \item mention tool github.
-%    \item \st{change layout to css.}\\ \url{https://www.sigsac.org/ccs/CCS2020/call-for-papers.html}
-%\end{enumerate}
-%}
-
-
-% \begin{comment}
-% \smallskip
-% TODO:
-
-% \begin{enumerate}
-%     \item \st{Introduce Compound DMA attacks vs. straightforward -- add in intro and contribution list.}
-%     \item \st{Connect type (c) opportunity gaining vulnerability is not connected to paper...
-%     add examples.}
-%     \item \st{Conclusions: add communication with Linux}
-%     \item \st{Go over ndss references and copy everything relevant to our related work.}
-%     \item Mention smep/smap in either sec. 6 or related...
-%     \item \st{Check and then update all access dates in ferences links.}
-%     \item \st{Check: Section -> Sec. , Figure-> Fig. ... ect.}
-%     \item \st{check smallskip consistency.}
-%     \item \st{change bnx2 to tg3 (NetXtreme BCM5720)- (napi\_alloc\_frag - type (c))}
-% \end{enumerate}
-% \end{comment}
+We first discuss \emph{single-step} attacks and show that previously reported attacks fall into this category. Then, we present a new type of \compound{} attacks where the trifecta of vulnerability attributes is initially incomplete but can be attained by carefully exploiting standard OS behavior.
 
 \end{abstract}
-
 \maketitle
+
 %-------------------------------------------------------------------------------
 %-------------------------------------------------------------------------------
 
@@ -157,7 +126,7 @@ We first introduce \emph{single-step} attacks, where the MMO trifecta is trivial
 \input{attack_mechanics}
 \input{tool}
 \input{dma_kasan}
-\input{attack_setup}
+\input{setup}
 \input{linux_net}
 \input{related_work}
 \input{conclusion}
