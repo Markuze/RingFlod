@@ -30,7 +30,7 @@
 Other than DMA attacks, OS developers have to worry about code injection originating from unprivileged users, such as buffer overflow attacks \cite{nx, kalsr}.
 We discuss the common mechanisms used to mitigate such attacks in the kernel. Subverting these countermeasures is essential to execute a successful DMA attack.
 
-\paragraph{NX-BIT.}\label{sec:nx-bit}
+\paragraph{NX-BIT}\label{sec:nx-bit}
 
 A malicious device can inadvertently gain write access to a function pointer and consequently gain the ability to inject malicious code. 
 To protect against such threats, modern OSs make use of hardware support, namely the No-eXecute bit, to prevent code execution from data pages. This bit is defined for each page in MMU’s page tables. Whenever the CPU tries to fetch code from memory, this bit is validated. When set, the CPU raises an exception to the OS instead of executing the code. The NX-bit method is also known as the W $\oplus$ X (Write $\oplus$ eXecute) or DEP (Data Execution Prevention). 
@@ -40,7 +40,7 @@ Return Oriented Programming (ROP) is a common method used by malware to bypass D
  
 By carefully selecting these gadgets, an attacker can execute any payload. To bootstrap a ROP attack, an attacker must modify the stack pointer register to the address of the poisoned stack. This is often achieved with another DEP circumventing technique, i.e., Jump Oriented Programming (JOP) \cite{BJFL11}. JOP uses, \texttt{jump} instructions instead of \texttt{return} instructions and, thus, does not require a poisoned stack.
 
-\paragraph{KASLR.}\label{sec:kaslr}
+\paragraph{KASLR}\label{sec:kaslr}
 
 To successfully execute a code injection attack, the attacker must know the memory layout. Specifically, the address of the code section is required for finding ROP gadgets (Sec. \ref{sec:nx-bit}). 
 
@@ -57,6 +57,8 @@ In fact, during our investigation, we have found that there is a symbol visible 
 
 The direct mapping base (\texttt{page\_offset\_base}) and virtual memory map (\texttt{vmemmap\_base}) are also randomized (Fig. \ref{fig:mem_layot}), where each regions base pointer is randomized respecting a 1~GB alignment. This means that the lower 30 bits are unmodified and can leak both the PFN numbers and the randomized offset. This alignment is also due to page table considerations. That is, the page upper table (PUD) has a 30~bit shift. Once the random offsets \textit{PAGE\_OFFSET} and \textit{vmemmap} for direct mapping base and virtual memory map are known it is possible to translate between a \kva{} (kernel virtual addresses within the direct mapping region) its PFN and, its \page{} address (virtual memory map region). The translation macros are shown in Fig. \ref{fig:mem_model}. 
 
+\subsection{\textcolor{red}{Adaptation of OS defences}}
+
 \section{Threat Model}\label{sec:threat_model}
 
 Our attacks are designed with the following assumptions:
@@ -67,4 +69,3 @@ Our attacks are designed with the following assumptions:
  \end{enumerate}
 
 The most significant potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Another potential consequence we consider is a full system memory dump. These are harder to thwart and even harder to detect. Lastly, a consequence of a possible failed attack is random memory corruption, resulting in a denial of service \cite{MMT16}, where the OS panics. Ideally, malformed devices should not be able to crash the entire system. 
-

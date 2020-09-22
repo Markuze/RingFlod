@@ -112,7 +112,8 @@ This paper disproves the above belief, showing that it is often the kernel desig
 We then build analysis tools that detect potentially hazardous sub-page vulnerabilities and analyze the Linux kernel. We find that 12\% of the device drivers expose sensitive callback pointers, and as much as 60\% of device drivers are vulnerable to DMA attacks due to OS design choices. 
 
 Aided by the output of the tools, we demonstrate novel attacks on the Linux kernel.
-We first discuss \emph{single-step} attacks and show that previously reported attacks fall into this category. Then, we present a new type of \compound{} attacks where the trifecta of vulnerability attributes is initially incomplete but can be attained by carefully exploiting standard OS behavior.
+Specifically, while all previously reported attacks are \emph{single-step} ,i.e., with all vulnerability trifecta present in a single page, 
+we present a new type of \compound{} attacks where the trifecta of vulnerability attributes is initially incomplete but can be attained by carefully exploiting standard OS behavior. 
 
 \end{abstract}
 \maketitle
@@ -135,9 +136,9 @@ We first discuss \emph{single-step} attacks and show that previously reported at
 \bibliography{references}
 \appendix
 
-\input{appendixes/shellcode}
+%\input{appendixes/shellcode}
 %\input{appendixes/dma_bidir.tex}
-\input{appendixes/more_attacks}
+%\input{appendixes/more_attacks}
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
