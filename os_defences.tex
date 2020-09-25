@@ -1,29 +1,29 @@
 
-\begin{figure*}[t]
-                \begin{lstlisting}[
-        %basicstyle = \ttfamily,
-        basicstyle = \small,
-        columns = fixed,
-        tabsize=8,
-        %frame = l,
-        xleftmargin=.18\textwidth,
-        language = C
-        ]
+% \begin{figure*}[t]
+%                 \begin{lstlisting}[
+%         %basicstyle = \ttfamily,
+%         basicstyle = \small,
+%         columns = fixed,
+%         tabsize=8,
+%         %frame = l,
+%         xleftmargin=.18\textwidth,
+%         language = C
+%         ]
         
-#define __va(x) ((void *)((unsigned long)(x) + PAGE_OFFSET))
-#define __pa(x) ((unsigned long)(x) - PAGE_OFFSET)
+% #define __va(x) ((void *)((unsigned long)(x) + PAGE_OFFSET))
+% #define __pa(x) ((unsigned long)(x) - PAGE_OFFSET)
 
-#define virt_to_pfn(kaddr)      (__pa(kaddr) >> PAGE_SHIFT)
-#define pfn_to_virt(pfn)        __va((pfn) << PAGE_SHIFT)
+% #define virt_to_pfn(kaddr)      (__pa(kaddr) >> PAGE_SHIFT)
+% #define pfn_to_virt(pfn)        __va((pfn) << PAGE_SHIFT)
 
-/* memmap is virtually contiguous.  */
-#define __pfn_to_page(pfn)      (vmemmap + (pfn))  
-#define __page_to_pfn(page)     (unsigned long)((page) - vmemmap)
-                \end{lstlisting}
-        \caption{ Linux kernel macros for translation between KVA, PFN and \page{}.
-                }
-        \label{fig:mem_model}
-\end{figure*}
+% /* memmap is virtually contiguous.  */
+% #define __pfn_to_page(pfn)      (vmemmap + (pfn))  
+% #define __page_to_pfn(page)     (unsigned long)((page) - vmemmap)
+%                 \end{lstlisting}
+%         \caption{ Linux kernel macros for translation between KVA, PFN and \page{}.
+%                 }
+%       \label{fig:mem_model}
+% \end{figure*}
 
 \subsection{OS Defences}
 
@@ -55,7 +55,8 @@ To identify this first pointer, malicious devices can scan pages mapped for read
 In fact, during our investigation, we have found that there is a symbol visible to both FireWire and NICs in Linux 5.0, making it suitable for compromising KASLR. Specifically, as of version 2.6.24, Linux supports network namespaces and every network object, and in particular, sockets have a pointer to their namespace object. One such object, namely a global namespace object, \texttt{init\_net}, is always defined. By scanning leaked pages during I/O and utilizing the fact that the lower 21 bits of the text region, as aforementioned, are never modified, we can identify \texttt{init\_net} with high probability.
 %\adam{<-- and up to here, it's not really background.  At the very least, put it in its own subsection ``how DMA attacks can break KASLR'' or you risk reviewers missing this point, since people are familiar with ASLR and might skip the relevant background section}
 
-The direct mapping base (\texttt{page\_offset\_base}) and virtual memory map (\texttt{vmemmap\_base}) are also randomized (Fig. \ref{fig:mem_layot}), where each regions base pointer is randomized respecting a 1~GB alignment. This means that the lower 30 bits are unmodified and can leak both the PFN numbers and the randomized offset. This alignment is also due to page table considerations. That is, the page upper table (PUD) has a 30~bit shift. Once the random offsets \textit{PAGE\_OFFSET} and \textit{vmemmap} for direct mapping base and virtual memory map are known it is possible to translate between a \kva{} (kernel virtual addresses within the direct mapping region) its PFN and, its \page{} address (virtual memory map region). The translation macros are shown in Fig. \ref{fig:mem_model}. 
+The direct mapping base (\texttt{page\_offset\_base}) and virtual memory map (\texttt{vmemmap\_base}) are also randomized (Fig. \ref{fig:mem_layot}), where each regions base pointer is randomized respecting a 1~GB alignment. This means that the lower 30 bits are unmodified and can leak both the PFN numbers and the randomized offset. This alignment is also due to page table considerations. That is, the page upper table (PUD) has a 30~bit shift. Once the random offsets \textit{PAGE\_OFFSET} and \textit{vmemmap} for direct mapping base and virtual memory map are known it becomes possible to translate between a \kva{} (kernel virtual addresses within the direct mapping region) its PFN and, its \page{} address (virtual memory map region).
+%The translation macros are shown in Fig. \ref{fig:mem_model}. 
 
 \subsection{\textcolor{red}{Adaptation of OS defences}}
 

@@ -13,7 +13,7 @@ We first describe the vulnerable data structures shared by \emph{all} Linux netw
 \subsection{Obtaining a callback pointer}\label{sec:shinfo_exploit}
 \begin{figure}[t]
     \centering
-    \includegraphics[width=\linewidth]{figs/ubuf.pdf}
+    \includegraphics[width=0.8\linewidth]{figs/ubuf.pdf}
     \caption{Using \shinfo{} to execute arbitrary code in kernel context.}
     \label{fig:sh_info}
 \end{figure}
@@ -42,7 +42,7 @@ To expand this scenario into a complete attack, the attacker must obtain all thr
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.8\linewidth,trim=0 6cm 0 6cm, clip]{figs/page_frag.pdf}
+    \includegraphics[width=0.7\linewidth,trim=0 6cm 0 6cm, clip]{figs/page_frag.pdf}
     \caption{Allocation of B bytes from page\_frag}
     \label{fig:page_frags}
 \end{figure}
@@ -135,7 +135,7 @@ Assuming the device can trick a userspace process into echoing a malicious buffe
 \begin{enumerate}
     \item The TX \data{} and the fragments are mapped for the NIC to read.
     \item The NIC spoofs an RX packet and delays the completion notification of the TX packets (so that the \mabaf{} will not be released prematurely).
-    \item The NIC identifies the poisoned buffer and translates \page{} to \kva{} (Fig. \ref{fig:mem_model}).
+    \item The NIC identifies the poisoned buffer and translates \page{} to \kva{} (Sec. \ref{sec:kaslr}).
     \item The NIC overwrites \shinfo{} with the \kva{} retrieved during step 2. 
 \end{enumerate}
 
