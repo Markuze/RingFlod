@@ -42,7 +42,7 @@ To expand this scenario into a complete attack, the attacker must obtain all thr
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.7\linewidth,trim=0 6cm 0 6cm, clip]{figs/page_frag.pdf}
+    \includegraphics[width=0.65\linewidth,trim=0 6cm 0 6cm, clip]{figs/page_frag.pdf}
     \caption{Allocation of B bytes from page\_frag}
     \label{fig:page_frags}
 \end{figure}
@@ -67,7 +67,7 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.9\columnwidth]{figs/strict.pdf}
+    \includegraphics[width=0.75\columnwidth]{figs/strict.pdf}
     \caption{Strict vs. deferred IOTLB invalidation. In \emph{deferred} mode, there is a time window where the data is accessible to the device, but the mapping no longer appears in the page table.}
     \label{fig:deferred}
 \end{figure}
@@ -76,7 +76,7 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.8\linewidth]{figs/road_to_op.pdf}
+    \includegraphics[width=0.75\linewidth]{figs/road_to_op.pdf}
     \caption{Different ways in which the callback pointer in \shinfo can be successfully exploited.}
     \label{fig:road_to_op}
 \end{figure}
@@ -115,7 +115,7 @@ For example, some NICs have a HW LRO capability\cite{mlx5_lro}, where a NIC can 
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=\linewidth]{figs/accomplice.pdf}
+    \includegraphics[width=0.8\linewidth]{figs/accomplice.pdf}
     \caption{A TX sk\_buff filled with malicious code provides the \kva for a DMA attack.}
     \label{fig:payload}
 \end{figure*}

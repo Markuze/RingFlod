@@ -27,20 +27,16 @@ We next present the tools we have developed to identify \subpage vulnerabilities
 [7]/*** Direct Vulnerability: */ |\color{red}1 |  Callback exposed in    struct nvme_fc_fcp_op : DMA_FROM_DEVICE
 [6]/*mapped type:*/ struct nvme_fc_fcp_op
 [5]/*DECLARATION*/["__nvme_fc_init_request:1698"]:__nvme_fc_init_request(struct nvme_fc_ctrl *ctrl,
-                                                                struct nvme_fc_queue *queue, 
-                                                                struct nvme_fc_fcp_op *op, 
-                                                                struct request *rq, |\color{purple}u32| rqno) {
-[4]/*CALL*/["__nvme_fc_init_request:1731"]: fc_dma_map_single(ctrl->lport->dev,
-                                                        &op->rsp_iu, sizeof(op->rsp_iu),
-                                                        DMA_FROM_DEVICE);
+                                                                struct nvme_fc_queue *queue, struct nvme_fc_fcp_op *op, ...)
+[4]/*CALL*/["__nvme_fc_init_request:1731"]: fc_dma_map_single(ctrl->lport->dev, &op->rsp_iu, 
+                                                        sizeof(op->rsp_iu), DMA_FROM_DEVICE);
 [3]/*mapped type:*/ void
-[2]/*DECLARATION*/["fc_dma_map_single:935"]:fc_dma_map_single(struct device *dev, void *ptr, |\color{purple}size\_t| size, 
-                                                    enum dma_data_direction dir) {
+[2]/*DECLARATION*/["fc_dma_map_single:935"]:fc_dma_map_single(struct device *dev, void *ptr, ...) {
 [1]/*CALL*/["fc_dma_map_single:939"]: return dev ? dma_map_single(dev, ptr, size, dir) : (dma_addr_t)0L;
 
                 \end{lstlisting}
 \end{adjustbox}
-        \caption{\tool output example. Showing one path in the nvme\_fc driver where a callback pointer was exposed with write access.}
+        \caption{\tool output example. Showing a path in the nvme\_fc driver where a callback pointer is exposed with write access.}
         \label{fig:tool_example}
 
 \end{figure*}
