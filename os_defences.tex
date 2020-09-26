@@ -60,6 +60,22 @@ The direct mapping base (\texttt{page\_offset\_base}) and virtual memory map (\t
 
 \subsection{\textcolor{red}{Adaptation of OS defences}}
 
+\begin{table*}[t]
+\begin{tabular}{l|cccccc}
+OS                    & IOMMU           & default mode  & IOVA map      & memory    & KASLR & single step         \\ \hline
+Windows 10 < 1803     & Not supported   & N/A           & N/A           & shared    & Yes   & demonstrated        \\
+Windows 10 > 1803     & supported       & strict        & per device    & dedicated & Yes   & unknown             \\
+MacOS                 & supported       & strict        & shared        & dedicated & Yes   & demonstrated        \\
+FreeBSD               & supported       & No            & per device    & dedicated & Yes   & demonstrated        \\
+Linux                 & supported       & deferred      & per device    & shared    & Yes   & unknown             \\
+MINIX 3               & supported       & strict        &      ?        & dedicated & No    & No                  \\ \hline
+\end{tabular}
+  \caption{IOMMU adaptation across different OS's}
+\end{table*}\label{tab:other_os}
+
+The adaptation of IOMMU varies between different OS vendors. We show a brief summary in Tab .\ref{tab:other_os}. Until 2019 Windows didn't have IOMMU support exposing it do trivial DMA attacks\cite{thunder}.
+In 2019 with build 1803 Microsoft has introduced Kernel DMA Protection\cite{ms_iommu}, which provides IOMMU protection by default with dedicated I/O page table per device. In addition network buffers are allocated from dedicated pools of memory, this limits the possible exposure of sensitive data. But a brief exploration of the Windows Networking drivers API, reveals functions like \emph{NdisAllocateNetBufferMdlAndData}\cite{ms_single} that allocates a NET\_BUFFER structure and data in a single memory buffer, exposing the OS to \simple attacks. \textcolor{olive}{The NET\_BUFFER vulnerability was previously described\cite{thunder}.} MacOS has IOMMU enabled by default and also uses dedicated memory for network I/O. MacOS does expose the \textit{mbuf} data structure to the device, though with some precautions like blinding an exposed callback pointer by XORing with a secret cookie\cite{thunder}. While stopping \simple attacks, such an exposure of metadata opens up the MacOS to potential \compound attacks. FreeBSD that also has an \textit{mbuf} struct the \textit{ext\_free} callback is exposed as demonstrated by Merketos\cite{thunder}. An honorable mention goes to the Minix micro-kernel\cite{minix} which is present on Intel chipsets has been shown to have a DMA vulnerability at initialization time\cite{minix_intc}. The MINIX micro kernel pre-allocates memory for I/O and copies in/out any sent/received data bytes, effectively stopping any DMA attacks. 
+
 \section{Threat Model}\label{sec:threat_model}
 
 Our attacks are designed with the following assumptions:
