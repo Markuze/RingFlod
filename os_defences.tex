@@ -69,13 +69,15 @@ Windows 10 \textgreater 1803 & supported     & On       & per device & dedicated
 MacOS \textless 10.12.4      & supported     & On       & shared     & dedicated & Yes   & demonstrated             \\
 MacOS \textgreater 10.12.4   & supported     & On       & shared     & dedicated & Yes   & unknown*                 \\
 FreeBSD                      & supported     & Off           & per device & dedicated & Yes   & demonstrated        \\
-MINIX 3                      & supported     & On       & ?          & dedicated & No    & unknown                  \\\hline
+MINIX 3                      & supported     & On       & per device          & dedicated & No    & unknown                  \\\hline
 Linux                        & supported     & On     & per device & shared    & Yes   & \textbf{\begin{tabular}[c]{@{}c@{}}demonstrated in this paper \\ (previously unknown)\end{tabular}} \\\hline\hline           
 \end{tabular}
 \end{adjustbox}
   \caption{IOMMU adaptation in different OS's (* stands for previously known but yet untested, in the new version, vulnerabilities.}
   \label{tab:other_os}
 \end{table*}
+
+\adam{why is this in the background section??? it is part of the results. not to mention it uses concepts that weren't really defined yet (single-step, compound). It should go at the end of Section 4 IMO. But make sure the concepts of single-step and compound are formally defined BEFORE this section}
 
 The current state of IOMMU adaptation varies among different OS vendors. We briefly discuss other OSes and summarize the data in Table~\ref{tab:other_os}. 
 
@@ -91,7 +93,8 @@ In addition network buffers are allocated from dedicated pools of memory, which 
 \noindent\textbf{FreeBSD.} An \textit{mbuf} struct through which the \textit{ext\_free} callback is exposed as demonstrated by Merketos\cite{thunder}. To the best of our knowledge (October 2020), this vulnerability still exists in the FreeBSD kernel. 
 
 \smallskip
-\noindent\textbf{Minix.} An honorable mention goes to the Minix micro-kernel\cite{minix} which is present on Intel chipsets. It has been shown to have a DMA vulnerability at initialization time\cite{minix_intc}. The MINIX micro-kernel pre-allocates memory for I/O and copies in/out any sent/received data bytes, effectively stopping known DMA attacks. 
+\noindent\textbf{Minix.} An honorable mention\adam{is this cynical? if so, remove it. if not, not clear why an honorable mention goes to an OS that in the next section we're told is vulnerable} goes to the Minix micro-kernel\cite{minix} which is present on Intel chipsets. It has been shown to have a DMA vulnerability at initialization time\cite{minix_intc}. The MINIX micro-kernel pre-allocates memory for I/O and copies in/out any sent/received data bytes, effectively stopping known DMA attacks. 
+\adam{suggest removing Minix. who cares?}
 
 \section{Threat Model}\label{sec:threat_model}
 

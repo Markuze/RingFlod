@@ -4,41 +4,37 @@ Direct Memory Access (DMA) is a technology that allows input-output (I/O) device
 DMA capable devices include internal devices, such as GPUs, Network Interface Cards (NICs), storage devices (e.g., NVMe) and other peripheral devices, and external devices such as FireWire and Thunderbolt devices.\footnote{Currently, the Linux kernel (version 5.0) has as much as 700 such device drivers, where a third of those are network device drivers.} However, in its basic form, DMA makes the system vulnerable to DMA attacks. Namely, cases where malicious DMA-capable devices (e.g., compromised firmware \cite{Gal14,Ben17a}) access sensitive memory regions not intended for their use. 
 
 
-Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealing and manipulating sensitive data to taking over the victim machine. Widespread attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; extracting a full memory dump of a victim machine \cite{MM, Vol, Fin14, GA10}. These threats are mitigated by the Input–Output Memory Management Unit (IOMMU). The IOMMU adds a layer of virtual memory to devices. The IOMMU brokers all I/O requests, translating their target I/O virtual addresses (IOVAs) to physical addresses. In the process, the IOMMU provides address space isolation, allowing devices access only to permitted pages
-%\adam{DMA-mapped was not defined}
-, rendering all other memory inaccessible.
+Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealing and manipulating sensitive data to taking over the victim machine. Widespread attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; extracting a full memory dump of a victim machine \cite{MM, Vol, Fin14, GA10}. These threats are mitigated by the Input–Output Memory Management Unit (IOMMU). The IOMMU adds a layer of virtual memory to devices. The IOMMU brokers all I/O requests, translating their target I/O virtual addresses (IOVAs) to physical addresses. In the process, the IOMMU provides address space isolation, allowing devices access only to permitted pages, rendering all other memory inaccessible.
 
-However, unlike processes that operate in page granularity, I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these kernel buffers to the device. For this reason, known as the \subpage{} vulnerability \cite{MMT16,thunder}, IOMMU fails to protect the kernel from unprivileged access. Consequently, sub-page vulnerability was used as a basis for several recent DMA exploits.
+Unlike processes that operate in page granularity, however, I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these kernel buffers to the device. For this reason, known as the \subpage{} vulnerability \cite{MMT16,thunder}, IOMMU fails to protect the kernel from unprivileged access. Consequently, sub-page vulnerability was used as a basis for several recent DMA exploits.
 
+Unfortunately, there is no systematic study of sub-page vulnerabilities and how to exploit them.
+Previously reported vulnerabilities have an ad-hoc nature~\cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. 
 
-However, previously reported vulnerabilities have an ad-hoc nature \cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. 
-
-Consequently there is no systematic study of sub-page vulnerabilities and how to exploit it.
-
-Accordingly, in this paper, we first categorize the four types of the \subpage{} vulnerability, providing insight into the structure of DMA vulnerabilities.
-Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce a trifecta of vulnerability attributes, which is sufficient to layout code injection attacks (Sec. \ref{sec:mmo}):
+Accordingly, in this paper, we first categorize the four types\adam{who says there are four? first time this comes up} of the \subpage{} vulnerability, providing insight into the structure of DMA vulnerabilities.
+Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce a trifecta of vulnerability attributes, which is sufficient to layout code injection attacks\adam{should say the scope is code execution earlier and explicitly} (Sec. \ref{sec:mmo}):
 
 \begin{itemize}
     \item A kernel virtual address of a kernel buffer filled with malicious executable code, a \mabaf.
-    \item Write access to a function callback pointer.
-    \item There exists a time window such that modifying the callback pointer during that time window is followed by the CPU reading the pointer without altering its content. 
+    \item Write access to a function callback pointer.\adam{say that it's inside a struct on the page?}
+    \item Existence of a time window such that modifying the callback pointer during that time window is followed by the CPU reading the pointer without altering its content. 
 \end{itemize} 
-
-
+\adam{it looks strange to have these bullets, but no listing of the 4 vuln types. The characterizations should be treated consistently}
 
 With the characterization of the different sub-page vulnerabilities and the vulnerability attributes, we build analysis tools that detect potentially hazardous sub-page vulnerabilities:
 
 \begin{itemize}
-    \item We build a static code analysis tool (\tool) that flags high-risk device drivers. That is, \tool identifies drivers that expose callback pointers.
+    \item We build a static code analysis tool (\tool) \adam{can you give it a better name? not only is this REALLY generic, but also: \url{https://www.merriam-webster.com/dictionary/scat}} that flags high-risk device drivers. That is, \tool identifies drivers that expose callback pointers.
 We use \tool on Linux kernel 5.0 and find that as much as 73\% of device drivers are potentially vulnerable to code injection attacks (Sec.~\ref{sec:static-analysis}). 
 
     \item Sub-page vulnerabilities can also manifest dynamically at run-time, potentially exposing callback pointers and/or kernel addresses. 
-Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool (\dkasan) that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel-buffer is exposed~(Sec. \ref{sec:dma-kasan}).
+Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool (\dkasan)\adam{say what the acronym stands for} that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel-buffer is exposed~(Sec. \ref{sec:dma-kasan}).
 \end{itemize}
 
 
 Using the tools output, we then continue to demonstrate attacks on the Linux kernel.
 
+\adam{the following paragraphs don't flow well from the previous text}
 Previously reported DMA attacks are \simple, i.e., attacks in which the vulnerability trifecta is trivially provided. Namely, a callback pointer and a kernel virtual address of a DMA accessible page are present in a single page and the timing is such that the modifications will not be overwritten by the CPU. Such cases often lead to localized fixes rather than a comprehensive solution \cite{thunder}.
 
 
