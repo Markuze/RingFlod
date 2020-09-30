@@ -1,3 +1,13 @@
+\section{Threat Model}\label{sec:threat_model}
+
+Our attacks are designed with the following assumptions:
+\begin{enumerate}
+    \item We assume the existence of a malicious DMA capable device attached to the system.
+    \item The actual attack is performed solely by a DMA-capable malicious device.
+    \item Any hardware aside from the specific malicious device is working as expected.
+ \end{enumerate}
+
+The most significant potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Another potential consequence we consider is a full system memory dump. These are harder to thwart and even harder to detect. Lastly, a consequence of a possible failed attack is random memory corruption, resulting in a denial of service \cite{MMT16}, where the OS panics. Ideally, malformed devices should not be able to crash the entire system. 
 
 \section{Organizing DMA Risks}\label{sec:dma-risks}
 In this section we organize and categorize the risks associated with DMA operations.

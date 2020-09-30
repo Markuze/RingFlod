@@ -48,7 +48,7 @@ Address Space Layout Randomization (ASLR) is a common mechanism for mitigating c
 
 The Linux kernel has a predetermined virtual memory layout \cite{mem_layout}. This layout defines the location of the kernel text mapping, the direct mapping of physical memory and the virtual memory. KASLR randomizes their offsets each reboot.
 
-Since KASLR randomizing only the base address of the kernel text mapping, text addresses always appear in the following range \texttt{[0xffffffff80000000,0xffffffffa0000000)} (Fig. \ref{fig:mem_layot}) and, therefore are easy to detect. KASLR kernel text is aligned to 2~MB borders. This is the result of page table restrictions and unlikely to change, which means that the lowest 21 bits remain unchanged. Hence, knowing even a single address of a known element is sufficient to deduce the base address and compromise KASLR. Once the base address is known, the attacker can use it to create a ROP stack.
+Since KASLR randomizing only the base address of the kernel text mapping, text addresses always appear in the \textit{kernel text mapping} range (Fig. \ref{fig:mem_layot}) and, therefore are easy to detect. KASLR kernel text is aligned to 2~MB borders. This is the result of page table restrictions and unlikely to change, which means that the lowest 21 bits remain unchanged. Hence, knowing even a single address of a known element is sufficient to deduce the base address and compromise KASLR. Once the base address is known, the attacker can use it to create a ROP stack.
 %\adam{from here -->}
 To identify this first pointer, malicious devices can scan pages mapped for reading looking for kernel pointers, leaked due to \subpage{} vulnerability. Once such a pointer is identified, all that remains is to reduce the offset of the symbol in the binary from the pointer to get the base address.
 
@@ -57,52 +57,3 @@ In fact, during our investigation, we have found that there is a symbol visible 
 
 The direct mapping base (\texttt{page\_offset\_base}) and virtual memory map (\texttt{vmemmap\_base}) are also randomized (Fig. \ref{fig:mem_layot}), where each regions base pointer is randomized respecting a 1~GB alignment. This means that the lower 30 bits are unmodified and can leak both the PFN numbers and the randomized offset. This alignment is also due to page table considerations. That is, the page upper table (PUD) has a 30~bit shift. Once the random offsets \textit{PAGE\_OFFSET} and \textit{vmemmap} for direct mapping base and virtual memory map are known it becomes possible to translate between a \kva{} (kernel virtual addresses within the direct mapping region) its PFN and, its \page{} address (virtual memory map region).
 %The translation macros are shown in Fig. \ref{fig:mem_model}. 
-
-\subsection{\textcolor{red}{Adaptation of OS defences}}
-
-\begin{table*}[t]
-\begin{adjustbox}{max width=0.9\textwidth}
-\begin{tabular}{l||cccccc}
-OS                           & IOMMU         & default mode & IOVA map   & memory    & KASLR & DMA attacks          \\ \hline\hline
-Windows 10 \textless 1803    & Not supported & N/A          & N/A        & shared    & Yes   & demonstrated         \\
-Windows 10 \textgreater 1803 & supported     & On       & per device & dedicated & Yes   & unknown*                 \\
-MacOS \textless 10.12.4      & supported     & On       & shared     & dedicated & Yes   & demonstrated             \\
-MacOS \textgreater 10.12.4   & supported     & On       & shared     & dedicated & Yes   & unknown*                 \\
-FreeBSD                      & supported     & Off           & per device & dedicated & Yes   & demonstrated        \\
-MINIX 3                      & supported     & On       & per device          & dedicated & No    & unknown                  \\\hline
-Linux                        & supported     & On     & per device & shared    & Yes   & \textbf{\begin{tabular}[c]{@{}c@{}}demonstrated in this paper \\ (previously unknown)\end{tabular}} \\\hline\hline           
-\end{tabular}
-\end{adjustbox}
-  \caption{IOMMU adaptation in different OS's (* stands for previously known but yet untested, in the new version, vulnerabilities.}
-  \label{tab:other_os}
-\end{table*}
-
-\adam{why is this in the background section??? it is part of the results. not to mention it uses concepts that weren't really defined yet (single-step, compound). It should go at the end of Section 4 IMO. But make sure the concepts of single-step and compound are formally defined BEFORE this section}
-
-The current state of IOMMU adaptation varies among different OS vendors. We briefly discuss other OSes and summarize the data in Table~\ref{tab:other_os}. 
-
-\smallskip
-\noindent\textbf{Windows.} Until recently (2019) Windows had no IOMMU support exposing it to simple DMA attacks\cite{thunder}.
-In 2019 (with build 1803) Microsoft has introduced Kernel DMA Protection\cite{ms_iommu}, which provides IOMMU protection by default with dedicated I/O page table per device. 
-In addition network buffers are allocated from dedicated pools of memory, which limits the possible exposure of sensitive data. But a brief exploration of the Windows Networking drivers API, reveals functions like \emph{NdisAllocateNetBufferMdlAndData}\cite{ms_single} that allocates a NET\_BUFFER structure and data in a single memory buffer, exposing the OS to \simple attacks. Note that the NET\_BUFFER vulnerability was previously described\cite{thunder}. 
-
-\smallskip
-\noindent\textbf{MacOS.} IOMMU is enabled by default. It also uses dedicated memory for network I/O. MacOS however does expose the \textit{mbuf} data structure to the device, though with some precautions such as blinding an exposed callback pointer by XORing with a secret cookie. While stopping \simple attacks, such an exposure of metadata opens up the MacOS to potential \compound attacks. 
-
-\smallskip
-\noindent\textbf{FreeBSD.} An \textit{mbuf} struct through which the \textit{ext\_free} callback is exposed as demonstrated by Merketos\cite{thunder}. To the best of our knowledge (October 2020), this vulnerability still exists in the FreeBSD kernel. 
-
-\smallskip
-\noindent\textbf{Minix.} An honorable mention\adam{is this cynical? if so, remove it. if not, not clear why an honorable mention goes to an OS that in the next section we're told is vulnerable} goes to the Minix micro-kernel\cite{minix} which is present on Intel chipsets. It has been shown to have a DMA vulnerability at initialization time\cite{minix_intc}. The MINIX micro-kernel pre-allocates memory for I/O and copies in/out any sent/received data bytes, effectively stopping known DMA attacks. 
-\adam{suggest removing Minix. who cares?}
-
-\section{Threat Model}\label{sec:threat_model}
-
-Our attacks are designed with the following assumptions:
-\begin{enumerate}
-    \item We assume the existence of a malicious DMA capable device attached to the system.
-    \item The actual attack is performed solely by a DMA-capable malicious device.
-    \item Any hardware aside from the specific malicious device is working as expected.
- \end{enumerate}
-
-The most significant potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Another potential consequence we consider is a full system memory dump. These are harder to thwart and even harder to detect. Lastly, a consequence of a possible failed attack is random memory corruption, resulting in a denial of service \cite{MMT16}, where the OS panics. Ideally, malformed devices should not be able to crash the entire system. 

@@ -26,7 +26,7 @@ As we demonstrate in this paper, the blame is not with the device drivers alone,
     \end{itemize}
 \end{enumerate}
 
-We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we urge the use of pointer obfuscation \cite{Coo17}, and solely non-linear RX buffers as an alternative to a new design. 
+We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we suggest the use of pointer obfuscation (similarly to MacOS), and solely non-linear RX buffers as an alternative to a new design. 
 
 \subsection{\textcolor{red}{Early detection of DMA vulnerabilities}}
 We have demonstrated that due to sub-page vulnerabilities, IOMMU is not sufficient to protect the OS against DMA attacks. Segregating I/O memory from OS memory as proposed by Markuze et al.~\cite{MMT16,MSMT18} is a possible direction towards providing security and performance. Additionally, we urge the use of analysis tools that detects \subpage{} vulnerabilities and offer \tool{} and \dkasan at the development and deployment stages to validate the security of the system.

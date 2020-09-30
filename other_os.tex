@@ -1,0 +1,40 @@
+
+\section{\textcolor{red}{Adaptation of OS defences}}\label{sec:other_os}
+
+\begin{table*}[t]
+\begin{adjustbox}{max width=0.9\textwidth}
+\begin{tabular}{l|ccccccc}
+OS                           & default mode & IOVA map   & memory isolation    & KASLR &  DMA Vulnerability & previously unknown          \\ \hline
+
+Windows 10  & \V   & \V & \X & \V   & likely        &    \\
+MacOS       & \V   & \X & \X & \V   & likely        &    \\
+FreeBSD     & \X   & \V & \X & \V   & demonstrated  &    \\
+Linux       & \V   & \V & \X & \V   & compound      & \V \\\hline       
+%MacOS \textless 10.12.4      & supported     & On       & shared     & dedicated & Yes   & demonstrated             \\
+%Windows 10 \textless 1803    & Not supported & N/A          & N/A        & shared    & Yes   & demonstrated         \\
+%MINIX 3                      & supported     & On       & per device          & dedicated & No    & unknown                  \\\hline
+%Linux                        & supported     & On     & per device & shared    & Yes   & \textbf{\begin{tabular}[c]{@{}c@{}}demonstrated in this paper \\ (previously unknown)\end{tabular}} \\\hline       
+\end{tabular}
+\end{adjustbox}
+  \caption{IOMMU adaptation in different OS's.}
+  \label{tab:other_os}
+\end{table*}
+
+\adam{why is this in the background section??? it is part of the results. not to mention it uses concepts that weren't really defined yet (single-step, compound). It should go at the end of Section 4 IMO. But make sure the concepts of single-step and compound are formally defined BEFORE this section}\SV{moved here and removed Minix}
+
+The current state of IOMMU adaptation varies among different OS vendors. We briefly discuss other OSes and summarize the data in Table~\ref{tab:other_os}. 
+
+\smallskip
+\noindent\textbf{Windows.} Until recently (2019) Windows had no IOMMU support exposing it to simple DMA attacks\cite{thunder}.
+In 2019 (with build 1803) Microsoft has introduced Kernel DMA Protection\cite{ms_iommu}, which provides IOMMU protection by default with dedicated I/O page table per device. 
+In addition network buffers are allocated from dedicated pools of memory, which limits the possible exposure of sensitive data. But a brief exploration of the Windows Networking drivers API, reveals functions like \emph{NdisAllocateNetBufferMdlAndData}\cite{ms_single} that allocates a NET\_BUFFER structure and data in a single memory buffer, exposing the OS to \simple attacks. Note that the NET\_BUFFER vulnerability was previously described\cite{thunder}. 
+
+\smallskip
+\noindent\textbf{MacOS.} IOMMU is enabled by default. It also uses dedicated memory for network I/O. MacOS however does expose the \textit{mbuf} data structure to the device, though with some precautions such as blinding an exposed callback pointer by XORing with a secret cookie. While stopping \simple attacks, such an exposure of metadata opens up the MacOS to potential \compound attacks. 
+
+\smallskip
+\noindent\textbf{FreeBSD.} An \textit{mbuf} struct through which the \textit{ext\_free} callback is exposed as demonstrated by Merketos\cite{thunder}. To the best of our knowledge (October 2020), this vulnerability still exists in the FreeBSD kernel. 
+
+%\smallskip
+%\noindent\textbf{Minix.} An honorable mention\adam{is this cynical? if so, remove it. if not, not clear why an honorable mention goes to an OS that in the next section we're told is vulnerable} goes to the Minix micro-kernel\cite{minix} which is present on Intel chipsets. It has been shown to have a DMA vulnerability at initialization time\cite{minix_intc}. The MINIX micro-kernel pre-allocates memory for I/O and copies in/out any sent/received data bytes, effectively stopping known DMA attacks. 
+%\adam{suggest removing Minix. who cares?}

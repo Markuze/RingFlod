@@ -11,34 +11,44 @@ Unlike processes that operate in page granularity, however, I/O buffers can be s
 Unfortunately, there is no systematic study of sub-page vulnerabilities and how to exploit them.
 Previously reported vulnerabilities have an ad-hoc nature~\cite{thunder,MMT16,Ben17b} rather than a structured top-down approach. 
 
-Accordingly, in this paper, we first categorize the four types\adam{who says there are four? first time this comes up} of the \subpage{} vulnerability, providing insight into the structure of DMA vulnerabilities.
-Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we introduce a trifecta of vulnerability attributes, which is sufficient to layout code injection attacks\adam{should say the scope is code execution earlier and explicitly} (Sec. \ref{sec:mmo}):
+% \textcolor{olive}{Marketos et al.~\cite{thunder} have found that many OSs have basic DMA vulnerabilities that may lead to dire results. For the Linux kernel, however, which utilizes best IOMMU practices, there are no known DMA attacks, though some \subpage{} vulnerabilities were shown~\cite{thunder,MMT16,MSMT18}.
+% %
+% This paper is focused on the Linux kernel and disproves the above belief, showing that it is the kernel design that often enables a DMA attack (see Sec. \ref{sec:other_os} for a discussion on other OSes).}
+
+Accordingly, in this paper, we first identify and then categorize four types\adam{who says there are four? first time this comes up}\SV{better?} of \subpage{} vulnerability, providing insight into the structure of DMA vulnerabilities (Sec. \ref{sec:subpage}):
+\begin{itemize}
+    \item Exposed Driver metadata.
+    \item Exposed OS metadata. 
+    \item Mapped by multiple \iova.
+    \item Randomly co-located.
+\end{itemize}
+Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. 
+
+Our focus is on \emph{code injection} attacks. Accordingly, we introduce a trifecta of vulnerability attributes, which is sufficient to execute them\adam{should say the scope is code execution earlier and explicitly}\SV{added here and in the last paragraph of the abstract} (Sec. \ref{sec:mmo}):
 
 \begin{itemize}
     \item A kernel virtual address of a kernel buffer filled with malicious executable code, a \mabaf.
-    \item Write access to a function callback pointer.\adam{say that it's inside a struct on the page?}
+    \item Write access to a function callback pointer, located in an exposed data structure.\adam{say that it's inside a struct on the page?}\SV{Done}
     \item Existence of a time window such that modifying the callback pointer during that time window is followed by the CPU reading the pointer without altering its content. 
 \end{itemize} 
-\adam{it looks strange to have these bullets, but no listing of the 4 vuln types. The characterizations should be treated consistently}
+\adam{it looks strange to have these bullets, but no listing of the 4 vuln types. The characterizations should be treated consistently}\SV{Done}
 
 With the characterization of the different sub-page vulnerabilities and the vulnerability attributes, we build analysis tools that detect potentially hazardous sub-page vulnerabilities:
 
 \begin{itemize}
-    \item We build a static code analysis tool (\tool) \adam{can you give it a better name? not only is this REALLY generic, but also: \url{https://www.merriam-webster.com/dictionary/scat}} that flags high-risk device drivers. That is, \tool identifies drivers that expose callback pointers.
+    \item We build a static code analysis tool that performs a Sub-Page Analysis for DMA Exposure (\tool) \adam{can you give it a better name? not only is this REALLY generic, but also: \url{https://www.merriam-webster.com/dictionary/scat}}\SV{Done} that flags high-risk device drivers. That is, \tool identifies drivers that expose callback pointers.
 We use \tool on Linux kernel 5.0 and find that as much as 73\% of device drivers are potentially vulnerable to code injection attacks (Sec.~\ref{sec:static-analysis}). 
 
     \item Sub-page vulnerabilities can also manifest dynamically at run-time, potentially exposing callback pointers and/or kernel addresses. 
-Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool (\dkasan)\adam{say what the acronym stands for} that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel-buffer is exposed~(Sec. \ref{sec:dma-kasan}).
+Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool, termed DMA-Kernel-Address-SANitizer (\dkasan)\adam{say what the acronym stands for}\SV{done} that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel-buffer is exposed~(Sec. \ref{sec:dma-kasan}).
 \end{itemize}
-
 
 Using the tools output, we then continue to demonstrate attacks on the Linux kernel.
 
-\adam{the following paragraphs don't flow well from the previous text}
-Previously reported DMA attacks are \simple, i.e., attacks in which the vulnerability trifecta is trivially provided. Namely, a callback pointer and a kernel virtual address of a DMA accessible page are present in a single page and the timing is such that the modifications will not be overwritten by the CPU. Such cases often lead to localized fixes rather than a comprehensive solution \cite{thunder}.
+\adam{the following paragraphs don't flow well from the previous text}\SV{better?}
+First, we make the observation that previously reported DMA attacks are \simple, i.e., attacks in which the vulnerability trifecta is trivially provided. Namely, a callback pointer and a kernel virtual address of a DMA accessible page are present in a single page and the timing is such that the modifications will not be overwritten by the CPU. Such cases often lead to localized fixes rather than a comprehensive solution \cite{thunder}.
 
-
-We focus on more sophisticated attacks, i.e., situations where the vulnerability trifecta is initially incomplete (termed \compound attacks).
+Our focus is on more sophisticated attacks, i.e., situations where the vulnerability trifecta is initially incomplete (termed \compound attacks).
 Analysis of such cases, as we find in this work, reveals a dangerous misconception. It is assumed, that buggy device drivers or poor but isolated design choices, are to blame for DMA vulnerabilities. 
 We demonstrate that, it is often the kernel itself, that supplements the missing pieces, showing that this is a deep-rooted issue rather than a collection of disjoint incidents.
 We identify multiple kernel design flaws that facilitate the acquisition of the vulnerability trifecta by a malicious device.
