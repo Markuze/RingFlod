@@ -1,8 +1,10 @@
 
 
-\section{Discussion and conclusions}
+\section{Discussion and Conclusions}
 
-Once a malicious device exists, launching a DMA attack boils down to connecting the device to an external port and only for a few seconds. Furthermore, recent leaks from clandestine agencies show that they have been attacked by both shipping infected hardware \cite{Gal14} and connecting external malicious devices \cite{Fin14}. Namely, no DMA attack could work without the unintentional exposure of restricted fields.
+\adam{consider separating discussion (the API talk, proposed defenses) into its own section, and have Conclusions for the summary and meta discussion.}
+
+Once a malicious device exists, launching a DMA attack boils down to connecting the device to an external port and only for a few seconds. Furthermore, recent leaks from clandestine agencies show that they have attacked by both shipping infected hardware~\cite{Gal14} and connecting external malicious devices~\cite{Fin14}. Namely, no DMA attack could work without the unintentional exposure of restricted fields.\adam{huh? how is the former sentence connected to what comes before it?}
 
 \begin{comment}
 \footnote{\url{https://lore.kernel.org/lkml/20180510230948.GF190385@bhelgaas-glaptop.roam.corp.google.com/}}.
@@ -22,11 +24,11 @@ As we demonstrate in this paper, the blame is not with the device drivers alone,
     \begin{itemize}[wide, labelwidth=!, labelindent=0pt]
             \item \texttt{page\_pool} API, by caching I/O buffers and avoiding expensive unmaps, the drivers \emph{circumvent} the security techniques of the OS. 
             \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) \subpage{} vulnerabilities imposes a challenge.
-            \item No dedicated allocates for I/O such as proposed in previous works (e.g., \cite{MSMT18,MMT16}).
+            \item No dedicated allocates for I/O such as proposed in previous works (e.g.,~\cite{MSMT18,MMT16}).
     \end{itemize}
 \end{enumerate}
 
-We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers. Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we suggest the use of pointer obfuscation (similarly to MacOS), and solely non-linear RX buffers as an alternative to a new design. 
+We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers.\adam{Reviewers, especially in EuroSys, will probably want to see a proposed API.} Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we suggest the use of pointer obfuscation (similarly to MacOS), and solely non-linear RX buffers as an alternative to a new design. 
 
 \subsection{\textcolor{red}{Early detection of DMA vulnerabilities}}
 We have demonstrated that due to sub-page vulnerabilities, IOMMU is not sufficient to protect the OS against DMA attacks. Segregating I/O memory from OS memory as proposed by Markuze et al.~\cite{MMT16,MSMT18} is a possible direction towards providing security and performance. Additionally, we urge the use of analysis tools that detects \subpage{} vulnerabilities and offer \tool{} and \dkasan at the development and deployment stages to validate the security of the system.

@@ -39,6 +39,7 @@
 \usepackage{enumitem,kantlipsum}
 
 \usepackage{xcolor}
+%\usepackage[dvipsnames]{xcolor}
 \usepackage{adjustbox}
 \usepackage{graphicx}
 %\usepackage[table,xcdraw]{xcolor}
@@ -71,6 +72,7 @@
 \providecommand{\compound}{\textit{compound}\xspace}
 \providecommand{\Compound}{\textit{Compound}\xspace}
 \providecommand{\subpage}{sub-page\xspace}
+\providecommand{\Subpage}{Sub-page\xspace}
 %\providecommand{\tool}{SCAT\xspace}
 \providecommand{\tool}{SPADE\xspace}
 \providecommand{\dkasan}{D-KASAN\xspace}
@@ -95,7 +97,7 @@
 %\title{\Large \bf Motive, Means \& Opportunity: The Anatomy of DMA Attacks}
 %\title{\Large \bf The Anatomy of IOMMU subverting DMA Attacks}
 
-\title{\Large \bf  Understanding DMA Attacks in the Presence of an IOMMU}
+\title{Understanding DMA Attacks in the Presence of an IOMMU}
 %\title{\Large \bf Endemic Weakness in DMA I/O: The Anatomy of DMA Attacks}
 %\title{\Large \bf Systematizing DMA Vulnerabilities}
 %\title{\Large \bf Endemic Weakness in DMA I/O: Systematizing DMA Vulnerabilities}
@@ -129,13 +131,14 @@
 
 Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware IOMMU protection is unable to prevent all DMA attacks because it restricts DMA at page-level granularity leading to \subpage vulnerabilities. Conventional wisdom is that \subpage vulnerabilities that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
 
-This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. To this end, we first categorize the four types of sub-page vulnerability, providing insight into the structure of DMA vulnerabilities. Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices. Specifically, we identify a trifecta of vulnerability attributes which is sufficient to layout code injection attacks. 
+This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. To this end, we first categorize the four types of sub-page vulnerability, providing insight into the structure of DMA vulnerabilities. Then, to exploit these vulnerabilities, we present a schema for identifying viable attacks by malicious DMA capable devices. Specifically, we identify a set of three vulnerability attributes which are sufficient to mount code injection attacks. 
 
-We then build analysis tools that detect potentially hazardous sub-page vulnerabilities and analyze the Linux kernel. We find that 12\% of the device drivers expose sensitive callback pointers, and as much as 60\% of device drivers are vulnerable to DMA attacks due to OS design choices. 
+We then build analysis tools that detect potentially hazardous sub-page vulnerabilities and analyze the Linux kernel. \adam{so what? at this point it's not clear why this is a problem. Suggest saying explicitly that these pointers can be overwritten by a device to hijack kernel control flow}.
+\textcolor{violet}{We find that 72\% of the device drivers expose sensitive callback pointers which may be overwritten by a device to hijack kernel control flow.}
 
 Aided by the output of the tools, we demonstrate novel code injection attacks on the Linux kernel.
-Specifically, while all previously reported attacks are \emph{single-step}, i.e., with the vulnerability trifecta present in a single page, 
-we present a new type of \compound{} attacks where the trifecta of vulnerability attributes is initially incomplete but can be attained by carefully exploiting standard OS behavior. 
+Specifically, while all previously reported attacks are \emph{single-step}, i.e., with the vulnerability attributes present in a single page, 
+we present a new type of \compound{} attacks where the vulnerability attributes are initially incomplete but can be attained by carefully exploiting standard OS behavior. 
 
 \end{abstract}
 \maketitle
