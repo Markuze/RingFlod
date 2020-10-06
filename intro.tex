@@ -27,7 +27,7 @@ Accordingly, in this paper, \textcolor{violet}{we conduct a systematic study of 
 \adam{this sentence isn't clear, can you clarify what an ``attack vector'' means, i.e., what is needed in addition to the 4-type classification? Usually, having identified a vuln, an attack simply exploits it. Here, there is a two-level structure that isn't clear at this point. I guess it becomes clearer in the next paragraph, but at this point it isn't. Perhaps this sentence should be moved to the next paragraph and merged with it.}\SV{See new paragraph below. Better?}
 
 \textcolor{violet}{Next, to reason about these four types of \subpage{} vulnerabilities, we identify the ingredients that make it possible for a malicious device to exploit them and execute a viable DMA attack.
-Our focus is on \emph{code injection} attacks. Accordingly, we introduce a set of three vulnerability attributes, which are sufficient to execute them by exploiting a \subpage{} volnurability (Sec.~\ref{sec:mmo}):}
+Our focus is on \emph{code injection} attacks. Accordingly, we introduce a set of three vulnerability attributes, which are sufficient to execute them by exploiting a \subpage{} vulnerability (Sec.~\ref{sec:mmo}):}
 
 \begin{itemize}
     \item A kernel virtual address of a kernel buffer filled with malicious executable code, a \mabaf.
@@ -39,11 +39,9 @@ Our focus is on \emph{code injection} attacks. Accordingly, we introduce a set o
 With the characterization of the different \subpage{} vulnerabilities and the vulnerability attributes, we build analysis tools that detect potentially hazardous \subpage{} vulnerabilities:
 
 \begin{itemize}
-    \item We build a static code analysis tool that performs a \Subpage{} Analysis for DMA Exposure (\tool) that flags high-risk device drivers. That is, \tool identifies drivers that expose callback pointers.
-We use \tool on Linux kernel 5.0 and find that as many as 73\% of device drivers are potentially vulnerable to code injection attacks (Sec.~\ref{sec:static-analysis}). 
+    \item We build a static code analysis tool that performs a Sub-Page Analysis for DMA Exposure (\tool). \tool scans for potentially exposed callback pointers on DMA-mapped pages. We use \tool on Linux kernel 5.0 and find that as many as 72\% of device drivers are potentially vulnerable to code injection attacks (Sec.~\ref{sec:static-analysis}). 
 
-    \item \Subpage{} vulnerabilities can also manifest dynamically at run-time, potentially exposing callback pointers and/or kernel addresses. 
-Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool, termed DMA-Kernel-Address-SANitizer (\dkasan) that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel buffer is exposed~(Sec.~\ref{sec:dma-kasan}).
+    \item \Subpage{} vulnerabilities can also manifest dynamically at run-time, potentially exposing callback pointers and/or kernel addresses. Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool, termed DMA-Kernel-Address-SANitizer (\dkasan) that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel buffer is exposed~(Sec.~\ref{sec:dma-kasan}).
 \end{itemize}
 
 We use our tools to find and demonstrate attacks on the Linux kernel. We focus on \compound attacks, cases where a detected \subpage vulnerability alone is insufficient to execute a code injection attack since at least one of the three vulnerability attributes is initially missing, but can be attained via compound steps. 
@@ -60,7 +58,8 @@ To summarize, our contributions are:
 \begin{itemize}
     \item We provide a categorization of the four \subpage{} vulnerability types.
     \item We introduce a set of three vulnerability attributes which are sufficient to layout code-injection attacks.
-    \item We develop static code analysis tool (\tool). We use it to evaluate the Linux kernel device drivers and report our findings.
+    %\item We develop a static code analysis tool (\tool) that can identify drivers that expose callback pointers.
+    \item We develop a static code analysis tool (\tool) that flags code paths that may expose callback pointers.
     \item We develop a run-time tool (\dkasan) to identify \subpage{} vulnerabilities, including random access.
     \item We demonstrate novel DMA attacks on the Linux kernel, termed \compound{} attacks.
 \end{itemize}

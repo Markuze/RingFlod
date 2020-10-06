@@ -56,3 +56,9 @@ The IOMMU page table also holds page access rights for each \iova. An access rig
 
 IOMMUs were not designed primarily with regard to providing security~\cite{DWT79}. IOMMUs were used to allow devices that did not support vectored I/O, to access contiguous virtual memory, which may map non-contiguous physical memory~\cite{Chu96, WMM97}. IOMMUs also enabled legacy devices that only supported limited address width (32-bit), to access high memory (64 bit). More recently, IOMMUs were used to assign I/O devices directly to virtual machines while maintaining their isolation properties~\cite{Int16b, AMD16}. 
 %Throughout this period, OS developers did not appear to consider protection against malicious devices important. To date, Windows 10 is the first Windows version that uses IOMMU for protection~\cite{Mic17}.\adam{aren't these two sentences detracting from the paper? The premise is that IOMMUs are used for protection, and they contradict this premise.}
+\textcolor{violet}{\subsection{DMA API}
+Device drivers must use the DMA API to manage DMA buffers. Drivers \texttt{dma\_map} a buffer before initiating a DMA to that buffer, thereby passing ownership of
+the buffer to the device. Drivers \texttt{dma\_unmap} the buffer upon
+DMA completion, thereby regaining ownership of the buffer.
+The \texttt{dma\_map} call returns an \iova. The driver must configure the device to DMA to that specific \iova;
+\texttt{dma\_unmap} later takes this \iova as its parameter. There are analogous methods to map and unmap for non-contiguous scatter/gather lists.}

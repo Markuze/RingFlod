@@ -1,4 +1,4 @@
-\subsection{Run-time Analysis Tool}\label{sec:dma-kasan} 
+\subsection{DMA Kernel Address SANitizer}\label{sec:dma-kasan} 
 
 In Sec.~\ref{sec:static-analysis}, we have shown that more than 70\% of DMA-map operations result in exposed pointers. 
 %Exposed pointers may be used in a DMA attack either passively to subvert KASLR or actively to execute an attack. 
@@ -19,7 +19,7 @@ We modify KASAN to record DMA-map operations in addition to memory allocations. 
 %\adam{the meaning of these terms shouldn't be in a footnote, it's important}
 %The tool also detects cases when a DMA mapped page is accessed by the CPU. 
 %\dkasan, therefore, identifies all cases where an allocated object was inadvertently dma-mapped after allocation or has already been allocated on a dma-mapped page. 
-We tested \dkasan using our setup\adam{setup wasn't discussed or defined until this point}. In our experiment we cloned a large project from a git repository and compiled it concurrently with light network traffic (i.e., ICMP ping). In this experiment, we have identified numerous cases where a DMA-mapped page is used to hold network and file system metadata. Example results are shown in Fig.~\ref{fig:dkasan-report}. 
+We tested \dkasan using our setup (Sec.~\ref{Sec:setup})\adam{setup wasn't discussed or defined until this point}\SV{Added a forward ref}. In our experiment we cloned a large project from a git repository and compiled it concurrently with light network traffic (i.e., ICMP ping). In this experiment, we have identified numerous cases where a DMA-mapped page is used to hold network and file system metadata. Example results are shown in Fig.~\ref{fig:dkasan-report}. 
 Among the identified vulnerabilities we have identified cases (e.g., line 1 in Fig.~\ref{fig:dkasan-report}) where a network I/O buffer is simultaneously mapped with READ and WRITE. The same physical page mapped twice, once for read and once for write. Such cases greatly simplify the attacker's effort. In the interest of space, such examples are omitted from the paper. 
 
 We have also encountered cases where random kernel data structures are mapped for READ/WRITE. Some of these mapped data structures also contain callback pointers. For example, \texttt{struct assoc\_array\_edit} is mapped (line 5 in Fig.~\ref{fig:dkasan-report}) exposing callback pointers to the device. 
@@ -52,4 +52,4 @@ We have also encountered cases where random kernel data structures are mapped fo
 
 \subsection{\textcolor{red}{Discussion and Limitations}}
 \dkasan Is a run-time tool that has a large memory footprint and the obvious overhead of callbacks on each memory access. This tool is useful for testing specific system for vulnerabilities.
-\tool is static analysis tool that may fail to follow a mapped variable due to potential code obfuscation like function pointers, macros and others, potentially resulting in a false negative result. False positive may happen in a rare case\footnote{Obviously excluding coding bugs.}\adam{the footnote and its purposes are't clear. Bugs by who? Tool writers (you) or kernel devs? And what exactly is the point?} where the mapped  data  structure  crosses  a  page  boundary,  \tool may flag a callback function which may not be exposed since it resides on a different page.\adam{explain why this can happen}
+\tool is static analysis tool that may fail to follow a mapped variable due to potential code obfuscation like function pointers, macros and others, potentially resulting in a false negative result. False positive may happen in a rare case\adam{the footnote and its purposes are't clear. Bugs by who\textcolor{red}{\textbf{m}}? Tool writers (you) or kernel devs? And what exactly is the point?}\SV{Removed} where the mapped  data  structure  crosses  a  page  boundary,  \tool may flag a callback function which may not be exposed since it resides on a different page.\adam{explain why this can happen}
