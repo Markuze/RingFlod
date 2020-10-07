@@ -19,7 +19,7 @@ Accordingly, in this paper, \textcolor{violet}{we conduct a systematic study of 
 \begin{itemize}
     \item Exposed driver metadata.
     \item Exposed OS metadata. 
-    \item Mapped by multiple \iova.\adam{the previous two are somehow intuitively understandable, but the latter two aren't. It would be good to add a short explanation of why each of the bullets is a vuln. Also see comment in Section 4: I think this 3rd bullet should be removed}\SV{This is type C Vuln it is important for many attacks, its caused due to two buffers co-residing on a page, we need to discuss this.}
+    \item Mapped by multiple \iova \textcolor{green}{due to multiple mapped buffers}.\adam{the previous two are somehow intuitively understandable, but the latter two aren't. It would be good to add a short explanation of why each of the bullets is a vuln. Also see comment in Section 4: I think this 3rd bullet should be removed}\SV{This is type C Vuln it is important for many attacks, its caused due to two buffers co-residing on a page, we need to discuss this.}
     \item Randomly co-located.
 \end{itemize}
 

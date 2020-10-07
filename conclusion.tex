@@ -28,7 +28,7 @@ As we demonstrate in this paper, the blame is not with the device drivers alone,
     \end{itemize}
 \end{enumerate}
 
-We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers.\adam{Reviewers, especially in EuroSys, will probably want to see a proposed API.} Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we suggest the use of pointer obfuscation (similarly to MacOS), and solely non-linear RX buffers as an alternative to a new design. 
+We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers.\adam{Reviewers, especially in EuroSys, will probably want to see a proposed API.}\textcolor{green}{Discuss DAMN and mem segregation} Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we suggest the use of pointer \textcolor{green}{obfuscation?} (similarly to MacOS), and solely non-linear RX buffers as an alternative to a new design. 
 
 \subsection{\textcolor{red}{Early detection of DMA vulnerabilities}}
 We have demonstrated that due to sub-page vulnerabilities, IOMMU is not sufficient to protect the OS against DMA attacks. Segregating I/O memory from OS memory as proposed by Markuze et al.~\cite{MMT16,MSMT18} is a possible direction towards providing security and performance. Additionally, we urge the use of analysis tools that detects \subpage{} vulnerabilities and offer \tool{} and \dkasan at the development and deployment stages to validate the security of the system.
@@ -48,6 +48,7 @@ We have demonstrated that due to sub-page vulnerabilities, IOMMU is not sufficie
 %Random access attacks, also exploit the sup-page vulnerability and should not be taken lightly. Successful execution of random access attacks requires a more in-depth analysis to produce a viable chance of success. Accordingly, in Sec.~\ref{sec:dma-kasan}, we present a run-time analysis tool capable of identifying such vulnerabilities. \adam{if there's a whole section about it, why the disclaimer that the paper focuses on deterministic attacks?}
 
 \subsection{\textcolor{red}{Other attacks - Integrate?}}
+\textcolor{green}{Move to Threat model and Fix}
 The focus of our work is on code injection attacks as they often have a much higher value for the attacker (e.g., get access to sensitive machines and data). 
 However other high impact attacks may still be viable with only part of the vulnerability attributes. 
 For example, a full memory dump.
