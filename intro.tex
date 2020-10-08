@@ -6,33 +6,34 @@ DMA capable devices include internal devices, such as GPUs, Network Interface Ca
 
 Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealing and manipulating sensitive data to taking over the victim machine. Widespread attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; and extracting a full memory dump of a victim machine \cite{MM, Vol, Fin14, GA10}. These threats are supposed to be mitigated by the Input–Output Memory Management Unit (IOMMU). The IOMMU adds a layer of virtual memory to devices. The IOMMU brokers all I/O requests, translating their target I/O virtual addresses (IOVAs) to physical addresses. In the process, the IOMMU provides address space isolation, allowing a device to access only permitted pages, rendering all other memory inaccessible.
 
-Unlike processes that operate in page granularity, however, I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these kernel buffers to the device. For this reason, known as the \subpage{} vulnerability, IOMMU fails to fully protect the kernel from unprivileged access. Consequently, \subpage{} vulnerabilities were the basis for several recent DMA exploits\adam{citations?}\textcolor{violet}{~\cite{thunder,Ben17a,Ben17b}}.
+Unlike processes that operate in page granularity, however, I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these kernel buffers to the device. For this reason, known as the \subpage{} vulnerability, IOMMU fails to fully protect the kernel from unprivileged access. Consequently, \subpage{} vulnerabilities were the basis for several recent DMA exploits~\cite{thunder,Ben17a,Ben17b}.
 %\st{Unfortunately, there is no systematic study of \subpage{} vulnerabilities and how to exploit them} 
-\adam{defend, no? Ultimately, EuroSys people want to prevent the vulns}.\SV{Rephrased below. Since there are paper on defences, such a satement may weaken our cliam?}
+%\adam{defend, no? Ultimately, EuroSys people want to prevent the vulns}.\SV{Rephrased below. Since there are paper on defences, such a satement may weaken our cliam?}
 Nevertheless, these previously reported vulnerabilities have an ad-hoc nature rather than a structured top-down approach. 
 
 % \textcolor{olive}{Marketos et al.~\cite{thunder} have found that many OSs have basic DMA vulnerabilities that may lead to dire results. For the Linux kernel, however, which utilizes best IOMMU practices, there are no known DMA attacks, though some \subpage{} vulnerabilities were shown~\cite{thunder,MMT16,MSMT18}.
 % %
 % This paper is focused on the Linux kernel and disproves the above belief, showing that it is the kernel design that often enables a DMA attack (see Sec. \ref{sec:other_os} for a discussion on other OSes).}
 
-Accordingly, in this paper, \textcolor{violet}{we conduct a systematic study of \subpage{} vulnerabilities}. Specifically, we first break down \subpage{} vulnerabilities into four types, providing insight into the structure of DMA vulnerabilities (Sec.~\ref{sec:subpage}):
+Accordingly, in this paper, we conduct a systematic study of \subpage{} vulnerabilities. Specifically, we first break down \subpage{} vulnerabilities into four types, providing insight into the structure of DMA vulnerabilities (Sec.~\ref{sec:subpage}):
 \begin{itemize}
     \item Exposed driver metadata.
     \item Exposed OS metadata. 
-    \item Mapped by multiple \iova due to multiple co-located buffers.\adam{the previous two are somehow intuitively understandable, but the latter two aren't. It would be good to add a short explanation of why each of the bullets is a vuln. Also see comment in Section 4: I think this 3rd bullet should be removed}\SV{This is type C Vuln it is important for many attacks, its caused due to two buffers co-residing on a page, we need to discuss this.}
+    \item Mapped by multiple \iova due to multiple co-located buffers.
+    %\adam{the previous two are somehow intuitively understandable, but the latter two aren't. It would be good to add a short explanation of why each of the bullets is a vuln. Also see comment in Section 4: I think this 3rd bullet should be removed}\SV{This is type C Vuln it is important for many attacks, its caused due to two buffers co-residing on a page, we need to discuss this.}
     \item Randomly co-located.
 \end{itemize}
 
 %\st{Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices.}
-\adam{this sentence isn't clear, can you clarify what an ``attack vector'' means, i.e., what is needed in addition to the 4-type classification? Usually, having identified a vuln, an attack simply exploits it. Here, there is a two-level structure that isn't clear at this point. I guess it becomes clearer in the next paragraph, but at this point it isn't. Perhaps this sentence should be moved to the next paragraph and merged with it.}\SV{See new paragraph below. Better?}
+%\adam{this sentence isn't clear, can you clarify what an ``attack vector'' means, i.e., what is needed in addition to the 4-type classification? Usually, having identified a vuln, an attack simply exploits it. Here, there is a two-level structure that isn't clear at this point. I guess it becomes clearer in the next paragraph, but at this point it isn't. Perhaps this sentence should be moved to the next paragraph and merged with it.}\SV{See new paragraph below. Better?}
 
-\textcolor{violet}{Next, to reason about these four types of \subpage{} vulnerabilities, we identify the ingredients that make it possible for a malicious device to exploit them and execute a viable DMA attack.
-Our focus is on \emph{code injection} attacks. Accordingly, we introduce a set of three vulnerability attributes, which are sufficient to execute them by exploiting a \subpage{} vulnerability (Sec.~\ref{sec:mmo}):}
+Next, to reason about these four types of \subpage{} vulnerabilities, we identify the ingredients that make it possible for a malicious device to exploit them and execute a viable DMA attack.
+Our focus is on \emph{code injection} attacks. Accordingly, we introduce a set of three vulnerability attributes, which are sufficient to execute them by exploiting a \subpage{} vulnerability (Sec.~\ref{sec:mmo}):
 
 \begin{itemize}
     \item A kernel virtual address of a kernel buffer filled with malicious executable code, a \mabaf.
-    \item Write access to a function callback pointer, \st{located in an exposed data structure,} 
-    \textcolor{violet}{exposed in a data structure via one of the four \subpage vulnerability types.} \adam{suggest mentioning that this bullet is what one of the 4 types gives you} 
+    \item Write access to a function callback pointer,exposed in a data structure via one of the four \subpage vulnerability types. 
+    %\adam{suggest mentioning that this bullet is what one of the 4 types gives you} 
     \item Existence of a time window such that the device can modify the callback pointer during that time window and the CPU will subsequently jump to the pointed code (before the pointer gets overwritten, if it is ever overwritten). 
 \end{itemize} 
 
@@ -46,13 +47,13 @@ With the characterization of the different \subpage{} vulnerabilities and the vu
 
 We use our tools to find and demonstrate attacks on the Linux kernel. We focus on \compound attacks, cases where a detected \subpage vulnerability alone is insufficient to execute a code injection attack since at least one of the three vulnerability attributes is initially missing, but can be attained via compound steps. 
 
-We observe that unlike compound attacks, previous work has explored \simple{} attacks, i.e., attacks in which the three vulnerability attributes are trivially provided. \textcolor{violet}{Namely, a mapped I/O buffer co-resides on a mapped page which, due to \subpage{} vulnerability, also exposes a callback pointer and a kernel virtual address needed for a viable code injection attack and the timing is such that the modifications will not be overwritten by the CPU.}
+We observe that unlike compound attacks, previous work has explored \simple{} attacks, i.e., attacks in which the three vulnerability attributes are trivially provided. Namely, a mapped I/O buffer co-resides on a mapped page which, due to \subpage{} vulnerability, also exposes a callback pointer and a kernel virtual address needed for a viable code injection attack and the timing is such that the modifications will not be overwritten by the CPU.
 
-\textcolor{violet}{Analysis of such \simple{} attacks, that can typically be blocked with localized fixes, led to a dangerous misconception. It is assumed that buggy device drivers or poor but isolated design choices are to blame for DMA vulnerabilities.
+Analysis of such \simple{} attacks, that can typically be blocked with localized fixes, led to a dangerous misconception. It is assumed that buggy device drivers or poor but isolated design choices are to blame for DMA vulnerabilities.
 However, by introducing \compound attacks, we demonstrate that it is often the kernel itself that supplements the missing pieces, showing that this is a deep-rooted issue rather than a collection of disjoint incidents.
-We identify multiple kernel APIs and data structure designs that facilitate the acquisition of the vulnerability attributes by a malicious device.}
+We identify multiple kernel APIs and data structure designs that facilitate the acquisition of the vulnerability attributes by a malicious device.
 
-\adam{still poor flow, you're mixing technical description of the attacks (some of which are missing) with the \sout{hype} message. I suggest the following flow from the previous sentence: We focus on \emph{compound} attack, which <DEFINE THEM (it's not clear what ``trifecta is incomplete'' means). Next paragraph: We observe that unlike compound attacks, previous work has explored \emph{single-step} attacks... <REPEAT THE CURRENT NEXT PARAGRAPH, EXCEPT FOR THE FIXES PART>. Next paragraph: Single-step attacks can typically be block with localized fixes (did you mean fixing the affected device driver? suggest saying so). In contrast, compound attacks are not enabled by buggy device drivers or poor but isolated design choices. <REPEAT THE END OF THE 2ND PARAGRAPH>}
+%\adam{still poor flow, you're mixing technical description of the attacks (some of which are missing) with the \sout{hype} message. I suggest the following flow from the previous sentence: We focus on \emph{compound} attack, which <DEFINE THEM (it's not clear what ``trifecta is incomplete'' means). Next paragraph: We observe that unlike compound attacks, previous work has explored \emph{single-step} attacks... <REPEAT THE CURRENT NEXT PARAGRAPH, EXCEPT FOR THE FIXES PART>. Next paragraph: Single-step attacks can typically be block with localized fixes (did you mean fixing the affected device driver? suggest saying so). In contrast, compound attacks are not enabled by buggy device drivers or poor but isolated design choices. <REPEAT THE END OF THE 2ND PARAGRAPH>}
 
 To summarize, our contributions are:
 \begin{itemize}

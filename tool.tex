@@ -44,20 +44,19 @@ We next present the tools we have developed to identify \subpage vulnerabilities
 
 \subsection{Sub-Page Analysis for DMA Exposure}\label{sec:static-analysis}
 
-\adam{modify the subsection's title accordingly}\SV{updated.. in 5.2 as well..}
-We devise a static code analysis tool that performs Sub-Page Analysis for DMA Exposure (\tool). With well over a 1000 \texttt{dma\_map*} function calls (i.e., the set of functions implementing the DMA API)\adam{first time the concept ``DMA API'' is mentioned. Should be discussed in the background, when talking about how IOMMU is controlled}\SV{added in Sec. 2}, in the Linux kernel, a manual process would be arduous. \textcolor{violet}{\tool performs the following operations to detect the different \subpage{} vulnerability types (Fig.~\ref{fig:colocation}) where a callback pointers may be exposed:
+%\adam{modify the subsection's title accordingly}\SV{updated.. in 5.2 as well..}
+We devise a static code analysis tool that performs Sub-Page Analysis for DMA Exposure (\tool). With well over a 1000 \texttt{dma\_map*} function calls (i.e., the set of functions implementing the DMA API), in the Linux kernel, a manual process would be arduous. \tool performs the following operations to detect the different \subpage{} vulnerability types (Fig.~\ref{fig:colocation}) where a callback pointers may be exposed:
 \begin{enumerate}
     \item Type A: Looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure.
     \item Type B: Looks for Kernel APIs that create a data structure inside a mapped buffer (e.g., \texttt{build\_skb}).
     \item Type C: Looks for functions that are used for fast allocation by slicing a contiguous memory buffer into segments (e.g., netdev\_alloc\_skb, napi\_alloc\_skb). These may result in multiple \iova{} mapping the same page. These functions utilize the \texttt{page\_frag} API, which we discuss in greater detail in Sec. \ref{sec:shinfo_exploit} 
 \end{enumerate}
-}
 
 
-\sout{\tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig.~\ref{fig:colocation} (a)). Additionally we look for potentially hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig.~\ref{fig:colocation} (b))}.\adam{this ``hazardous function'' comes out of nowhere and wasn't discussed in the characterization, which makes the  characterization looks questionable}
+%\sout{\tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig.~\ref{fig:colocation} (a)). Additionally we look for potentially hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig.~\ref{fig:colocation} (b))}.\adam{this ``hazardous function'' comes out of nowhere and wasn't discussed in the characterization, which makes the  characterization looks questionable}
 %The risk is classified according to the access permission. \means{} is implied by a READ permission and \oportunity{} is implied by a WRITE/BIDIRECTIONAL permission. 
-\sout{The case of multiple \iova{} (Fig.~\ref{fig:colocation} (c)), is also flagged by \tool, which flags use of functions (e.g., netdev\_alloc\_skb, napi\_alloc\_skb) that may result in this type of vulnerability or any other function that uses the page frag api.}
-\adam{why do specific functions cause this vulnerability and not other DMA API calls? explain what these ``bad'' functions do}\SV{see new description...}
+%\sout{The case of multiple \iova{} (Fig.~\ref{fig:colocation} (c)), is also flagged by \tool, which flags use of functions (e.g., netdev\_alloc\_skb, napi\_alloc\_skb) that may result in this type of vulnerability or any other function that uses the page frag api.}
+%\adam{why do specific functions cause this vulnerability and not other DMA API calls? explain what these ``bad'' functions do}\SV{see new description...}
 
 %Currently, human expert input is needed to determine which functions are truly \emph{hazardous}, as acquiring \motivation and \oportunity is not done automatically. 
 %As a result, \tool determines type (a) vulnerabilities automatically and types (b) and (c) only with sufficient human expert input. \textcolor{olive}{As we demonstrate in Sec.~\ref{sec:shinfo}.}
@@ -68,7 +67,7 @@ We devise a static code analysis tool that performs Sub-Page Analysis for DMA Ex
 
 \subsubsection{High-Level Design Overview}
 
-\textcolor{violet}{\tool operates recursively starting from calls to dma\_map* functions.} From this initial set of calls, \tool identifies the mapped variables and backtracks their declarations and assignments to these variables. When a data structure is identified as exposed, \tool identifies exposed callback pointers or mapped heap pointers. 
+\tool operates recursively starting from calls to dma\_map* functions. From this initial set of calls, \tool identifies the mapped variables and backtracks their declarations and assignments to these variables. When a data structure is identified as exposed, \tool identifies exposed callback pointers or mapped heap pointers. 
 
 
 
@@ -76,7 +75,7 @@ We devise a static code analysis tool that performs Sub-Page Analysis for DMA Ex
 
 \tool is applicable to any kernel code written in C. We intend to make the \tool publicly available for benefit of the research community.
 
-\adam{general comment: this is really short and makes the tool look trivial. Even if it's indeed trivial, isn't there anything interesting to say about it?}\SV{changed the title to reflect that it is only a high level description and edited the text.}
+%\adam{general comment: this is really short and makes the tool look trivial. Even if it's indeed trivial, isn't there anything interesting to say about it?}\SV{changed the title to reflect that it is only a high level description and edited the text.}
 
 %The algorithm performs the following:
 %\begin{enumerate}
@@ -100,10 +99,12 @@ We devise a static code analysis tool that performs Sub-Page Analysis for DMA Ex
 
 \subsubsection{Output}
 %
-\adam{shouldn't this section come after the Design section, before discussing the results?}\SV{Done}
+%\adam{shouldn't this section come after the Design section, before discussing the results?}\SV{Done}
 For each DMA-mapping call, \tool outputs the line numbers of relevant declarations, function calls, and assignments, allowing for a human expert to trace back and validate the vulnerability. We present an example output of a vulnerability found in the NVMe host driver in Fig.~\ref{fig:tool_example}.
 
-The output starts from the impact evaluation, and continues with pertinent code lines. \sout{Starred lines contain script analysis}\adam{what is script analysis? Who said anything about a script?}. In Fig.~\ref{fig:tool_example}, line 7 tells us that a single callback pointer is mapped in the mapped \texttt{nvme\_fc\_fcp\_op} data structure (i.e., \texttt{fcp\_req.done}) and line 8 tells us that it is possible to spoof another 931 callback pointers.
+The output starts from the impact evaluation, and continues with pertinent code lines. %\sout{Starred lines contain script analysis}.
+%\adam{what is script analysis? Who said anything about a script?}. 
+In Fig.~\ref{fig:tool_example}, line 7 tells us that a single callback pointer is mapped in the mapped \texttt{nvme\_fc\_fcp\_op} data structure (i.e., \texttt{fcp\_req.done}) and line 8 tells us that it is possible to spoof another 931 callback pointers.
 %by rewriting contained pointers to data structures that contain other callback pointers.
 On Line 6, \tool, after finding the variable declaration (i.e., line 5) and looking at the mapped pointer (i.e., \texttt{\&op->rsp\_iu} on line 4), concludes that the whole \texttt{struct nvme\_fc\_fcp\_op} is exposed to the device. Lines 3-1 repeat the same analysis process for the \texttt{dma\_map\_single} call that exposes the data structure to the device. 
 
@@ -115,7 +116,7 @@ We find that 13\%~(line 1 in Fig.~\ref{fig:tool_example}) of the drivers expose 
 
 We dedicate special attention to struct \shinfo, which is used ubiquitously in Linux networking. This data structure is \textit{always} located on the same page as the \texttt{skb->data}, and it also contains a callback pointer. We discuss the vulnerabilities related to \shinfo in Sec.~\ref{sec:linux_net}. We find that more than 50\% of the dma-map calls either directly mapp the \texttt{skb->data} or use the \texttt{build\_skb} API (lines 2 \& 7 in Table ~\ref{tab:static_analysis}), which exposes \shinfo. The OS provides this data structure layout and API rather than it being an isolated driver bug. Additionally, we find 19 data structures that are exposed via APIs that store \texttt{private} data structures on the same page as vulnerable meta-data, e.g., netdev\_priv, aead\_request\_ctx and scsi\_cmd\_priv.
 
-\adam{flip the order of this paragraph. Start with the general findings (from the previous sentence and until the end of the paragraph, and then talk about shinfo, making it look like you discovered it by analyzing the tool's output. The current layout looks weird.} \SV{Done}
+%\adam{flip the order of this paragraph. Start with the general findings (from the previous sentence and until the end of the paragraph, and then talk about shinfo, making it look like you discovered it by analyzing the tool's output. The current layout looks weird.} \SV{Done}
 
 
 %(i.e., a pointer to a data structure which contains callbacks is exposed).
@@ -143,6 +144,7 @@ Total dma-map calls        & 1019          & 447       \\
 }
 \vspace{1mm}
 \caption{\tool result summary.}
+\vspace{-7mm}
 \label{tab:static_analysis}
 \end{table}
 

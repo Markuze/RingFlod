@@ -1,6 +1,6 @@
 \section{Compound DMA attacks}\label{sec:linux_net}
 
-\adam{This section is significantly less organized than the rest of the paper (the fact you discuss IOTLB in two places is an example. I suggest to organize it according to the characterizations: first explain how the networking system design makes the 3/4 vulnerability types occur, then have sections according to the trifecta where you explain how those are obtained, and title them accordingly, not with cute but not meaningful names. Following my comment about the 3rd ``sub-page'' vuln type (multiple mapping), which doesn't belong as a vuln type, I suggest introducing that here (since really, this is what's happening anyway).}
+%\adam{This section is significantly less organized than the rest of the paper (the fact you discuss IOTLB in two places is an example. I suggest to organize it according to the characterizations: first explain how the networking system design makes the 3/4 vulnerability types occur, then have sections according to the trifecta where you explain how those are obtained, and title them accordingly, not with cute but not meaningful names. Following my comment about the 3rd ``sub-page'' vuln type (multiple mapping), which doesn't belong as a vuln type, I suggest introducing that here (since really, this is what's happening anyway).}
 
 %\adam{I'd retitle this section: it is about kernel design flaws to enable getting Motive, Means, and Opportunity}
 
@@ -9,17 +9,17 @@ In this section we explore new attacks on the Linux network stack where the vuln
 We focus on the Linux network stack which initially seems secure~\cite{thunder}.
 But, as we demonstrate, the Linux network stack is actually responsible for 60\% of DMA vulnerabilities we have found.
 
-\textcolor{violet}{Recall that, once we have discovered a \subpage{} vulnerability, our goal is to obtain the three vulnerability attributes (Sec. \ref{sec:mmo}: (1) a KVA, (2) a callback pointer and, (3) timing). 
+Recall that, once we have discovered a \subpage{} vulnerability, our goal is to obtain the three vulnerability attributes (Sec. \ref{sec:mmo}: (1) a KVA, (2) a callback pointer and, (3) timing). 
 Accordingly, in Sec.~\ref{sec:shinfo_exploit}, we first describe how to obtain (2) a callback function pointer. Then, in Sec.~\ref{sec:timely}, we show that (3) a time window for exploiting this pointer is available. 
 While these two step for obtaining vulnerability attributes (2) and (3) are generic, there are different recipes for how to obtain the remaining vulnerability attribute (1), i.e., the KVA of the malicious buffer exposes via the \subpage{} vulnerability. 
-Accordingly, we complete the vulnerability attributes in Sec.~\ref{sec:ringflod} and Sec.~\ref{sec:posion} by showing different ways (by which we also name the compound attack) to obtain (3) the KVA.} 
+We complete the vulnerability attributes in Sec.~\ref{sec:ringflod} and Sec.~\ref{sec:posion} by showing different ways (by which we also name the compound attack) to obtain (1) the KVA.
 
 
 
 Due to space limitations we demonstrate only selected compound DMA attacks. 
 Upon the publication of our work we aim at releasing extended material including evaluation scripts as well as additional \compound and previously unknown \simple attacks found by our tools.
 
-\sout{We first describe the vulnerable data structures shared by \emph{all} Linux network drivers, which exposes a callback pointer. Then, after providing some necessary technical background (Sec.~\ref{sec:deferred}), we show how that the device is often provided with a timing window during which a modified callback pointer will be executed by the CPU~(Sec.~\ref{sec:shinfo}). Finally, we discuss various methods to identify kernel virtual addresses of pages containing malicious code (Sec.~\ref{sec:ringflod} and~\ref{sec:posion}).}
+%\sout{We first describe the vulnerable data structures shared by \emph{all} Linux network drivers, which exposes a callback pointer. Then, after providing some necessary technical background (Sec.~\ref{sec:deferred}), we show how that the device is often provided with a timing window during which a modified callback pointer will be executed by the CPU~(Sec.~\ref{sec:shinfo}). Finally, we discuss various methods to identify kernel virtual addresses of pages containing malicious code (Sec.~\ref{sec:ringflod} and~\ref{sec:posion}).}
 %In the interest of space, additional methods for gaining \motivation are deferred to Appendix~\ref{appx:additional_compound}.
 
 \subsection{Obtaining a callback pointer}\label{sec:shinfo_exploit}
@@ -28,6 +28,7 @@ Upon the publication of our work we aim at releasing extended material including
     \includegraphics[width=0.8\linewidth]{figs/ubuf.pdf}
     \caption{Using \shinfo{} to execute arbitrary code in kernel context.}
     \label{fig:sh_info}
+    \vspace{-4mm}
 \end{figure}
 
 %\adam{lots of explanations here, whereas the structure was originally mentioned when talking about SCAT...}
@@ -47,7 +48,7 @@ Fig.~\ref{fig:sh_info} depicts how a malicious device can mount an attack using 
     \item An RX \skb{} and its data buffer are allocated. The data buffer is mapped for the NIC with WRITE access (the WRITE access is to the whole 4~KB page). 
     \item The NIC overwrites the \texttt{destructor\_arg} field in \shinfo{} to point within the mapped page. Now, the \texttt{destructor\_arg} points to a struct \uarg{} which is created by the NIC.
     \item \uarg{} has a callback pointer that is now pointing to the malicious code residing on the same page. In the case of NX-bit, it is a poisoned ROP/JOP\cite{BJFL11} stack (Sec.~\ref{sec:nx-bit}).
-    \adam{how does this work? you overwrite a pointer to a callback function, not to the stack pointer.}\SV{a JOP attack, aslo mentioned in 2.4}
+    %\adam{how does this work? you overwrite a pointer to a callback function, not to the stack pointer.}\SV{a JOP attack, aslo mentioned in 2.4}
     \item when the \skb{} is released, the callback is invoked.
 \end{enumerate}
 To expand this scenario into a complete attack, the attacker must obtain all three vulnerability attributes. That is, the attackers needs the actual \kva{} of the \mabaf{} and the NIC must have a timely WRITE access to the page. In the next subsection, we demonstrate how an attacker can leverage standard OS behavior to obtain both missing vulnerability attributes.
@@ -59,9 +60,9 @@ To expand this scenario into a complete attack, the attacker must obtain all thr
     \label{fig:page_frags}
 \end{figure}
 
-\textcolor{violet}{\subsection{Existence of a Time Window}\label{sec:timely}
+\subsection{Existence of a Time Window}\label{sec:timely}
 To reason about the existence of an appropriate time window for altering the callback pointer, we first discuss the Linux default mode for IOTLB invalidation, which is known as a security vulnerability\cite{MMT16,MSMT18}.
-In particular, in Sec.~\ref{sec:deferred} we present the issue of deferred invalidation. Then, in Sec.~\ref{sec:shinfo} we discuss the multiple means by which an attacker can gain a timely access to \shinfo.}
+In particular, in Sec.~\ref{sec:deferred} we present the issue of deferred invalidation. Then, in Sec.~\ref{sec:shinfo} we discuss the multiple means by which an attacker can gain a timely access to \shinfo.
 
 \subsubsection{Deferred Invalidation Vulnerability}\label{sec:deferred}
 
@@ -75,10 +76,10 @@ To reduce this overhead, Linux defers IOTLB invalidations by default and instead
 
 The repercussions of \emph{deferred} mode are that a malicious device can take advantage of this time window, where it has access to memory pages, effectively, unbeknownst to the CPU. This opens up two distinct attack options:
 
-\begin{enumerate}
+\begin{enumerate}[labelindent=0pt]
     \item A device can alter data structures that the CPU has modified \emph{after} unmapping (e.g., calling \texttt{dma\_unmap\_page}).
     \iova{} mappings, as a rule, are short-lived as they should be used only for the duration of I/O, usually for a few microseconds. The additional milliseconds provide the attacker with a wide time window sufficient to conduct its attack.
-    \item The page can be freed, and then immediately reused by the OS. In fact, this is a common scenario, as Linux reuses \emph{hot} pages (i.e., recently used pages), as they are likely to already reside in the CPU caches~\cite{hotcold}. In turn, this opens up the kernel to additional random access attacks.
+    \item The page can be freed and then immediately reused by the OS. This is a common scenario, as Linux reuses \emph{hot} pages (i.e., recently used pages), as they are likely to already reside in the CPU caches~\cite{hotcold}. In turn, this opens up the kernel to additional random access attacks.
 \end{enumerate}
 
 \begin{figure}[t]
@@ -94,6 +95,7 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
     \centering
     \includegraphics[width=0.75\linewidth]{figs/road_to_op.pdf}
     \caption{Different ways in which the callback pointer in \shinfo can be successfully exploited.}
+    \vspace{-2mm}
     \label{fig:road_to_op}
 \end{figure}
 
@@ -101,12 +103,12 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
 %\st{We now detail the different ways in which a malicious device can obtain} \oportunity{} (Fig.~\ref{fig:road_to_op}).
 
 %In this section we discuss the Linux network stack where \shinfo is initialized \emph{after} the page was unmapped, thus invalidating the malicious changes.
-\textcolor{violet}{Upon packet arrival on a receive path, an \shinfo struct is initialised after a packet is received, namely after the DMA operation was completed and potentially the DMA access revoked.} In such a case,
-a correct use of the DMA API should thwart the attack outlined in Sec.~\ref{sec:shinfo_exploit} (Fig.~\ref{fig:sh_info}). Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated. But as we demonstrate, DMA access is often easily achievable even after the CPU has made its changes. 
+Upon packet arrival on a receive path, an \shinfo struct is initialised after a packet is received, namely after the DMA operation was completed and potentially the DMA access revoked. In such a case,
+a correct use of the DMA API should thwart the attack outlined in Sec.~\ref{sec:shinfo_exploit} (Fig.~\ref{fig:sh_info}). Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes by the NIC. But, as we demonstrate, DMA access is often easily achievable even after the CPU has made its changes. 
 
-We next describe how the time window is attainable via three different paths as illustrated in Fig.~\ref{fig:road_to_op}. 
+We next describe how the time window is attainable via three different paths as illustrated in Fig.~\ref{fig:road_to_op}: 
 
-\adam{why is this an enumerations?}\SV{added reference to figure 8...}
+%\adam{why is this an enumerations?}\SV{added reference to figure 8...}
 
 \begin{enumerate}[label=(\roman*),wide, labelwidth=!, labelindent=0pt]
 
@@ -153,7 +155,7 @@ There are multiple ways in which a malicious NIC device can initiate a TX flow o
     \item A cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device.\footnote{Indeed, Google's OpenTitan~\cite{opentitan} exemplifies that cloud providers actively worry about root of trust for their servers.}
     \item Packet forwarding is enabled on the server.
 \end{enumerate}
-\adam{the previous sentence comes out of nowhere. add a sentence explaining the high-level idea of using a user-level process etc. The current sentence about spoofing a malicious packet isn't comprehensible.}\sout{another type of accomplice}\adam{this sounds like willingful co-operation, i.e., attacker-controlled. And that's not the intent}\SV{Rewritten. Better?} 
+%\adam{the previous sentence comes out of nowhere. add a sentence explaining the high-level idea of using a user-level process etc. The current sentence about spoofing a malicious packet isn't comprehensible.}\sout{another type of accomplice}\adam{this sounds like willingful co-operation, i.e., attacker-controlled. And that's not the intent}\SV{Rewritten. Better?} 
 Since a NIC has READ access to the \shinfo{} of a TX packet, this also provides the NIC with READ access to the \texttt{frags} (Fig.~\ref{fig:payload}) array of \shinfo{}. This array contains \page{} pointers, and thus both leaks kernel pointers that allow the attacker to compromise KASLR, and provides the PFNs of specific pages containing the data; pages, the device has READ access to.
 
 %\st{Assuming an unprivileged accomplice (witing or unwitting) can open a UDP/TCP socket in user space, this user can transmit a poisoned ROP buffer. For a ROP attack (where the kernel text offset is required), the NIC spoofs an RX packet with the poisoned ROP stack to the accomplice, which in turn is sent back as a TX packet. Once an accomplice sends the packet,}
@@ -161,7 +163,7 @@ Since a NIC has READ access to the \shinfo{} of a TX packet, this also provides 
 
 Once the content of the malicious buffer is echoed (e.g., via one of the aforementioned methods), the device can execute a code injection attack in 4 steps:  
 %
-\begin{enumerate}
+\begin{enumerate}[labelindent=3pt]
     \item The TX \data{} and the fragments are mapped for the NIC to read.
     \item The NIC spoofs an RX packet and delays the completion notification of the TX packets (so that the \mabaf{} will not be released prematurely).
     \item The NIC identifies the poisoned buffer and translates \page{} to \kva{} (Sec.~\ref{sec:kaslr}).
@@ -174,8 +176,8 @@ Once the content of the malicious buffer is echoed (e.g., via one of the aforeme
 In this scenario, the attacker does not require prior knowledge regarding the physical setup since the \kva is provided by the echo buffer.  
 
 %\noindent\textbf{Timing concerns.} 
-\textcolor{violet}{Note that an attacker will need to delay the TX completion of the echoed buffer to make sure the contents are unchanged until the ROP/JOP attack is executed.
-And a} TX completion event that fails to appear in due time will trigger a TX T/O error that flushes all buffers and resets the driver. The T/O is set by the driver usually to a few seconds, which is sufficient to complete the attack.
+Note that an attacker will need to delay the TX completion of the echoed buffer to make sure the contents are unchanged until the ROP/JOP attack is executed.
+And a TX completion event that fails to appear in due time will trigger a TX T/O error that flushes all buffers and resets the driver. The T/O is set by the driver usually to a few seconds, which is sufficient to complete the attack.
  
 
 

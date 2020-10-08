@@ -133,8 +133,8 @@ Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which 
 
 This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. To this end, we first categorize the four types of sub-page vulnerability, providing insight into the structure of DMA vulnerabilities. Then, to exploit these vulnerabilities, we present a schema for identifying viable attacks by malicious DMA capable devices. Specifically, we identify a set of three vulnerability attributes which are sufficient to mount code injection attacks. 
 
-We then build analysis tools that detect potentially hazardous sub-page vulnerabilities and analyze the Linux kernel. \adam{so what? at this point it's not clear why this is a problem. Suggest saying explicitly that these pointers can be overwritten by a device to hijack kernel control flow}.
-\textcolor{violet}{We find that 72\% of the device drivers expose sensitive callback pointers which may be overwritten by a device to hijack kernel control flow.}
+We then build analysis tools that detect potentially hazardous sub-page vulnerabilities and analyze the Linux kernel. 
+We find that 72\% of the device drivers expose sensitive callback pointers which may be overwritten by a device to hijack kernel control flow.
 
 Aided by the output of the tools, we demonstrate novel code injection attacks on the Linux kernel.
 Specifically, while all previously reported attacks are \emph{single-step}, i.e., with the vulnerability attributes present in a single page, 
