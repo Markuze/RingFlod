@@ -1,20 +1,3 @@
-\section{Threat Model}\label{sec:threat_model}
-\textcolor{green}{move to 4.1}
-
-Our attacks are designed with the following assumptions:
-\begin{enumerate}
-    \item We assume the existence of a malicious DMA-capable device attached to the system.
-    \item The actual attack is performed solely by the DMA-capable malicious device.
-    \item Any hardware aside from the specific malicious device is working as expected.
- \end{enumerate}
-
-\SV{remove?}
-The most significant potential consequence of our attacks is privilege escalation, which allows attackers to execute arbitrary code with kernel privileges. Indeed, this is the focus of our paper. 
-%
-Another potential consequences of our findings one may consider is a full system memory dump
-%. These are harder to thwart and even harder to detect. Lastly, a consequence of a possible failed attack is 
-or a random memory corruption, resulting in a denial of service~\cite{MMT16}. 
-%Clearly, malformed devices should not be able to crash the entire system. 
 
 \section{Organizing DMA Risks}\label{sec:dma-risks}
 %In this section we organize and categorize the risks associated with DMA operations.
@@ -24,8 +7,60 @@ or a random memory corruption, resulting in a denial of service~\cite{MMT16}.
 %We also discuss dangerous trade-offs and discuss the threat model.
 \adam{similar comment to intro: not clear what this trifecta means on top of the first categorization}
 \textcolor{violet}{In this section we organize and categorize the risks associated with DMA operations, providing the building blocks for reasoning about code-injection attacks.
-In particular, we first categorise the different \subpage{} vulnerabilities into four categories.
-Then, we identify a set of three vulnerability attributes that make it possible for a malicious device to exploit a \subpage{} vulnerability and execute a viable code injection attack.}
+In particular, we first present our threat model. Then, we categorise the different \subpage{} vulnerabilities into four categories.
+Finaly, we identify a set of three vulnerability attributes that make it possible for a malicious device to exploit a \subpage{} vulnerability and execute a viable code injection attack.}
+
+\subsection{Threat Model}\label{sec:threat_model}
+Our organization of DMA risks in this section reveals that the Linux kernel is vulnerable to various high impact attacks.
+For example, a full memory dump is possible, when an attacker is able to modify data pointers before they are mapped, causing the driver to map arbitrary kernel addresses.
+Alternatively, a malicious device can corrupt random memory regions~\cite{MMT16} resulting in a denial of service attack (DOS).
+
+
+Nevertheless, the most significant potential consequence of our attacks is privilege escalation via code injection, which allows attackers to execute arbitrary code with kernel privileges. Indeed, this is the focus of our paper. 
+Our attacks are designed with the following assumptions:
+\begin{enumerate}
+    \item We assume the existence of a malicious DMA-capable device attached to the system.
+    \item The actual attack is performed solely by the DMA-capable malicious device.
+    \item Any hardware aside from the specific malicious device is working as expected.
+ \end{enumerate}
+
+
+%However other high impact attacks may still be viable with only part of the vulnerability attributes. 
+%For example, a full memory dump. 
+
+%\textcolor{green}{In this scenario, an attacker is able to modify the kernel control flow in such a way as to cause it to map arbitrary kernel addresses. Given write access to an I/O scatter-gather list, a malicious device can control which memory pages are mapped by the CPU to the device.}
+
+
+
+%This would result in a full memory dump or a random memory corruption, resulting in a denial of service~\cite{MMT16}. 
+
+\adam{this subsection is very short and hard to follow, why is it needed? suggest expanding or deleting}
+
+%
+%
+%Another potential consequences of our findings one may consider is a full system memory dump
+%. These are harder to thwart and even harder to detect. Lastly, a consequence of a possible failed attack is 
+%or a random memory corruption, resulting in a denial of service~\cite{MMT16}. 
+%Clearly, malformed devices should not be able to crash the entire system. 
+%
+%
+%
+%
+% \subsection{\textcolor{red}{Other attacks - Integrate?}}
+% \textcolor{green}{Move to Threat model and Fix}
+% The focus of our work is on code injection attacks as they often have a much higher value for the attacker (e.g., get access to sensitive machines and data). 
+% However other high impact attacks may still be viable with only part of the vulnerability attributes. 
+% For example, a full memory dump.
+% %The MMO schema can be extended  for additional vulnerability analysis. For example, other high impact attacks, such as a full memory dump, may still be viable with only \means and \oportunity{} given.
+% %KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage.
+% %Both attack types use type (d) vulnerability to compromise KASLR. KASLR is designed to stop code injection attacks. This indeed holds as long as kernel pointers are not leaked, an assumption that is not valid for DMA capable devices. For example, an OS leaks kernel pointers to a NIC, on pages containing small TX buffers. A malicious NIC can even spoof seemingly legitimate packets (e.g., ARP, ICMP, ICMPv6) to trigger kernel pointer leakage. \textcolor{olive}{We demonstrate the risks associated with type (d) vulnerability in Sec.~\ref{fig:dkasan-report}.}
+% In this scenario, an attacker is able to modify the kernel control flow in such a way as to cause it to map arbitrary kernel addresses. Given write access to an I/O scatter-gather list, a malicious device can control which memory pages are mapped by the CPU to the device. This would result in a full memory dump.\adam{this subsection is very short and hard to follow, why is it needed? suggest expanding or deleting}
+%\adam{description isn't clear: it's modifying control-flow, so is it a code injection attack?} 
+%In order to achieve this, an attacker needs to modify a kernel pointer once before it is mapped and, for a second time before send (i.e., TX) completion in order to avoid memory corruption (Sec.~\ref{sec:linux_net}). 
+
+%We demonstrate in Section~\ref{sec:linux_net}, how an adversary can take advantage of \emph{deferred} mode.
+
+
 
 \subsection{Sub-Page Vulnerabilities}\label{sec:subpage}
 

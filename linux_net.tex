@@ -102,7 +102,9 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
 
 %In this section we discuss the Linux network stack where \shinfo is initialized \emph{after} the page was unmapped, thus invalidating the malicious changes.
 \textcolor{violet}{Upon packet arrival on a receive path, an \shinfo struct is initialised after a packet is received, namely after the DMA operation was completed and potentially the DMA access revoked.} In such a case,
-a correct use of the DMA API should thwart the attack outlined in Sec.~\ref{sec:shinfo_exploit} (Fig.~\ref{fig:sh_info}). Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated. But as we demonstrate, DMA access is often easily achievable even after the CPU has made its changes\textcolor{green}{, as the flow chart in Fig.~\ref{fig:road_to_op} shows - Full sentance}. 
+a correct use of the DMA API should thwart the attack outlined in Sec.~\ref{sec:shinfo_exploit} (Fig.~\ref{fig:sh_info}). Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes the NIC may have perpetrated. But as we demonstrate, DMA access is often easily achievable even after the CPU has made its changes. 
+
+We next describe how the time window is attainable via three different paths as illustrated in Fig.~\ref{fig:road_to_op}. 
 
 \adam{why is this an enumerations?}\SV{added reference to figure 8...}
 
