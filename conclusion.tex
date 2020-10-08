@@ -1,38 +1,88 @@
 
 
-\section{Discussion and Conclusions}
+\section{Discussion}
+%\section{Discussion and Conclusions}
 
 \adam{consider separating discussion (the API talk, proposed defenses) into its own section, and have Conclusions for the summary and meta discussion.}
 
-Once a malicious device exists, launching a DMA attack boils down to connecting the device to an external port and only for a few seconds. Furthermore, recent leaks from clandestine agencies show that they have attacked by both shipping infected hardware~\cite{Gal14} and connecting external malicious devices~\cite{Fin14}. Namely, no DMA attack could work without the unintentional exposure of restricted fields.\adam{huh? how is the former sentence connected to what comes before it?}
+Once a malicious device exists, launching a DMA attack boils down to connecting the device to an external port and only for a few seconds. Furthermore, recent leaks from clandestine agencies show that they have attacked by both shipping infected hardware~\cite{Gal14} and connecting external malicious devices~\cite{Fin14}. 
+
+
+\subsection{API}
+
+As we demonstrate in this paper, the blame is not with the device drivers alone. Rather, more often it is the OS design choices that open up the system to DMA attacks. With the existing API used for I/O operations and due to performance considerations, it is extremely difficult not to create a \subpage{} vulnerability that can be later exploited. Thus, even well-written drivers can be subverted by the OS (e.g., bnx2 by deferred protection). Examples to this include:
+
+%\begin{enumerate}
+    %\item API: 
+    \begin{itemize}[wide, labelwidth=!, labelindent=3pt]
+        \item The \textit{dma\_map\_single} call accepts a pointer and the buffer length. This API insinuates that only the mapped bytes are exposed, when, in fact, the whole page is accessible.
+        \item \textit{dma\_unmap\_single}, insinuates that the buffer is not accessible to the device after the call. This does not hold both due to deferred protection and type (c) \subpage{} vulnerabilities.
+        \item \textit{build\_skb} facilitates building an \skb{} around an arbitrary I/O buffer, in turn, embedding critical data structures inside an I/O buffer.
+        \item While \texttt{page\_frag} is an efficient allocator, it inherently creates a type (c) \subpage{} vulnerability.
+    %\end{itemize} 
+    %\item Tools/Infrastructure: 
+    %\begin{itemize}[wide, labelwidth=!, labelindent=0pt]
+            \item \texttt{page\_pool} API, by caching I/O buffers and avoiding expensive unmaps, the drivers \emph{circumvent} the security techniques of the OS. 
+            \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) \subpage{} vulnerabilities imposes a challenge.
+    \end{itemize}
+%\end{enumerate}
+
+%\subsection{Discussion}
+%We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers.
+
+\subsection{Conclusion}
+
+By introducing and demonstrating \compound{} attacks on the Linux kernel, we have shown that IOMMU, as it is used today, is not sufficient to protect the OS against DMA attacks.
+
+The success of a DMA attacks relies on the exposure of restricted meta-data fields caused by \subpage{} vulnerability. 
+To prevent such exposure previous works have proposed separating the I/O memory from CPU memory~\cite{MSMT18}, by providing a separate allocator for networking. 
+Nevertheless, this API can be easily thwarted by device drivers via functions such as \texttt{build\_skb} that add a vulnerable \shinfo into an I/O region. 
+Moreover, these solutions are focused solely on network devices leaving out the system unprotected against other DMA capable devices such as FireWire, USB C, NVMe and more.
+
+%%%%%%%%%
+%%%%%%%%%%
+%%%%%%%%%
+%%%%%%%%%%
+
+To achieve a better DMA security in future OSes, a possible direction is to consider the segregation of I/O memory from OS memory. 
+Alternatively, to prevent the existence of sensitive meta-data on I/O pages, we propose to open-source and offer, as a first step, \tool{} and \dkasan{} to be used at the development and deployment stages to validate the security of the system. 
+
+
+%We contend that there are two avenues which need to be followed concurrently in order to achieve DMA security.
+%\begin{itemize}
+%    \item Segregating all I/O memory from OS memory.
+%    \item Enforcing Memory segregation. in order to prevent the existance of meta-data on I/O pages. For this purpose we propose \tool and \dkasan.
+%\end{itemize}
+
+ 
+
+%Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we propose using solely non-linear RX buffers (i.e., multiple I/O buffers), which is supported by many device drivers. 
+
+%We suggest against the use of pointer obfuscation, similarly to MacOS, as such solutions can provide a false sense of security. Providing unwarranted access to a malicious device opens up the OS to potential \simple and \compound which can't be ruled out.
+
+% Additionally, we urge the use of analysis tools that detects \subpage{} vulnerabilities and offer \tool{} and \dkasan at the development and deployment stages to validate the security of the system.
+
+% Segregating I/O memory from OS memory as proposed by Markuze et al.~\cite{MMT16,MSMT18} is a possible direction towards providing security and performance. 
+
+%\textcolor{green}{A malicious NIC can also corrupt the actual data sent something that can be avoiding with end to end encryption.}
+
+%%%%%%%%%
+%%%%%%%%%%
+%%%%%%%%%
+%%%%%%%%%%
+
+\adam{Reviewers, especially in EuroSys, will probably want to see a proposed API.}
+
+
+%\section{{Early detection of DMA vulnerabilities}}
+%We have demonstrated that due to sub-page vulnerabilities, IOMMU is not sufficient to protect the OS against DMA attacks. 
+
+
 
 \begin{comment}
 \footnote{\url{https://lore.kernel.org/lkml/20180510230948.GF190385@bhelgaas-glaptop.roam.corp.google.com/}}.
 \end{comment}
 
-As we demonstrate in this paper, the blame is not with the device drivers alone, rather, more often it is the OS design choices that open up the system to DMA attacks. With the existing API used for I/O operations and due to performance considerations, it is extremely difficult not to create a \subpage{} vulnerability. Thus, even well-written drivers can be subverted by the OS (e.g., bnx2 by deferred protection). Examples to this include:
-
-\begin{enumerate}
-    \item API: 
-    \begin{itemize}[wide, labelwidth=!, labelindent=0pt]
-        \item The \textit{dma\_map\_single} call accepts a pointer and the buffer length. This API insinuates that only the mapped bytes are exposed, when, in fact, the whole page is accessible.
-        \item \textit{dma\_unmap\_single}, insinuates that the buffer is not accessible to the device after the call. This does not hold both due to deferred protection and type (c) \subpage{} vulnerabilities.
-        \item \textit{build\_skb} facilitates building an \skb{} around an arbitrary I/O buffer, in turn, embedding critical data structures inside an I/O buffer.
-        \item While \texttt{page\_frag} is an efficient allocator, it inherently creates a type (c) \subpage{} vulnerability.
-    \end{itemize} 
-    \item Tools/Infrastructure: 
-    \begin{itemize}[wide, labelwidth=!, labelindent=0pt]
-            \item \texttt{page\_pool} API, by caching I/O buffers and avoiding expensive unmaps, the drivers \emph{circumvent} the security techniques of the OS. 
-            \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) \subpage{} vulnerabilities imposes a challenge.
-            \item No dedicated allocates for I/O such as proposed in previous works (e.g.,~\cite{MSMT18,MMT16}).
-    \end{itemize}
-\end{enumerate}
-
-We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers.\adam{Reviewers, especially in EuroSys, will probably want to see a proposed API.}\textcolor{green}{Discuss DAMN and mem segregation} Specifically, for \shinfo{}, which is ingrained in the Linux network stack, we suggest the use of pointer \textcolor{green}{obfuscation?} (similarly to MacOS), and solely non-linear RX buffers as an alternative to a new design. 
-
-\textcolor{green}{A malicious NIC can also corrupt the actual data sent something that can be avoiding with end to end encryption.}
-\subsection{\textcolor{red}{Early detection of DMA vulnerabilities}}
-We have demonstrated that due to sub-page vulnerabilities, IOMMU is not sufficient to protect the OS against DMA attacks. Segregating I/O memory from OS memory as proposed by Markuze et al.~\cite{MMT16,MSMT18} is a possible direction towards providing security and performance. Additionally, we urge the use of analysis tools that detects \subpage{} vulnerabilities and offer \tool{} and \dkasan at the development and deployment stages to validate the security of the system.
 %\smallskip
 %\textcolor{olive}{Its important to note, that while our static analysis tool is able to flag potential \simple vulnerabilities fairly easily; the tool has trouble \compound attacks, due to the complexity of the kernel. This work also does not claim to cover all possible \compound attacks, and only provides a glimpse at the possible. Several attacks we have considered, but were not able to implement. We could modify the \emph{accomplice} attack, in a way that the user send a callback pointer in user space instead of a ROP attack, this attack unfortunately doesn't work due to Kernel smep/smap defences. Another attack; can exploit attempt exploiting ICMP packets. In the ICMP code we have noticed that RX skbs can be reused as TX skbs in ICMP replies. Eventually, we couldnt generate a flow that fill force such a reuse; this might just be because of lack of trying on our part. Forcing such a scenario is helpful to an attacker, with write access to \shinfo{}, for a TX packet can create a scenario allowing a memory dump just like we have shown.... :(- All Ive got... }
 
