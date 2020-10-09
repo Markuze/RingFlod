@@ -3,7 +3,7 @@
 In Sec.~\ref{sec:static-analysis}, we have shown that more than 70\% of DMA-map operations result in exposed pointers. 
 %Exposed pointers may be used in a DMA attack either passively to subvert KASLR or actively to execute an attack. 
 Most of the remaining 30\% DMA-map operations are executed on allocated objects that are presumably not co-located on the same page with vulnerable meta-data. However, this is often not the case in practice.
-Indeed, objects allocated via the kmalloc API~\cite{Cor07} may share a page with objects of similar size. As a result, vulnerable metadata may still be inadvertently mapped. 
+Indeed, objects allocated via the kmalloc API~\cite{Cor07} may share a page with objects of similar size. As a result, vulnerable metadata may still be mapped. 
 %
 Such a vulnerability is not visible to \tool as it is of a dynamic nature. Accordingly, we have developed a run-time tool that reports such vulnerabilities. 
 
