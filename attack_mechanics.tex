@@ -16,7 +16,7 @@ For example, a full memory dump is possible when an attacker can modify data poi
 Alternatively, a malicious device can corrupt random memory regions~\cite{MMT16} resulting in a denial of service attack (DOS).
 
 
-Nevertheless, the most significant potential consequence of our attacks is privilege escalation via code injection, allowing attackers to execute arbitrary code with kernel privileges. Indeed, this is the focus of our paper. 
+Nevertheless, the most significant potential consequence is privilege escalation via code injection, allowing attackers to execute arbitrary code with kernel privileges. Indeed, this is the focus of our paper. 
 Our attacks are designed with the following assumptions:
 \begin{enumerate}
     \item We assume the existence of a malicious DMA-capable device attached to the system.
@@ -65,7 +65,7 @@ Our attacks are designed with the following assumptions:
 \subsection{Sub-Page Vulnerabilities}\label{sec:subpage}
 
 %\adam{start with a sentence defining what a subpage vuln is (IO buffer co-located with data)}
-Anytime an I/O buffer that is smaller than a page is DMA-mapped all additional information that resides on the same physical page becomes accessible to the device. Any such situation where a memory-region is inadvertently exposed to the device due to the IOMMU page granularity is called a \subpage vulnerability.
+Anytime an I/O buffer smaller than a page is DMA-mapped all additional information that resides on the same physical page becomes accessible to the device. Any such situation where a memory-region is exposed due to the IOMMU page granularity is called a \subpage vulnerability.
 
 We classify the different types of \subpage vulnerability into four categories as illustrated in Fig.~\ref{fig:colocation}:
 
@@ -76,8 +76,7 @@ We classify the different types of \subpage vulnerability into four categories a
     %A seemingly benign case, made dangerous by the fact that unmapping one \iova{} is meaningless, security-wise. 
     In this case, unmapping one \iova will not stop the device from accessing the page through a different \iova.
     The device will retain access to the physical page as long as a single valid \iova{} exists.
-    \item[(d)] The I/O buffer and a different, dynamically allocated memory buffer may coincidentally share a page. This common situation results in data leakage (e.g., kernel pointers). Currently, the Linux kernel uses the same memory allocation mechanism (e.g., kmalloc) for both I/O buffers and regular kernel buffers. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works in page granularity, the respective I/O devices gain access to these kernel buffers as well. This is a subclass of (b), as an OS subsystem causes it, but the main difference is that the exposed data structures are leaked randomly.
-
+    \item[(d)] The I/O buffer and a different, dynamically allocated memory buffer may coincidentally share a page. This common situation results in data leakage (e.g., kernel pointers). Currently, the Linux kernel uses the same memory allocation mechanism (e.g., kmalloc) for both I/O buffers and regular kernel buffers. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works in page granularity, the respective I/O devices gain access to these kernel buffers. Such vulnerability is a subclass of (b), as an OS subsystem causes it, but the main difference is that the exposed data structures are leaked randomly.
 \end{enumerate}
 %\adam{what does point (c) have to do with sub-page vulns? It seems generic, and indeed, it doesn't talk about any co-location.}\SV{Type C is key to gaining opportunity in \compound attacks, we've fixed the first paragraph to fit better.}
 
@@ -99,15 +98,15 @@ metadata; (c) a page mapped by multiple \iova; (d) randomly co-located sensitive
 
 We introduce a schema that allows for a systematic analysis of code-injection attacks by DMA-capable devices.
 %to categorizes DMA vulnerabilities. The goal of MMO is to define building blocks for reasoning about DMA attacks.
-To execute a successful privilege escalation attack (i.e., code injection), a malicious device needs the following set of three vulnerability attributes:
+For a successful privilege escalation attack (i.e., code injection), a malicious device needs the following set of three vulnerability attributes:
 \begin{enumerate}
     \item The \kva{} of a kernel buffer filled with malicious code (e.g., a ROP attack). Given the device is using \iova, the attacker needs to obtain the buffer's \kva{}, for example, by observing leaked pointers. 
     \item Write access to a function callback pointer, which can alter the CPU control flow and cause it to execute the malicious code. For example, write access to a data structure that holds a function callback pointer at a known offset.\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation~\cite{rand_layout}.} The location on the page of the callback pointer must be known to the device.
     %\item There exists a time window such that modifying the function pointer during that time window is followed by the CPU reading the pointer without previously altering its content.
-    \item There exists a time window such that the device can modify the callback pointer during that window and the CPU will subsequently jump to the pointed code (before the pointer gets overwritten, if it is ever overwritten).
+    \item A time window exists such that the device can modify the callback pointer during that window and the CPU will subsequently jump to the pointed code (before the pointer gets overwritten, if it is ever overwritten).
 \end{enumerate}
 
-To further emphasize the significance of these attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing a received (RX) packet. Due to a \subpage{} vulnerability and a random allocation coincidence (Fig.~\ref{fig:colocation}, type (d)), a structure with a callback pointer is inadvertently write-accessible to a malicious device. Also, the device is able to create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks the following:
+To further emphasize the significance of these attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing a received (RX) packet. Due to a \subpage{} vulnerability and a random allocation coincidence (Fig.~\ref{fig:colocation}, type (d)), a structure with a callback pointer is inadvertently write-accessible to a malicious device. Also, the device can create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks the following:
 
 \begin{itemize}
     \item Without a valid \kva{} of the writable page, the device cannot modify the callback function pointer to indicate the \mabaf.

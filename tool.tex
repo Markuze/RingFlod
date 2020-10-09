@@ -73,7 +73,7 @@ We devise a static code analysis tool that performs Sub-Page Analysis for DMA Ex
 
 \tool is implemented in $\approx$2000 lines of Perl 5 code. It utilises \texttt{pahole}~\cite{dwarves} to explore the compiled binaries for the layout of the exposed data structures. Pahole is a tool that uses the DWARF~\cite{dwarf} standardized debugging data format to examine data structure layout. To navigate the kernel code \tool utilises Cscope~\cite{cscope,cscope_92} which is an open source tool for browsing C source code.
 
-\tool is applicable to any kernel code written in C. We intend to make the \tool publicly available for benefit of the research community.
+\tool is applicable to any kernel code written in C. We intend to make the \tool publicly available for the benefit of the research community.
 
 %\adam{general comment: this is really short and makes the tool look trivial. Even if it's indeed trivial, isn't there anything interesting to say about it?}\SV{changed the title to reflect that it is only a high level description and edited the text.}
 
@@ -102,7 +102,7 @@ We devise a static code analysis tool that performs Sub-Page Analysis for DMA Ex
 %\adam{shouldn't this section come after the Design section, before discussing the results?}\SV{Done}
 For each DMA-mapping call, \tool outputs the line numbers of relevant declarations, function calls, and assignments, allowing for a human expert to trace back and validate the vulnerability. We present an example output of a vulnerability found in the NVMe host driver in Fig.~\ref{fig:tool_example}.
 
-The output starts from the impact evaluation, and continues with pertinent code lines. %\sout{Starred lines contain script analysis}.
+The output starts from the impact evaluation and continues with pertinent code lines. %\sout{Starred lines contain script analysis}.
 %\adam{what is script analysis? Who said anything about a script?}. 
 In Fig.~\ref{fig:tool_example}, line 7 tells us that a single callback pointer is mapped in the mapped \texttt{nvme\_fc\_fcp\_op} data structure (i.e., \texttt{fcp\_req.done}) and line 8 tells us that it is possible to spoof another 931 callback pointers.
 %by rewriting contained pointers to data structures that contain other callback pointers.
@@ -114,7 +114,8 @@ analysing 1019 dma\_map\_single calls over 447 files. We present the results in 
 We find 156 cases in which device drivers inadvertently expose callback pointers. Of these, 54 are cases where the pointers are exposed directly, and the rest are cases where callback pointers can be spoofed.\footnote{In this case, spoofing means replacing this pointer to indicate an instance of the structure created by the device, with its own callback pointers.}
 We find that 13\%~(line 1 in Fig.~\ref{fig:tool_example}) of the drivers expose data structures via type (a) vulnerability whereas 60\%~(lines 2,7 in Fig.~\ref{fig:tool_example}) expose data structures via type (b) vulnerabilities. Namely, 13\% are vulnerable due to driver bugs and 60\%~ of drivers are vulnerable due to OS design choices. In addition to type (a) and (b) vulnerabilities, \tool has flagged 344 cases where type (c) vulnerability is present. Our analysis also finds three instances where the stack pointer is mapped, potentially simplifying the execution of a ROP attack.
 
-We dedicate special attention to struct \shinfo, which is used ubiquitously in Linux networking. This data structure is \textit{always} located on the same page as the \texttt{skb->data}, and it also contains a callback pointer. We discuss the vulnerabilities related to \shinfo in Sec.~\ref{sec:linux_net}. We find that more than 50\% of the dma-map calls either directly mapp the \texttt{skb->data} or use the \texttt{build\_skb} API (lines 2 \& 7 in Table ~\ref{tab:static_analysis}), which exposes \shinfo. The OS provides this data structure layout and API rather than it being an isolated driver bug. Additionally, we find 19 data structures that are exposed via APIs that store \texttt{private} data structures on the same page as vulnerable meta-data, e.g., netdev\_priv, aead\_request\_ctx and scsi\_cmd\_priv.
+We dedicate special attention to struct \shinfo, which is used ubiquitously in Linux networking. This data structure is \textit{always} located on the same page as the \texttt{skb->data}, and it also contains a callback pointer. We discuss the vulnerabilities related to \shinfo in Sec.~\ref{sec:linux_net}. We find that more than 50\% of the dma-map calls either directly map the \texttt{skb->data} or use the \texttt{build\_skb} API (lines 2 \& 7 in Table ~\ref{tab:static_analysis}), which exposes \shinfo. The OS provides this data structure layout and API rather than it being an isolated driver bug. Additionally, we find 19 data structures that are exposed via APIs that store \texttt{private} data structures on the same page as vulnerable meta-data, e.g., netdev\_priv, aead\_request\_ctx and scsi\_cmd\_priv.
+
 
 %\adam{flip the order of this paragraph. Start with the general findings (from the previous sentence and until the end of the paragraph, and then talk about shinfo, making it look like you discovered it by analyzing the tool's output. The current layout looks weird.} \SV{Done}
 

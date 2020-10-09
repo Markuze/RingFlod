@@ -5,20 +5,19 @@
 %\adam{I'd retitle this section: it is about kernel design flaws to enable getting Motive, Means, and Opportunity}
 
 %So far, we have demonstrated a \simple attack by exploiting type (a) \subpage vulnerability of the FireWire driver. 
-In this section we explore new attacks on the Linux network stack where the vulnerability attributes are initially missing but are attainable via compound steps.
+This section explores new attacks on the Linux network stack where the vulnerability attributes are initially missing but are attainable via compound steps.
 We focus on the Linux network stack which initially seems secure~\cite{thunder}.
-But, as we demonstrate, the Linux network stack is actually responsible for 60\% of DMA vulnerabilities we have found.
+Nevertheless, as we demonstrate, the Linux network stack is actually responsible for 60\% of DMA vulnerabilities we have found.
 
 Recall that, once we have discovered a \subpage{} vulnerability, our goal is to obtain the three vulnerability attributes (Sec. \ref{sec:mmo}: (1) a KVA, (2) a callback pointer and, (3) timing). 
 Accordingly, in Sec.~\ref{sec:shinfo_exploit}, we first describe how to obtain (2) a callback function pointer. Then, in Sec.~\ref{sec:timely}, we show that (3) a time window for exploiting this pointer is available. 
-While these two step for obtaining vulnerability attributes (2) and (3) are generic, there are different recipes for how to obtain the remaining vulnerability attribute (1), i.e., the KVA of the malicious buffer exposes via the \subpage{} vulnerability. 
+While these two steps for obtaining vulnerability attributes (2) and (3) are generic, there are different recipes for how to obtain the remaining vulnerability attribute (1), i.e., the KVA of the malicious buffer exposes via the \subpage{} vulnerability. 
 We complete the vulnerability attributes in Sec.~\ref{sec:ringflod} and Sec.~\ref{sec:posion} by showing different ways (by which we also name the compound attack) to obtain (1) the KVA.
 
 
 
 Due to space limitations we demonstrate only selected compound DMA attacks. 
-Upon the publication of our work we aim at releasing extended material including evaluation scripts as well as additional \compound and previously unknown \simple attacks found by our tools.
-
+Upon the publication of our work, we aim to release extended material, including evaluation scripts and additional \compound and previously unknown \simple attacks found by our tools.
 %\sout{We first describe the vulnerable data structures shared by \emph{all} Linux network drivers, which exposes a callback pointer. Then, after providing some necessary technical background (Sec.~\ref{sec:deferred}), we show how that the device is often provided with a timing window during which a modified callback pointer will be executed by the CPU~(Sec.~\ref{sec:shinfo}). Finally, we discuss various methods to identify kernel virtual addresses of pages containing malicious code (Sec.~\ref{sec:ringflod} and~\ref{sec:posion}).}
 %In the interest of space, additional methods for gaining \motivation are deferred to Appendix~\ref{appx:additional_compound}.
 
@@ -51,7 +50,7 @@ Fig.~\ref{fig:sh_info} depicts how a malicious device can mount an attack using 
     %\adam{how does this work? you overwrite a pointer to a callback function, not to the stack pointer.}\SV{a JOP attack, aslo mentioned in 2.4}
     \item when the \skb{} is released, the callback is invoked.
 \end{enumerate}
-To expand this scenario into a complete attack, the attacker must obtain all three vulnerability attributes. That is, the attackers needs the actual \kva{} of the \mabaf{} and the NIC must have a timely WRITE access to the page. In the next subsection, we demonstrate how an attacker can leverage standard OS behavior to obtain both missing vulnerability attributes.
+To expand this scenario into a complete attack, the attacker must obtain all three vulnerability attributes. The attacker needs the actual \kva{} of the \mabaf{} and the NIC must have a timely WRITE access to the page. In the next subsection, we demonstrate how an attacker can leverage standard OS behavior to obtain both missing vulnerability attributes.
 
 \begin{figure}[t]
     \centering
@@ -62,25 +61,24 @@ To expand this scenario into a complete attack, the attacker must obtain all thr
 
 \subsection{Existence of a Time Window}\label{sec:timely}
 To reason about the existence of an appropriate time window for altering the callback pointer, we first discuss the Linux default mode for IOTLB invalidation, which is known as a security vulnerability\cite{MMT16,MSMT18}.
-In particular, in Sec.~\ref{sec:deferred} we present the issue of deferred invalidation. Then, in Sec.~\ref{sec:shinfo} we discuss the multiple means by which an attacker can gain a timely access to \shinfo.
+In particular, in Sec.~\ref{sec:deferred} we present the issue of deferred invalidation. Then, in Sec.~\ref{sec:shinfo} we discuss the multiple means by which an attacker can gain timely access to \shinfo.
 
 \subsubsection{Deferred Invalidation Vulnerability}\label{sec:deferred}
+The IOTLB is analogous to the MMU TLB. The IOMMU does not maintain consistency between the IOTLB and the IOMMU page tables. As a result, the OS has to explicitly invalidate the IOTLB to maintain consistency when a translation entry is removed. Namely, to ensure that the IOTLB never holds stale entries, the OS must invalidate the IOTLB entry immediately after removing a DMA mapping. 
 
-To limit the overhead of multiple memory accesses when translating \iova{} using page tables, the IOMMU caches translations in an I/O translation lookaside buffer (IOTLB). 
+This scheme, called \emph{strict} mode in Linux, can degrade performance due to the overhead of IOTLB invalidations following each I/O operation ~\cite{MMT16,MSMT18,Peleg15}. In I/O intensive workloads, the combined cost of IOTLB invalidations can be prohibitively high. The overhead of each IOTLB invalidation can be as high as 2000 cycles~\cite{ABYTS11}. This overhead is considerably higher than a TLB invalidation, which takes roughly 100 cycles~\cite{Han14}. 
 
-The IOTLB is analogous to the MMU TLB. The IOMMU does not maintain consistency between the IOTLB and the IOMMU page tables. As a result, the OS has to explicitly invalidate the IOTLB to maintain consistency when a translation entry is removed. Namely, to ensure that the IOTLB never holds stale entries, the OS must invalidate the IOTLB immediately after it removes DMA mappings. 
+To reduce this overhead, Linux uses deferred mode as a default. Linux defers specific IOTLB invalidations and instead performs periodic global IOTLB invalidations. While this \emph{deferred} mode improves I/O performance, it also breaks the stipulation that after unmapping (e.g., \texttt{dma\_unmap\_page}), the physical page should no longer be accessible by the device. This \emph{deferred} time frame (Fig.~\ref{fig:deferred}) may be as high as 10 milliseconds~\cite{MSMT18}.
 
-Yet, this scheme, called the \emph{strict} mode in Linux, can degrade performance, as IOTLB invalidations induce very high overhead~\cite{MMT16,MSMT18,Peleg15}. In I/O intensive workloads, the number of required IOTLB invalidations can be extremely high, as IOMMU entries are unmapped following each I/O operation. Moreover, the overhead of each IOTLB invalidation can be as high as 2000 cycles~\cite{ABYTS11}. This is considerably higher than a TLB invalidation, which takes roughly 100 cycles~\cite{Han14}. 
-
-To reduce this overhead, Linux defers IOTLB invalidations by default and instead performs periodic global IOTLB invalidations. While this \emph{deferred} mode improves I/O performance, it also breaks the stipulation that after unmapping (e.g., \texttt{dma\_unmap\_page}), the physical page should no longer be accessible by the device. This \emph{deferred} time frame (Fig.~\ref{fig:deferred}) may be as high as 10 milliseconds~\cite{MSMT18}.
-
-The repercussions of \emph{deferred} mode are that a malicious device can take advantage of this time window, where it has access to memory pages, effectively, unbeknownst to the CPU. This opens up two distinct attack options:
+The repercussions of \emph{deferred} mode are that a malicious device can take advantage of this time window, where it has access to memory pages unbeknownst to the CPU. \emph{deferred} mode opens up two distinct attack options:
 
 \begin{enumerate}[labelindent=0pt]
     \item A device can alter data structures that the CPU has modified \emph{after} unmapping (e.g., calling \texttt{dma\_unmap\_page}).
     \iova{} mappings, as a rule, are short-lived as they should be used only for the duration of I/O, usually for a few microseconds. The additional milliseconds provide the attacker with a wide time window sufficient to conduct its attack.
-    \item The page can be freed and then immediately reused by the OS. This is a common scenario, as Linux reuses \emph{hot} pages (i.e., recently used pages), as they are likely to already reside in the CPU caches~\cite{hotcold}. In turn, this opens up the kernel to additional random access attacks.
+    \item The page can be freed and then immediately reused by the OS. ?Fast reuse is a common scenario, as Linux reuses \emph{hot} pages (i.e., recently used pages), as they are likely to reside in the CPU caches~\cite{hotcold}. However, this also opens up the kernel to additional random access attacks.
 \end{enumerate}
+
+
 
 \begin{figure}[t]
     \centering
@@ -116,26 +114,26 @@ We next describe how the time window is attainable via three different paths as 
 
 \item Nevertheless, even when the order is correct, i.e., the unmapping of the buffer occurs before the creation of the \skb{}, still \shinfo{} is not safe from later modifications. As the default IOMMU mode in Linux is \emph{deferred} protection (Sec.~\ref{sec:deferred}), the unmap order is made irrelevant. That is, even though the unmap function is invoked in the correct order, the device can still corrupt \shinfo{} due to the IOTLB.  
 
-\item In response, a security-conscious admin may change the default setting to \emph{strict} mode, where the IOTLB is flushed on every unmap. However, this both severely degrades networking performance~\cite{MMT16,MSMT18}, and does not alleviate the security threats on the system. Presumably, with \emph{strict} mode enabled, the \iova{} the NIC used to access that \shinfo{} is no longer valid, which initially sounds promising. The problem is that the device, in many cases, still has legitimate WRITE access to the physical page of the \shinfo. The vulnerability stems from the way \data{} is allocated. An RX \skb{} is almost exclusively allocated via an API (e.g., \texttt{netdev\_alloc\_skb}) that creates a type (c) \subpage{} vulnerability (Fig.~\ref{fig:colocation}(c)). The device can use the \iova{} of a co-located buffer to access the \shinfo{} it requires. Particularly, the buffers of the driver RX ring are allocated sequentially, resulting in pairs of successive RX descriptors that map the same page. Obviously, this holds as long as the buffer sizes are smaller than 4 KB. This is a reasonable assumption since the default MTU size is 1500~B. These allocation functions, use a \texttt{page\_frag} mechanism to allocate the \data{} buffers, which in turn contain \shinfo. The \texttt{page\_frag} is an efficient method for allocating small buffers, often used by the Linux network stack (it is used 344 times by network drivers in Linux kernel 5.0). A \texttt{page\_frag} is initialized by allocating a contiguous memory region (usually 32 KB), setting a \textit{va} pointer to the beginning of the region and \texttt{offset} to the end. An allocation request for \texttt{B} bytes subtracts \texttt{B} bytes from the \texttt{offset} pointer and returns the new value of \texttt{offset}\footnote{In multi-core environments, the \texttt{page\_frag} uses a different buffer for each CPU and each CPU has a single RX ring. As a result, each RX ring is served by its own (per-CPU) contiguous buffer.} (Fig.~\ref{fig:page_frags}). This mechanism for memory allocation results in consecutive \data{} buffers often residing on the same memory page. Due to this type (c) \subpage{} vulnerability, the NIC does not require the invalidated \iova{} to modify the \shinfo. Instead, it can use the \iova{} for the next data buffer.\footnote{Note that the lower 12 bits (the offset on the page) of the \iova{} are identical to the corresponding \kva{} bits.} The device still has write access due to the valid \iova of the next buffer (i.e., the striped area at the end of the page at Fig.~\ref{fig:sh_info}).
+\item In response, a security-conscious admin may change the default setting to \emph{strict} mode, where the IOTLB is flushed on every unmap. However, this both severely degrades networking performance~\cite{MMT16,MSMT18}, and does not alleviate the security threats on the system. Presumably, with \emph{strict} mode enabled, the \iova{} the NIC used to access that \shinfo{} is no longer valid, which initially sounds promising. The problem is that the device, in many cases, still has legitimate WRITE access to the physical page of the \shinfo. The vulnerability stems from the way \data{} is allocated. An RX \skb{} is almost exclusively allocated via an API (e.g., \texttt{netdev\_alloc\_skb}) that creates a type (c) \subpage{} vulnerability (Fig.~\ref{fig:colocation}(c)). The device can use the \iova{} of a co-located buffer to access the \shinfo{} it requires. Particularly, the buffers of the driver RX ring are allocated sequentially, resulting in pairs of successive RX descriptors that map the same page. Obviously, this holds as long as the buffer sizes are smaller than 4 KB. This is a reasonable assumption since the default MTU size is 1500~B. These allocation functions, use a \texttt{page\_frag} mechanism to allocate the \data{} buffers, which in turn contain \shinfo. The \texttt{page\_frag} is an efficient method for allocating small buffers, often used by the Linux network stack (it is used 344 times by network drivers in Linux kernel 5.0). A \texttt{page\_frag} is initialized by allocating a contiguous memory region (usually 32 KB), setting a \textit{va} pointer to the beginning of the region and \texttt{offset} to the end. An allocation request for \texttt{B} bytes subtracts \texttt{B} bytes from the \texttt{offset} pointer and returns the new value of \texttt{offset}. In multi-core environments, the \texttt{page\_frag} uses a different buffer for each CPU and each CPU has a single RX ring. As a result, each RX ring is served by its own (per-CPU) contiguous buffer. (Fig.~\ref{fig:page_frags}). This mechanism for memory allocation results in consecutive \data{} buffers often residing on the same memory page. Due to this type (c) \subpage{} vulnerability, the NIC does not require the invalidated \iova{} to modify the \shinfo. Instead, it can use the \iova{} for the next data buffer.\footnote{Note that the lower 12 bits (the offset on the page) of the \iova{} are identical to the corresponding \kva{} bits.} The device still has write access due to the valid \iova of the next buffer (i.e., the striped area at the end of the page at Fig.~\ref{fig:sh_info}).
 \end{enumerate}
 
 \smallskip
 \noindent\textbf{Our setup.} tg3 and mlx5\_core are both vulnerable. The tg3 driver uses the correct unmapping order, but uses the \texttt{netdev\_alloc\_frag} function that results in a type (c) \subpage{} vulnerability. mlx5\_core driver avoids unmapping the RX buffers altogether. In kernel 5.0, the driver uses a \texttt{page\_pool} mechanism~\cite{page_pool}. These design choices leave \shinfo{} vulnerable, in both cases, regardless of the IOMMU policy (i.e., \emph{deferred} or \emph{strict}).
 
 
-From this point on, we assume that the attacker can always modify the callback pointer. In the next subsections, we demonstrate various compound DMA attacks where an attacker can exploit OS design to obtain the kernel virtual address of buffers containing malicious code completing the trifecta of vulnerabilities.
+From this point on, we assume that the attacker can always modify the callback pointer. In the next subsections, we demonstrate various compound DMA attacks where an attacker can exploit OS design to obtain the kernel virtual address of buffers containing malicious code, completing the trifecta of vulnerabilities.
 
 \subsection{The Ring Flood \Compound{} Attack}\label{sec:ringflod}
-A malicious device can generate a poisoned ROP stack in each RX buffers. At this point, the device still cannot execute a successful code injection attack since it is lacking the corresponding \kva of the RX buffer.
+A malicious device can generate a poisoned ROP stack in each RX buffer. The device still cannot execute a successful code injection attack since it lacks the corresponding \kva of the RX buffer.
 
-The device has all the \iova{} for the RX buffers, but not the \kva{}. In this attack, we take advantage of the fact that the boot process is \emph{deterministic}. Each reboot, the same set of commands is executed in the same order initiating the same kernel modules and starting the same processes. While the pages each module receives may vary in a multi-core environment due to timing issues, we do not expect the drift to be too large. 
+The device has all the \iova{} for the RX buffers, but not the \kva{}. In this attack, we take advantage of the fact that the boot process is \emph{deterministic}. Each reboot, the same set of commands is executed in the same order, initiating the same kernel modules and starting the same processes. While the pages each module receives may vary in a multi-core environment due to timing issues, we do not expect the drift to be too large. 
 
-We evaluate this assumption on our setup running 256 reboots on Ubuntu 18.04 with both kernels 5.0 and 4.15.
-We find that when looking at the mlx5\_core driver, many of the PFNs repeat in more than 50\% percent of reboots on kernel 5.0 and more than 95\% on kernel 4.15.\footnote{The 4.15 driver version allocates much more memory, allocating 64~KB per RX buffer to facilitate the HW LRO feature.} We assume an attacker can gain access to an identical setup, and identify the most common PFN. Therefore, an adversary with knowledge about the physical setup can deduce a valid \kva{} for one of the RX pages containing a \mabaf. This provides the needed \kva. Thus, the trifecta is complete and the malicious device is able to execute the attack as shown in Fig.~\ref{fig:sh_info} (in this case, the \texttt{destructor\_arg} will most likely indicate a different page, but other than that, the attack scenario is unchanged).
+We evaluate this assumption on our setup running 256 reboots on Ubuntu 18.04 with both kernels 5.0 and 4.15. With the mlx5\_core driver, many PFNs repeat in more than 50\% percent of reboots on kernel 5.0 and more than 95\% on kernel 4.15. The 4.15 driver version allocates much more memory, allocating 64~KB per RX buffer to facilitate the HW LRO feature. We assume an attacker can gain access to an identical setup and identify the most common PFN. Therefore, an adversary with knowledge about the physical setup can deduce a valid \kva{} for one of the RX pages containing a \mabaf. This provides the needed \kva. Thus, the trifecta is complete and the malicious device can execute the attack as shown in Fig.~\ref{fig:sh_info} (in this case, the \texttt{destructor\_arg} will most likely indicate a different page, but other than that, the attack scenario is unchanged).
 
 
-The success chances of the RingFlood attack increase with the memory footprint of the device driver. Which ,in turn, depends on the NIC capabilities and the number of cores (number of RX rings) on the server. This means that such attacks have increasing chances of success on larger machines. 
-For example, some NICs have a HW LRO capability\cite{mlx5_lro}, where a NIC can aggregate multiple TCP packets into a single TCP packet, larger than MTU (e.g., bnx2x, mlx5\_core). On drivers configured with these options, each RX buffer is 64~KB regardless of MTU. As a result, these drivers have a much larger memory footprint. Mellanox, mlx5\_core driver on kernel 4.15, enables HW LRO and as a result allocates 2~GB of memory per physical device port on a 32 core machine, on kernel 5.0 HW LRO is disabled, allocating just 2~KB per entry and thus only allocates 64~MB per port.
+The success chances of the RingFlood attack increase with the memory footprint of the device driver. Which, in turn, depends on the NIC capabilities and the number of cores (number of RX rings) on the server. This means that such attacks have higher chances of success on larger machines. 
+For example, some NICs have a HW LRO capability\cite{mlx5_lro}, where a NIC can aggregate multiple TCP packets into a single TCP packet, larger than MTU (e.g., bnx2x, mlx5\_core). On drivers configured with these options, each RX buffer is 64~KB regardless of MTU. As a result, these drivers have a much larger memory footprint. Mellanox, mlx5\_core driver on kernel 4.15, enables HW LRO and, as a result, allocates 2~GB of memory per physical device port on a 32 core machine. On kernel 5.0, HW LRO is disabled, and the driver allocates 2~KB per entry and thus only uses 64~MB per port.
+
 
 \begin{figure*}[t]
     \centering
@@ -145,23 +143,23 @@ For example, some NICs have a HW LRO capability\cite{mlx5_lro}, where a NIC can 
 \end{figure*}
 \subsection{The Poisoned TX \Compound{} Attack}\label{sec:posion}
 
-RingFlood (Sec.~\ref{sec:ringflod}) allows a NIC to execute arbitrary code with high chances of success. However, the prerequisite is enough information regarding the physical layout of the server and a sufficiently high driver memory footprint. When deducing a valid PFN is not an option (e.g., due to a low memory footprint) another way of acquiring a valid \kva{} is needed.
+RingFlood (Sec.~\ref{sec:ringflod}) allows a NIC to execute arbitrary code with high chances of success. However, the prerequisite is enough information regarding the server's physical layout and a sufficiently high driver memory footprint. When deducing a valid PFN is not an option (e.g., due to a low memory footprint), another way of acquiring a valid \kva{} is needed.
 
-In this attack, the \kva is acquired by spoofing a malicious transmitted (TX) packet. That is, the attacker gains the needed \kva by \emph{reading} it in the \shinfo of the sent packet. 
+In this attack, the \kva is acquired by spoofing a malicious transmitted (TX) packet. The attacker gains the needed \kva by \emph{reading} it in the \shinfo of the sent packet. 
 %
-There are multiple ways in which a malicious NIC device can initiate a TX flow on the server. We are listing few examples below:
+There are multiple ways in which a malicious NIC device can initiate a TX flow on the server. We are listing a few examples below:
 \begin{enumerate}
     \item Coercing a userspace process into echoing a malicious buffer's contents can be achieved in various ways. For example, a proxy server, a key/value store and, a streaming service.
-    \item A cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device.\footnote{Indeed, Google's OpenTitan~\cite{opentitan} exemplifies that cloud providers actively worry about root of trust for their servers.}
+    \item A cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device.\footnote{Indeed, Google's OpenTitan~\cite{opentitan} exemplifies that cloud providers actively worry about the root of trust for their servers.}
     \item Packet forwarding is enabled on the server.
 \end{enumerate}
 %\adam{the previous sentence comes out of nowhere. add a sentence explaining the high-level idea of using a user-level process etc. The current sentence about spoofing a malicious packet isn't comprehensible.}\sout{another type of accomplice}\adam{this sounds like willingful co-operation, i.e., attacker-controlled. And that's not the intent}\SV{Rewritten. Better?} 
-Since a NIC has READ access to the \shinfo{} of a TX packet, this also provides the NIC with READ access to the \texttt{frags} (Fig.~\ref{fig:payload}) array of \shinfo{}. This array contains \page{} pointers, and thus both leaks kernel pointers that allow the attacker to compromise KASLR, and provides the PFNs of specific pages containing the data; pages, the device has READ access to.
+Since a NIC has READ access to the \shinfo{} of a TX packet, this also provides the NIC with READ access to the \texttt{frags} (Fig.~\ref{fig:payload}) array of \shinfo{}. This array contains \page{} pointers, and thus both leaks kernel pointers that allow the attacker to compromise KASLR and provides the PFNs of specific pages containing the data; pages the device can read.
 
 %\st{Assuming an unprivileged accomplice (witing or unwitting) can open a UDP/TCP socket in user space, this user can transmit a poisoned ROP buffer. For a ROP attack (where the kernel text offset is required), the NIC spoofs an RX packet with the poisoned ROP stack to the accomplice, which in turn is sent back as a TX packet. Once an accomplice sends the packet,}
 %Assuming the device can trick a userspace process into echoing a malicious buffer's contents, the device can execute a code injection attack in 4 steps:
 
-Once the content of the malicious buffer is echoed (e.g., via one of the aforementioned methods), the device can execute a code injection attack in 4 steps:  
+Once the content of the malicious buffer is echoed (e.g., via one of the methods mentioned above), the device can execute a code injection attack in 4 steps:  
 %
 \begin{enumerate}[labelindent=3pt]
     \item The TX \data{} and the fragments are mapped for the NIC to read.
@@ -173,11 +171,11 @@ Once the content of the malicious buffer is echoed (e.g., via one of the aforeme
 %\st{Tricking a userspace process into echoing a malicious buffer's contents can be archived in various ways. For example, a proxy server, a key/value store, streaming service, etc; another type of accomplice can be a cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device.}
 %\footnote{Indeed, Googles OpenTitan~\cite{opentitan} exemplifies that cloud providers actively worry about root of trust for their servers.}
 
-In this scenario, the attacker does not require prior knowledge regarding the physical setup since the \kva is provided by the echo buffer.  
+In this scenario, the attacker does not require prior knowledge regarding the physical setup since the echoed buffer provides the \kva.  
 
 %\noindent\textbf{Timing concerns.} 
-Note that an attacker will need to delay the TX completion of the echoed buffer to make sure the contents are unchanged until the ROP/JOP attack is executed.
-And a TX completion event that fails to appear in due time will trigger a TX T/O error that flushes all buffers and resets the driver. The T/O is set by the driver usually to a few seconds, which is sufficient to complete the attack.
+Note that an attacker will need to delay the TX completion of the echoed buffer to ensure the contents are unchanged until the ROP/JOP attack is executed.
+Moreover, a TX completion event that fails to appear in due time will trigger a TX T/O error that flushes all buffers and resets the driver. The T/O is set by the driver, usually to a few seconds, sufficient to complete the attack.
  
 
 
