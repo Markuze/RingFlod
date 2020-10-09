@@ -27,7 +27,7 @@ Upon the publication of our work, we aim to release extended material, including
     \includegraphics[width=0.8\linewidth]{figs/ubuf.pdf}
     \caption{Using \shinfo{} to execute arbitrary code in kernel context.}
     \label{fig:sh_info}
-    \vspace{-4mm}
+    %\vspace{-4mm}
 \end{figure}
 
 %\adam{lots of explanations here, whereas the structure was originally mentioned when talking about SCAT...}
@@ -45,7 +45,7 @@ Consequentially, \shinfo{} holds the potential callback pointer that the malicio
 Fig.~\ref{fig:sh_info} depicts how a malicious device can mount an attack using \shinfo{} in four steps:
 \begin{enumerate}[label=(\alph*)]
     \item An RX \skb{} and its data buffer are allocated. The data buffer is mapped for the NIC with WRITE access (the WRITE access is to the whole 4~KB page). 
-    \item The NIC overwrites the \texttt{destructor\_arg} field in \shinfo{} to point within the mapped page. Now, the \texttt{destructor\_arg} points to a struct \uarg{} which is created by the NIC.
+    \item The NIC overwrites the \texttt{destructor\_arg} field in \shinfo{} to point within the mapped page. As a result, the \texttt{destructor\_arg} points to a struct \uarg{} which is created by the NIC.
     \item \uarg{} has a callback pointer that is now pointing to the malicious code residing on the same page. In the case of NX-bit, it is a poisoned ROP/JOP\cite{BJFL11} stack (Sec.~\ref{sec:nx-bit}).
     %\adam{how does this work? you overwrite a pointer to a callback function, not to the stack pointer.}\SV{a JOP attack, aslo mentioned in 2.4}
     \item when the \skb{} is released, the callback is invoked.
@@ -75,7 +75,7 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
 \begin{enumerate}[labelindent=0pt]
     \item A device can alter data structures that the CPU has modified \emph{after} unmapping (e.g., calling \texttt{dma\_unmap\_page}).
     \iova{} mappings, as a rule, are short-lived as they should be used only for the duration of I/O, usually for a few microseconds. The additional milliseconds provide the attacker with a wide time window sufficient to conduct its attack.
-    \item The page can be freed and then immediately reused by the OS. ?Fast reuse is a common scenario, as Linux reuses \emph{hot} pages (i.e., recently used pages), as they are likely to reside in the CPU caches~\cite{hotcold}. However, this also opens up the kernel to additional random access attacks.
+    \item The page can be freed and then immediately reused by the OS. Fast reuse is a common scenario since Linux reuses \emph{hot} pages (i.e., recently used pages) as they are likely to reside in the CPU caches~\cite{hotcold}. However, this also opens up the kernel to additional random access attacks.
 \end{enumerate}
 
 
@@ -93,7 +93,7 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
     \centering
     \includegraphics[width=0.75\linewidth]{figs/road_to_op.pdf}
     \caption{Different ways in which the callback pointer in \shinfo can be successfully exploited.}
-    \vspace{-2mm}
+    %\vspace{-2mm}
     \label{fig:road_to_op}
 \end{figure}
 
