@@ -42,14 +42,15 @@ With the characterization of the different \subpage{} vulnerabilities and the vu
 \begin{itemize}
     \item We build a static code analysis tool that performs a Sub-Page Analysis for DMA Exposure (\tool). \tool scans for potentially exposed callback pointers on DMA-mapped pages. We use \tool on Linux kernel 5.0 and find that as many as 72\% of device drivers are potentially vulnerable to code injection attacks (Sec.~\ref{sec:static-analysis}). 
 
-    \item \Subpage{} vulnerabilities can also manifest dynamically at run-time, potentially exposing callback pointers and/or kernel addresses. Static analysis may not reveal such vulnerabilities, where a memory buffer is inadvertently exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool, termed DMA-Kernel-Address-SANitizer (\dkasan) that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel buffer is exposed~(Sec.~\ref{sec:dma-kasan}).
+    \item \Subpage{} vulnerabilities can also manifest dynamically at run-time, potentially exposing callback pointers and/or kernel addresses. Static analysis may not reveal such vulnerabilities, where a memory buffer is exposed due to randomly sharing a page with an I/O buffer. Accordingly, we further develop a run-time analysis tool, termed DMA-Kernel-Address-SANitizer (\dkasan) that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertently or otherwise) where a kernel buffer is exposed~(Sec.~\ref{sec:dma-kasan}).
 \end{itemize}
 
 We use our tools to find and demonstrate attacks on the Linux kernel. We focus on \compound attacks, cases where a detected \subpage vulnerability alone is insufficient to execute a code injection attack since at least one of the three vulnerability attributes is initially missing, but can be attained via compound steps. 
 
-We observe that unlike compound attacks, previous work has explored \simple{} attacks, i.e., attacks in which the three vulnerability attributes are trivially provided. Namely, a mapped I/O buffer co-resides on a mapped page which, due to \subpage{} vulnerability, also exposes a callback pointer and a kernel virtual address needed for a viable code injection attack and the timing is such that the modifications will not be overwritten by the CPU.
+We observe that unlike compound attacks, previous work has explored \simple{} attacks, i.e., attacks in which the three vulnerability attributes are trivially provided. 
+Namely, a mapped I/O buffer co-resides on a mapped page which, due to \subpage{} vulnerability, also exposes a callback pointer and a kernel virtual address, and the timing is such that the CPU will not overwrite the modifications.
 
-Analysis of such \simple{} attacks, that can typically be blocked with localized fixes, led to a dangerous misconception. It is assumed that buggy device drivers or poor but isolated design choices are to blame for DMA vulnerabilities.
+Analysis of such \simple{} attacks that can typically be blocked with localized fixes led to a dangerous misconception. It is assumed that buggy device drivers or poor but isolated design choices are to blame for DMA vulnerabilities.
 However, by introducing \compound attacks, we demonstrate that it is often the kernel itself that supplements the missing pieces, showing that this is a deep-rooted issue rather than a collection of disjoint incidents.
 We identify multiple kernel APIs and data structure designs that facilitate the acquisition of the vulnerability attributes by a malicious device.
 
@@ -59,7 +60,6 @@ To summarize, our contributions are:
 \begin{itemize}
     \item We provide a categorization of the four \subpage{} vulnerability types.
     \item We introduce a set of three vulnerability attributes which are sufficient to layout code-injection attacks.
-    %\item We develop a static code analysis tool (\tool) that can identify drivers that expose callback pointers.
     \item We develop a static code analysis tool (\tool) that flags code paths that may expose callback pointers.
     \item We develop a run-time tool (\dkasan) to identify \subpage{} vulnerabilities, including random access.
     \item We demonstrate novel DMA attacks on the Linux kernel, termed \compound{} attacks.

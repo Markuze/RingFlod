@@ -36,15 +36,11 @@ As we demonstrate in this paper, the blame is not with the device drivers alone.
 
 By introducing and demonstrating \compound{} attacks on the Linux kernel, we have shown that IOMMU, as it is used today, is not sufficient to protect the OS against DMA attacks.
 
-The success of a DMA attacks relies on the exposure of restricted meta-data fields caused by \subpage{} vulnerability. 
-To prevent such exposure previous works have proposed separating the I/O memory from CPU memory~\cite{MSMT18}, by providing a separate allocator for networking. 
+The success of a DMA attack relies on the exposure of restricted meta-data fields caused by \subpage{} vulnerability. 
+To prevent such exposure, previous works have proposed separating the I/O memory from CPU memory~\cite{MSMT18}, by providing a separate allocator for networking. 
 Nevertheless, this API can be easily thwarted by device drivers via functions such as \texttt{build\_skb} that add a vulnerable \shinfo into an I/O region. 
 Moreover, these solutions are focused solely on network devices leaving out the system unprotected against other DMA capable devices such as FireWire, USB C, NVMe and more.
 
-%%%%%%%%%
-%%%%%%%%%%
-%%%%%%%%%
-%%%%%%%%%%
 
 To achieve a better DMA security in future OSes, a possible direction is to consider the segregation of I/O memory from OS memory. 
 Alternatively, to prevent the existence of sensitive meta-data on I/O pages, we propose to open-source and offer, as a first step, \tool{} and \dkasan{} to be used at the development and deployment stages to validate the security of the system. 

@@ -129,16 +129,16 @@
 %\textcolor{red}{Before: chaos Now Oder == MMO, taxonomy of DMA vulnerabilities Result \compound attacks. + tool. We expose  a deep-rooted issue in OS design rather than ad-hoc buggies... The language:\simple vs. \compound, MMO, \subpage types.}
 
 
-Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware IOMMU protection is unable to prevent all DMA attacks because it restricts DMA at page-level granularity leading to \subpage vulnerabilities. Conventional wisdom is that \subpage vulnerabilities that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
+Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware IOMMU protection cannot prevent all DMA attacks because it restricts DMA at page-level granularity leading to \subpage vulnerabilities. Conventional wisdom is that \subpage vulnerabilities that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
 
-This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. To this end, we first categorize the four types of sub-page vulnerability, providing insight into the structure of DMA vulnerabilities. Then, to exploit these vulnerabilities, we present a schema for identifying viable attacks by malicious DMA capable devices. Specifically, we identify a set of three vulnerability attributes which are sufficient to mount code injection attacks. 
+This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. To this end, we first categorize \subpage vulnerabilities into four categories, providing insight into the structure of DMA vulnerabilities. 
+Then, to exploit these vulnerabilities, we identify a set of three vulnerability attributes which are sufficient to execute code injection attacks. 
 
-We then build analysis tools that detect potentially hazardous sub-page vulnerabilities and analyze the Linux kernel. 
-We find that 72\% of the device drivers expose sensitive callback pointers which may be overwritten by a device to hijack kernel control flow.
+We then build analysis tools that detect \subpage vulnerabilities and analyze the Linux kernel. 
+We find that 72\% of the device drivers expose sensitive callback pointers, which may be overwritten by a device to hijack kernel control flow.
 
-Aided by the output of the tools, we demonstrate novel code injection attacks on the Linux kernel.
-Specifically, while all previously reported attacks are \emph{single-step}, i.e., with the vulnerability attributes present in a single page, 
-we present a new type of \compound{} attacks where the vulnerability attributes are initially incomplete but can be attained by carefully exploiting standard OS behavior. 
+Aided by the tools' output, we demonstrate novel code injection attacks on the Linux kernel we term \compound{} attacks.
+Specifically, while all previously reported attacks are \emph{single-step}, i.e., with the vulnerability attributes present in a single page, in \compound{} attacks, the vulnerability attributes are initially incomplete. However, they can be attained by carefully exploiting standard OS behavior. 
 
 \end{abstract}
 \maketitle
