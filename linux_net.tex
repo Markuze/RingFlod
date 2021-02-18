@@ -139,6 +139,8 @@ We evaluate this assumption on our setup running 256 reboots on Ubuntu 18.04 wit
 The success chances of the RingFlood attack increase with the memory footprint of the device driver. The memory footprint, in turn, depends on the NIC capabilities and the number of cores (number of RX rings) on the server. This means that such attacks have higher chances of success on larger machines. 
 For example, some NICs have a HW LRO capability\cite{mlx5_lro}, where a NIC can aggregate multiple TCP packets into a single TCP packet, larger than MTU (e.g., bnx2x, mlx5\_core). On drivers configured with these options, each RX buffer is 64~KB regardless of MTU. As a result, these drivers have a much larger memory footprint. Mellanox, mlx5\_core driver on kernel 4.15, enables HW LRO and, as a result, allocates 2~GB of memory per physical device port on a 32 core machine. On kernel 5.0, HW LRO is disabled, and the driver allocates 2~KB per entry and thus only uses 64~MB per port.
 
+\textcolor{red}{We used the \textit{Ring Flood} attack on the \texttt{skb\_shared\_info} structure to execute code in the kernel.
+Our exploit places a ROP gadget on the DMA buffer page. To execute the ROP gadget, the device points the struct's callback pointer to a JOP gadget in the kernel. The kernel passes the callback a this pointer (in the \%rdi register) to its containing struct. Thus, in our case, this pointer contains the DMA buffer's address, so all we need is a JOP gadget that conceptually performs \texttt{\%rsp = \%rdi + const}. We locate such a gadget using the ROPgadget tool.\footnote{\url{https://github.com/JonathanSalwan/ROPgadget}}}
 
 \begin{figure*}[t]
     \centering
@@ -189,7 +191,7 @@ Moreover, a TX completion event that fails to appear in due time will trigger a 
 %\smallskip
 %\noindent\textbf{User buffer.} An attacker could try storing the \mabaf{} and code in user-space. Such and attempt would fail due to SMEP/SMAP~\cite{smep} as the kernel will not be able to directly execute user-space code.
 
-
+\input{appendixes/more_attacks}
 
 
 

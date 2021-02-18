@@ -1,4 +1,5 @@
-\documentclass[sigplan,review,anonymous]{acmart}
+%\documentclass[sigplan,review,anonymous]{acmart}
+\documentclass[sigplan]{acmart}
 \acmSubmissionID{336}
 \renewcommand\footnotetextcopyrightpermission[1]{}
 \settopmatter{printacmref=false}
@@ -105,23 +106,47 @@
 %\title{\Large \bf Endemic Weakness in DMA I/O: Systematizing DMA Vulnerabilities}
 
 % % USENIX Security has double blind submissions
+\author{%
+  Alex Markuze$^{\dagger,\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+  Shay Vargaftik$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+  Gil Kupfer$^{\dagger}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+  Boris Pismeny$^{\dagger}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+  Nadav Amit$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+  Adam Morrison$^{\ddagger}$ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+  Dan Tsafrir$^{\dagger,\diamond}$}
+\affiliation{
+  \institution{%
+    \ \\[-2mm]
+    $^{\dagger}$Technion -- Israel Institute of Technology
+    \ \ \ \ \ \ \ \ \ \ \ \ \ 
+    $^{\ddagger}$Tel Aviv University 
+    \ \ \ \ \ \ \ \ \ \ \ \ \ 
+    $^{\diamond}$VMware\\
+    \ \\
+  }}
+  
+  \gdef\authors{Alex Markuze, Shay Vargaftik, Gil Kupfer, Boris Pismeny, Nadav Amit, Adam Morrison, and Dan Tsafrir}
 % \begin{comment}
-% \author{
-% {\rm Markuze Alex}\\
-% Technion, VMware Research
+%\author{ 
+%    {Markuze Alex Technion, VMware Research}
+    %\and
+    %{Shay Vargaftik}\\VMware Research
+%}
+%{\rm Markuze Alex}\\
+%Technion, VMware Research \\
+%}
 % \and
 % {\rm Shay Vargaftik}\\
-% VMware Research
+% VMware Research \\
 % \and
 % {\rm Gil Kupfer}\\
-% Technion
-% % copy the following lines to add more authors
+% Technion \\
 % \and
 % {\rm Nadav Amit}\\
 % VMware Research
-% \and{\rm Dan Tsafrir}\\
-% Technion, VMware Research
-% } % end author
+% \and
+% {\rm Dan Tsafrir}\\
+% Technion, VMware Research \\} % end author
 % \end{comment}
 
 %\maketitle

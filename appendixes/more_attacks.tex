@@ -1,5 +1,5 @@
-\clearpage
-\section{Additional Compound attacks}\label{appx:additional_compound}
+%\clearpage
+%\section{Additional Compound attacks}\label{appx:additional_compound}
 
 \subsection{eXpress Data Path}\label{sec:xdp}
 
@@ -36,7 +36,7 @@ Packet forwarding is a standard Linux feature that allows a Linux machine to ser
 
 When this functionality is enabled, the NIC can independently generate an RX packet to a legitimate destination. This packet will then be forwarded to become a TX packet. However, unlike in the TCP layer that usually creates \skb{} packets with fragments, both the tg3 and the mlx5\_core drivers, usually create a linear \skb{}.
 
-Namely, the drivers do not fill the \texttt{frags}, which the attacker uses to obtain a \kva. Both drivers, use the \texttt{napi\_gro\_receive} function to pass the \skb{} to the upper layer (this is the standard for most NIC drivers\footnote{Used by 98 NIC drivers, in Linux 5.0}). 
+Namely, the drivers do not fill the \texttt{frags}, which the attacker uses to obtain a \kva. Both drivers, use the \\\texttt{napi\_gro\_receive} function to pass the \skb{} to the upper layer (this is the standard for most NIC drivers\footnote{Used by 98 NIC drivers, in Linux 5.0}). 
 
 In this case, the upper layer is the Generic Receive Offload (GRO) layer \cite{gro}. GRO attempts to aggregate multiple TCP segments into a single large packet. Specifically, GRO converts multiple linear \skb{} buffers (belonging to a single TCP stream) into a single \skb{} with multiple fragments. This \skb{} then traverses the Linux network stack and becomes a TX packet. The attacker can use this TX packet as described in the previous attack (Fig. \ref{fig:payload}).
 

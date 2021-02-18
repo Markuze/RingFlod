@@ -5,7 +5,9 @@ We cover DMA attacks in the presence of IOMMU, defenses, and emerging ROP mitiga
 \noindent\textbf{DMA attacks in the presence of IOMMU.}
 Beniamini demonstrated attacks on cellular devices, e.g., the iPhone 7 and Nexus 5/6/6P, through their Wi-Fi chips~\cite{Ben17a, Ben17b}. 
 %While Nexus phones do not use an IOMMU, iPhones do. 
-The attack exploited a TOCTTOU (Time of Check To Time of Use) vulnerability in the NIC driver. From an I/O point of view, all the DMA writes were still legal (i.e., only to buffers currently mapped to the NIC). A recent paper~\cite{thunder} has introduced an FPGA tool that perpetrates DMA attacks. They demonstrated \simple DMA attacks on Windows, macOS, and FreeBSD.
+The attack exploited a TOCTTOU (Time of Check To Time of Use) vulnerability in the NIC driver. From an I/O point of view, all the DMA writes were still legal (i.e., only to buffers currently mapped to the NIC).
+
+\noindent\textbf{Thunderclap} \textcolor{red}{A recent paper~\cite{thunder} has introduced an FPGA tool that perpetrates DMA attacks. They demonstrated several ad-hoc \simple DMA attacks on Windows, macOS, and FreeBSD. The Thunderclap project doesn't distinguish \simple from \compound attacks. But this distinction is crucial because it shows that merely having write access to a kernel pointer might not be sufficient to mount an attack. For instance, Thunderclap discloses a random access vulnerability which isn't exploitable without a technique to identify the buffer's kernel virtual address (KVAs), an important missing piece that are often hard to get as we demonstrate in Sec. \ref{sec:ringflod},\ref{sec:posion}. The characterizations and taxonomy we provide (i.e., Sec. \ref{sec:dma-risks}) facilitate reasoning about DMA vulnerabilities and the tools we provide a way of finding DMA vulnerabilities.}
 
 \smallskip
 \noindent\textbf{Adressing IOMMU vulnerabilities.}
