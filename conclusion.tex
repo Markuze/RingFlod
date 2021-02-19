@@ -52,7 +52,7 @@ With the existing API used for I/O operations and due to performance considerati
 The success of a DMA attack relies on the exposure of restricted meta-data fields caused by \subpage{} vulnerability. 
 To prevent such exposure, previous works have proposed separating the I/O memory from CPU memory~\cite{MSMT18}, by providing a separate allocator for networking. 
 Nevertheless, this API can be easily thwarted by device drivers via functions such as \texttt{build\_skb} that add a vulnerable \shinfo into an I/O region. 
-Moreover, these solutions are focused solely on network devices leaving out the system unprotected against other DMA capable devices such as FireWire, USB C, NVMe and more.
+Moreover, these solutions are focused solely on network devices, leaving the system unprotected against other DMA capable devices such as FireWire, USB C, NVMe and more.
 
 
 To achieve better DMA security in future OSes, a possible direction is to consider the segregation of I/O memory from OS memory. 

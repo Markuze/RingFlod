@@ -39,8 +39,8 @@
 The current state of IOMMU adaptation varies among different OS vendors. We briefly discuss other OSes below.
 
 \smallskip
-\noindent\textbf{Windows.} Until recently (2019) Windows had no IOMMU support, exposing it to \simple DMA attack.
-In 2019 (with build 1803) Microsoft has introduced Kernel DMA Protection \cite{ms_iommu}, which provides IOMMU protection by default with a dedicated I/O page table per device. 
+\noindent\textbf{Windows.} Until recently (2019) Windows had no IOMMU support, exposing it to \simple DMA attacks.
+In 2019 (with build 1803) Microsoft introduced Kernel DMA Protection \cite{ms_iommu}, which provides IOMMU protection by default with a dedicated I/O page table per device. 
 In addition, network buffers are allocated from dedicated pools of memory, limiting the possible exposure of sensitive data. However, a brief exploration of the Windows Networking drivers API reveals functions like \emph{NdisAllocateNetBufferMdlAndData} \cite{ms_single} that allocates a NET\_BUFFER structure and data in a single memory buffer, exposing the OS to \simple attacks. 
 Note that the NET\_BUFFER vulnerability was previously described\cite{thunder}. 
 
