@@ -1,29 +1,43 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% force figure to page 3... belongs to the next section.
-\begin{figure*}[t]
+% \begin{figure*}[t]
 
-        \begin{lstlisting}[
-        basicstyle = \small,
-        %basicstyle=\ttfamily,
-        columns = fixed,
-        tabsize=8,
-        %frame = l,
-        xleftmargin=.1\textwidth,
-        language = C
-        ]
-Start addr       |   Offset   |     End addr     |  Size   | VM area description
-==================================================================================
-...
-ffff888000000000 | -119.5  TB | ffffc87fffffffff |   64 TB | page_offset_base
-...
-ffffea0000000000 |  -22    TB | ffffeaffffffffff |    1 TB |  vmemmap_base
-...
-ffffffff80000000 |   -2    GB | ffffffff9fffffff |  512 MB | kernel text mapping
-                \end{lstlisting}
+%         \begin{lstlisting}[
+%         basicstyle = \small,
+%         %basicstyle=\ttfamily,
+%         columns = fixed,
+%         tabsize=8,
+%         %frame = l,
+%         xleftmargin=.1\textwidth,
+%         language = C
+%         ]
+% Start addr       |   Offset   |     End addr     |  Size   | VM area description
+% ==================================================================================
+% ...
+% ffff888000000000 | -119.5  TB | ffffc87fffffffff |   64 TB | page_offset_base
+% ...
+% ffffea0000000000 |  -22    TB | ffffeaffffffffff |    1 TB |  vmemmap_base
+% ...
+% ffffffff80000000 |   -2    GB | ffffffff9fffffff |  512 MB | kernel text mapping
+%                 \end{lstlisting}
+%         \caption{ Linux kernel memory layout.}
+%         \label{fig:mem_layot}
+
+% \end{figure*}
+
+\begin{table*}[h]
+\begin{tabular}{l|l|l|l|l}
+Start Addr                                 & Offset    & End Addr                                   & Size    & VM are description                             \\ \hline
+\texttt{ffff888000000000} & -119.5 TB & \texttt{ffffc87fffffffff}   & 64 TB   & direct map of phys memory (page\_offset\_base) \\
+\texttt{ffffc90000000000} & -55 TB    & \texttt{ffffe8ffffffffff}   & 32 TB   & vmalloc/ioremap space (vmalloc\_base)          \\
+\texttt{ffffea0000000000} & -22 TB    & \texttt{ffffeaffffffffff} & 1 TB    & virtual memory map (vmemmap\_base)             \\
+\texttt{ffffec0000000000} & -20 TB    & \texttt{fffffbffffffffff} & 16 TB   & KASAN shadow memory                            \\
+\texttt{ffffffff80000000} & -2  GB    & \texttt{ffffffff9fffffff} & 512 MB  & kernel text mapping (physical address 0)       \\
+\texttt{ffffffffa0000000} & -1536 MB  & \texttt{fffffffffeffffff} & 1520 MB & module mapping space                           \\ \hline
+\end{tabular}
         \caption{ Linux kernel memory layout.}
         \label{fig:mem_layot}
-
-\end{figure*}
+\end{table*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Background}\label{sec:background}
