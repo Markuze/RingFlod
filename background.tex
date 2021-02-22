@@ -51,7 +51,7 @@ DMA allows I/O devices direct access to memory~\cite{oC54} without CPU involveme
 An attacker can access sensitive data and/or overwrite the OS code and data structures and even gain full control of the victim system. DMA attacks can be carried out using an external or internal DMA-capable device. 
 
 Accessible expansion ports, e.g., FireWire or Thunderbolt, allow external devices to initiate DMA transactions merely by connecting a programmable accessory~\cite{Dor04, Vol, MM, thunder}. 
-Exploiting internal devices is more challenging, but enables persistent and stealthy attacks. \sout{Clearly, an internal device is simply less conspicuous than an external peripheral connected via a Thunderbolt cable.}
+Exploiting internal devices is more challenging, but enables persistent and stealthy attacks. 
 
 Multiple options to gain control of an internal device are available.
 A resourceful attacker can exploit firmware bugs~\cite{SB12}. These can be well-known exploits, as end-users are often slow in deploying firmware updates~\cite{DPVL10}, and even newly discovered zero-day vulnerabilities~\cite{Ben17b}. Alternatively, certain attackers may be able to replace the device firmware altogether with a malicious one~\cite{ZKB13, NL14}. It is also possible to manufacture devices that appear to be legitimate but are, in fact, malicious at the circuitry level~\cite{YHD16}.

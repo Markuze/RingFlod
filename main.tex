@@ -100,7 +100,7 @@
 %\title{\Large \bf The Anatomy of IOMMU subverting DMA Attacks}
 
 %\title{Understanding DMA Attacks in the Presence of an IOMMU}
-\title{Characterizing, Exploiting, and Detecting DMA Code Injection Vulnerabilities in the Presence of an IOMMU}
+\title{Characterizing, Exploiting, and Detecting DMA Code\\ Injection Vulnerabilities in the Presence of an IOMMU}
 %\title{\Large \bf Endemic Weakness in DMA I/O: The Anatomy of DMA Attacks}
 %\title{\Large \bf Systematizing DMA Vulnerabilities}
 %\title{\Large \bf Endemic Weakness in DMA I/O: Systematizing DMA Vulnerabilities}
@@ -110,7 +110,7 @@
   Alex Markuze$^{\dagger,\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
   Shay Vargaftik$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
   Gil Kupfer$^{\dagger}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-  Boris Pismeny$^{\dagger}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+  Boris Pismeny$^{\dagger}$\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
   Nadav Amit$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
   Adam Morrison$^{\ddagger}$ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
   Dan Tsafrir$^{\dagger,\diamond}$}
@@ -125,7 +125,7 @@
     \ \\
   }}
   
-  \gdef\authors{Alex Markuze, Shay Vargaftik, Gil Kupfer, Boris Pismeny, Nadav Amit, Adam Morrison, and Dan Tsafrir}
+  %\gdef\authors{Alex Markuze, Shay Vargaftik, Gil Kupfer, Boris Pismeny, Nadav Amit, Adam Morrison, and Dan Tsafrir}
 % \begin{comment}
 %\author{ 
 %    {Markuze Alex Technion, VMware Research}
@@ -185,9 +185,12 @@ Specifically, while all previously reported attacks are \emph{single-step}, i.e.
 \input{related_work}
 \input{conclusion}
 
+
 \bibliographystyle{plain}
 \bibliography{references}
+
 \appendix
+\input{appendixes/more_attacks}
 
 %\input{appendixes/shellcode}
 %\input{appendixes/dma_bidir.tex}

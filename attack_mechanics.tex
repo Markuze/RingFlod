@@ -74,7 +74,7 @@ We classify the different types of \subpage vulnerability into four categories a
     \item[(b)] The OS (e.g., memory allocator)---rather than the driver---saves metadata, such as free-lists, on the same page as the I/O buffer~\cite{Cor07}. Manipulating these data structures may also compromise the system~\cite{ak09}. Similarly to (a), sensitive metadata is unwittingly shared. However, in this case, it is an OS subsystem that is at fault rather than the device driver.
     \item[(c)] The same page is mapped multiple times due to co-located device driver buffers resulting in multiple \iova{} indicating the same page. 
     In this case, unmapping one \iova will not stop the device from accessing the page through a different \iova.
-    The device will retain access to the physical page as long as a single valid \iova{} exists. \textcolor{red}{This provides a false sense of security, as the device can temper with memory regions that should no longer be accessible to it. We discuss the practical implications in Sec.~\ref{sec:timely}.}
+    The device will retain access to the physical page as long as a single valid \iova{} exists. This means that the device can temper with memory regions that should no longer be accessible to it. We discuss the practical implications of multiple \iova indicating the same page in Sec.~\ref{sec:timely}.
     \item[(d)] The I/O buffer and a different, dynamically allocated memory buffer may coincidentally share a page. This common situation results in data leakage (e.g., kernel pointers). Currently, the Linux kernel uses the same memory allocation mechanism (e.g., kmalloc) for both I/O buffers and regular kernel buffers. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works in page granularity, the respective I/O devices gain access to these kernel buffers. Such vulnerability is a subclass of (b), as an OS subsystem causes it, but the main difference is that the exposed data structures are leaked randomly.
 \end{enumerate}
 %\adam{what does point (c) have to do with sub-page vulns? It seems generic, and indeed, it doesn't talk about any co-location.}\SV{Type C is key to gaining opportunity in \compound attacks, we've fixed the first paragraph to fit better.}
@@ -117,6 +117,6 @@ To further emphasize the significance of these attributes, we present a hypothet
     \item It is not known if the modified callback pointer will be executed.
 \end{itemize}
 
-Under the hypothesized circumstance, and without additional information, a malicious device has practically no \sout{valid}\textcolor{red}{viable} attack options.
-\textcolor{red}{Namely, all three attributes are necessary for a DMA attack.}
+Under the hypothesized circumstance, and without additional information, a malicious device has no viable attack options.
+Namely, all three attributes are required for a code injection attack.
 While corrupting random kernel memory is still a possibility and may even cause a kernel panic~\cite{MMT16}, it does not achieve the goal of privilege escalation.

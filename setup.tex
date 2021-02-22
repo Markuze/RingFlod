@@ -1,17 +1,16 @@
-\section{\textcolor{blue}{Attack Demonstrations}}\label{Sec:setup}
+\section{Attack Demonstrations}\label{Sec:setup}
 
 %\adam{poor title and section, it comes out of nowhere. Title should be ``Attack Demonstrations,'' ``Discovered Attacks'' or something like that. The section should start with what are now the later paragraphs, saying you found attacks and are going to describe them. Last thing should be the setup, in a para heading.}\SV{Fixed}
 
 We implement and demonstrate \compound attacks against the Linux kernel network stack. 
-In order to demonstrate an attack by a malicious NIC, we use a FireWire device similarly to Sang et al.,~\cite{SLND10}. To emulate an attack by a malicious NIC using a FireWire device, we create an \iova{} page table sharing between the FireWire and the actual NIC. \sout{A minor patch is needed for the victim OS to facilitate this emulation.} This way, the attacker machine can access the same pages as the NIC. This allows us to execute an attack using a programmable interface, emulating a malicious NIC. \sout{This minor patch is only needed to emulate a device. The core OS was unchanged.}
+In order to demonstrate an attack by a malicious NIC, we use a FireWire device similarly to Sang et al.~\cite{SLND10}. To emulate an attack by a malicious NIC using a FireWire device, we create an \iova{} page table sharing between the FireWire and the actual NIC. This way, the attacker machine can access the same pages as the NIC. This allows us to execute an attack using a programmable interface, emulating a malicious NIC.
 
 
-We create a malicious FireWire device by modifying the Linux-IO Target (LIO) subsystem on the attacker machine. The LIO subsystem supports hard disk emulation for remote computers via the \spb{} protocol. \sout{In an extended version, we will provide the source code for a previously unknown \simple attack on the Linux kernel focused on the FireWire subsystem (which also exposes Thunderbolt/USB-C and other ports with FireWire adapters to DMA attacks.)}
-
+We create a malicious FireWire device by modifying the Linux-IO Target (LIO) subsystem on the attacker machine. The LIO subsystem supports hard disk emulation for remote computers via the \spb{} protocol. 
 
 \paragraph{Test Setup}
-We use a 28 core Dell PowerEdge R730 server, with Ubuntu 18.04 (kernel version 5.0), as our victim machine. This server is equipped with \textcolor{red}{an} Intel VT-d IOMMU, a Broadcom NetXtreme BCM5720 Gigabit Ethernet NIC, a Mellanox Technologies ConnectX-4 Ethernet NIC and VIA Technologies, Inc. VT6315 Series Firewire Controller. An identical machine connected to the victim via a FireWire cable acts as the attacker. 
+We use a 28 core Dell PowerEdge R730 server, with Ubuntu 18.04 (kernel version 5.0), as our victim machine. This server is equipped with an Intel VT-d IOMMU, a Broadcom NetXtreme BCM5720 Gigabit Ethernet NIC, a Mellanox Technologies ConnectX-4 Ethernet NIC and VIA Technologies, Inc. VT6315 Series Firewire Controller. An identical machine connected to the victim via a FireWire cable acts as the attacker. 
 
 \paragraph{Executed attacks}
-\textcolor{red}{We used the \textit{Ring Flood} attack on the \texttt{skb\_shared\_info} structure to execute code in the kernel.
-Our exploit places a ROP gadget on the DMA buffer page. To execute the ROP gadget, the device points the struct's callback pointer to a JOP gadget in the kernel. The kernel passes the callback a this pointer (in the \%rdi register) to its containing struct. Thus, in our case, this pointer contains the DMA buffer's address, so all we need is a JOP gadget that conceptually performs \texttt{\%rsp = \%rdi + const}. We locate such a gadget using the ROPgadget tool.\footnote{\url{https://github.com/JonathanSalwan/ROPgadget}}}
+We executed the \textit{Ring Flood} attack on the \texttt{skb\_shared\_info} structure to inject and run malicious code in the kernel.
+Our exploit places a ROP gadget on the DMA buffer page. To execute this ROP gadget, the device points the struct's callback pointer to a JOP gadget in the kernel. The kernel then passes the callback in the \%rdi register to its containing struct. Thus, this pointer contains the DMA buffer's address. It is remained to place a JOP gadget that performs \texttt{\%rsp = \%rdi + const}. We locate such a gadget using the ROPgadget tool.\footnote{\url{https://github.com/JonathanSalwan/ROPgadget}}

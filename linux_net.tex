@@ -7,11 +7,11 @@
 %So far, we have demonstrated a \simple attack by exploiting type (a) \subpage vulnerability of the FireWire driver. 
 This section explores new attacks on the Linux network stack where the vulnerability attributes are initially missing but are attainable via compound steps.
 We focus on the Linux network stack which initially seems secure~\cite{thunder}.
-Nevertheless, as we demonstrate, the Linux network stack is actually responsible for 60\% of \textcolor{red}{the} DMA vulnerabilities we have found.
+Nevertheless, as we demonstrate, the Linux network stack is actually responsible for 60\% of the DMA vulnerabilities we have found.
 
 Recall that, once we have discovered a \subpage{} vulnerability, our goal is to obtain the three vulnerability attributes (Sec. \ref{sec:mmo}: (1) a KVA, (2) a callback pointer and, (3) timing). 
 Accordingly, in Sec.~\ref{sec:shinfo_exploit}, we first describe how to obtain (2) a callback function pointer. Then, in Sec.~\ref{sec:timely}, we show that (3) a time window for exploiting this pointer is available. 
-While these two steps for obtaining vulnerability attributes (2) and (3) are generic, there are different recipes for how to obtain the remaining vulnerability attribute (1), i.e., the KVA of the malicious buffer. \sout{exposes via the \subpage{} vulnerability.}
+While these two steps for obtaining vulnerability attributes (2) and (3) are generic, there are different recipes for how to obtain the remaining vulnerability attribute (1), i.e., the KVA of the malicious buffer.
 We complete the vulnerability attributes in Sec.~\ref{sec:ringflod} and Sec.~\ref{sec:posion} by showing different ways (by which we also name the compound attack) to obtain (1) the KVA.
 
 
@@ -33,14 +33,14 @@ Upon the publication of our work, we aim to release extended material, including
 %\adam{lots of explanations here, whereas the structure was originally mentioned when talking about SCAT...}
 Struct \skb{} is a data structure used by the Linux network stack to hold information representing a network packet. Struct \skb{} holds the metadata of a network packet (e.g., packet size, associated socket). One of these fields is a pointer to a data buffer. The data is allocated separately, and thus, does not share a page with its \skb{} (Fig.~\ref{fig:sh_info}). 
 
-This separation means that \skb{} is \emph{never} (intentionally) mapped to the device. Indeed, it is a common belief\sout{, pointed out in the literature}\textcolor{red}{~(e.g., Markettos et al.~\cite{thunder})}, that the Linux network stack is not susceptible to DMA attacks via the \texttt{data} pointer. In this work, we show that this belief is misplaced.
+This separation means that \skb{} is \emph{never} (intentionally) mapped to the device. Indeed, it is a common belief~(e.g., Markettos et al.~\cite{thunder}), that the Linux network stack is not susceptible to DMA attacks via the \texttt{data} pointer. In this work, we show that this belief is misplaced.
 
-The Linux network stack supports packet cloning by merely copying \skb{} metadata. \sout{This includes the \texttt{data} pointer.} That is, the resulting \skb{} and the original one share the \texttt{data} buffer~\cite{drivers2005linux}. \sout{Note that the \texttt{data} buffer of the \skb{} is the \emph{linear} part of the payload but \skb{} also supports \emph{non-linear} buffers.}\textcolor{red}{The payload in the \skb{} can be partially located on the \emph{liner} part~(i.e., in the buffer indicated by the \texttt{data} pointer) and partially on the \emph{non-linear} fragments.} That is, buffers that are described by their \page{}, length and offset in the \texttt{frags} array of \shinfo{} (Fig.~\ref{fig:sh_info}). 
+The Linux network stack supports packet cloning by merely copying \skb{} metadata. That is, the resulting \skb{} and the original one share the \texttt{data} buffer~\cite{drivers2005linux}. The payload in the \skb{} can be partially located on the \emph{liner} part~(i.e., in the buffer indicated by the \texttt{data} pointer) and partially on the \emph{non-linear} fragments. That is, buffers that are described by their \page{}, length and offset in the \texttt{frags} array of \shinfo{} (Fig.~\ref{fig:sh_info}). 
 
 To support the sharing of these non-linear buffers, the embedded \shinfo{} metadata structure is used.
 Struct \shinfo{}, in contrast to \skb{}, is \emph{always} allocated as part of the data buffer. Therefore it is \emph{always} mapped to the device. \shinfo{} is unwittingly mapped with the permissions of the packet, i.e., WRITE for RX packets, READ for TX packets, and in some cases, such as XDP~\cite{xdp} with BIDIRECTIONAL.
 
-Consequentially, \shinfo{} holds the potential callback pointer that the malicious device can exploit.\textcolor{red}{The \texttt{destructor\_arg} is used for socket buffer accounting and facilitates custom handling when the buffer is freed.} The \subpage{} vulnerability created by \shinfo{}, represents a type (b) vulnerability (Fig.~\ref{fig:colocation} (b)), as this is innate to Linux networking rather than a driver security bug. 
+Consequentially, \shinfo{} holds the potential callback pointer that the malicious device can exploit.\footnote{In Fig.~\ref{fig:sh_info} the \texttt{destructor\_arg} which holds a callback pointer is used for socket buffer accounting and facilitates custom handling when the buffer is freed.} The \subpage{} vulnerability created by \shinfo{}, represents a type (b) vulnerability (Fig.~\ref{fig:colocation} (b)), as this is innate to Linux networking rather than a driver security bug. 
 
 Fig.~\ref{fig:sh_info} depicts how a malicious device can mount an attack using \shinfo{} in four steps:
 \begin{enumerate}[label=(\alph*)]
@@ -102,7 +102,7 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
 
 %In this section we discuss the Linux network stack where \shinfo is initialized \emph{after} the page was unmapped, thus invalidating the malicious changes.
 Upon packet arrival on a receive path, an \shinfo struct is initialised after a packet is received, namely after the DMA operation was completed and potentially the DMA access revoked. In such a case,
-a correct use of the DMA API should thwart the attack outlined in Sec.~\ref{sec:shinfo_exploit} (Fig.~\ref{fig:sh_info}). Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes by the NIC. But, as we demonstrate \textcolor{red}{next}, DMA access is often easily achievable even after the CPU has made its changes. 
+a correct use of the DMA API should thwart the attack outlined in Sec.~\ref{sec:shinfo_exploit} (Fig.~\ref{fig:sh_info}). Namely, first unmapping the buffer and only then initializing the \shinfo{} should allow the CPU to undo any malicious changes by the NIC. But, as we next demonstrate, DMA access is often easily achievable even after the CPU has made its changes. 
 
 We next describe how the time window is attainable via three different paths as illustrated in Fig.~\ref{fig:road_to_op}: 
 
@@ -117,11 +117,11 @@ We next describe how the time window is attainable via three different paths as 
 \item In response, a security-conscious admin may change the default setting to \emph{strict} mode, where the IOTLB is flushed on every unmap. However, this both severely degrades networking performance~\cite{MMT16,MSMT18}, and does not alleviate the security threats on the system. Presumably, with \emph{strict} mode enabled, the \iova{} the NIC used to access that \shinfo{} is no longer valid, which initially sounds promising. The problem is that the device, in many cases, still has legitimate WRITE access to the physical page of the \shinfo. The vulnerability stems from the way \data{} is allocated. An RX \skb{} is almost exclusively allocated via an API (e.g., \texttt{netdev\_alloc\_skb}) that creates a type (c) \subpage{} vulnerability (Fig.~\ref{fig:colocation}(c)). The device can use the \iova{} of a co-located buffer to access the \shinfo{} it requires. Particularly, the buffers of the driver RX ring are allocated sequentially, resulting in pairs of successive RX descriptors that map the same page. Obviously, this holds as long as the buffer sizes are smaller than 4 KB. This is a reasonable assumption since the default MTU size is 1500~B. These allocation functions, use a \texttt{page\_frag} mechanism to allocate the \data{} buffers, which in turn contain \shinfo. The \texttt{page\_frag} is an efficient method for allocating small buffers, often used by the Linux network stack (it is used 344 times by network drivers in Linux kernel 5.0). A \texttt{page\_frag} is initialized by allocating a contiguous memory region (usually 32 KB), setting a \textit{va} pointer to the beginning of the region and \texttt{offset} to the end. An allocation request for \texttt{B} bytes subtracts \texttt{B} bytes from the \texttt{offset} pointer and returns the new value of \texttt{offset}. In multi-core environments, the \texttt{page\_frag} uses a different buffer for each CPU and each CPU has a single RX ring. As a result, each RX ring is served by its own (per-CPU) contiguous buffer. (Fig.~\ref{fig:page_frags}). This mechanism for memory allocation results in consecutive \data{} buffers often residing on the same memory page. Due to this type (c) \subpage{} vulnerability, the NIC does not require the invalidated \iova{} to modify the \shinfo. Instead, it can use the \iova{} for the next data buffer.\footnote{Note that the lower 12 bits (the offset on the page) of the \iova{} are identical to the corresponding \kva{} bits.} The device still has write access due to the valid \iova of the next buffer (i.e., the striped area at the end of the page at Fig.~\ref{fig:sh_info}).
 \end{enumerate}
 
-\smallskip
-\noindent\textbf{\sout{Our setup.}} \sout{The tg3 and mlx5\_core are both vulnerable. The tg3 driver uses the correct unmapping order, but uses the \texttt{netdev\_alloc\_frag} function that results in a type (c) \subpage{} vulnerability. mlx5\_core driver avoids unmapping the RX buffers altogether. \sout{In kernel 5.0, the driver uses a \texttt{page\_pool} mechanism~\cite{page_pool}.} These design choices leave \shinfo{} vulnerable, in both cases, regardless of the IOMMU policy (i.e., \emph{deferred} or \emph{strict}).}
+% \smallskip
+% \noindent\textbf{\sout{Our setup.}} \sout{The tg3 and mlx5\_core are both vulnerable. The tg3 driver uses the correct unmapping order, but uses the \texttt{netdev\_alloc\_frag} function that results in a type (c) \subpage{} vulnerability. mlx5\_core driver avoids unmapping the RX buffers altogether. \sout{In kernel 5.0, the driver uses a \texttt{page\_pool} mechanism~\cite{page_pool}.} These design choices leave \shinfo{} vulnerable, in both cases, regardless of the IOMMU policy (i.e., \emph{deferred} or \emph{strict}).}
 
 
-From this point on, we assume that the attacker can always modify the callback pointer. In the next subsections, we demonstrate various compound DMA attacks where an attacker can exploit \textcolor{red}{the} OS design to obtain the kernel virtual address of buffers containing malicious code, completing the trifecta of vulnerabilities.
+From this point on, we assume that the attacker can always modify the callback pointer. In the next subsections, we demonstrate various compound DMA attacks where an attacker can exploit the OS design to obtain the kernel virtual address of buffers containing malicious code, completing the trifecta of vulnerabilities.
 
 \subsection{The Ring Flood \Compound{} Attack}\label{sec:ringflod}
 A malicious device can generate a poisoned ROP stack in each RX buffer.
@@ -134,10 +134,11 @@ In particular, the device has all the \iova{} for the RX buffers, but not the \k
 
 In this attack, we take advantage of the fact that the boot process is \emph{deterministic}. Each reboot, the same set of commands is executed in the same order, initiating the same kernel modules and starting the same processes. While the pages each module receives may vary in a multi-core environment due to timing issues, we do not expect the drift to be too large. 
 
-We evaluate this assumption on our setup running 256 reboots on Ubuntu 18.04 with both kernels 5.0 and 4.15. With the mlx5\_core driver, many PFNs repeat in more than 50\% percent of reboots on kernel 5.0 and more than 95\% on kernel 4.15. The 4.15 driver version allocates much more memory, allocating 64~KB per RX buffer to facilitate the HW LRO feature. We assume an attacker can gain access to an identical setup and identify the most common PFN. Therefore, an adversary with knowledge about the physical setup can deduce a valid \kva{} for one of the RX pages containing a \mabaf. This provides the needed \kva. Thus, the device can execute the attack as shown in Fig.~\ref{fig:sh_info}.\sout{(in this case, the \texttt{destructor\_arg} will most likely indicate a different page, but other than that, the attack scenario is unchanged).}
+We evaluate this assumption on our setup running 256 reboots on Ubuntu 18.04 with both kernels 5.0 and 4.15. With the mlx5\_core driver, many PFNs repeat in more than 50\% percent of reboots on kernel 5.0 and more than 95\% on kernel 4.15. The 4.15 driver version allocates much more memory, allocating 64~KB per RX buffer to facilitate the HW LRO feature. We assume an attacker can gain access to an identical setup and identify the most common PFN. Therefore, an adversary with knowledge about the physical setup can deduce a valid \kva{} for one of the RX pages containing a \mabaf. This provides the needed \kva. Thus, the device can execute the attack as shown in Fig.~\ref{fig:sh_info}.
+%\sout{(in this case, the \texttt{destructor\_arg} will most likely indicate a different page, but other than that, the attack scenario is unchanged).}
 
 The success chances of the RingFlood attack increase with the memory footprint of the device driver. The memory footprint, in turn, depends on the NIC capabilities and the number of cores (number of RX rings) on the server. This means that such attacks have higher chances of success on larger machines. 
-For example, some NICs have a HW LRO capability\cite{mlx5_lro}, where a NIC can aggregate multiple TCP packets into a single TCP packet, larger than \textcolor{red}{the} MTU (e.g., bnx2x, mlx5\_core). On drivers configured with these options, each RX buffer is 64~KB regardless of MTU. As a result, these drivers have a much larger memory footprint. Mellanox, mlx5\_core driver on kernel 4.15, enables HW LRO and, as a result, allocates 2~GB of memory per physical device port on a 32 core machine. On kernel 5.0, HW LRO is disabled, and the driver allocates 2~KB per entry and thus only uses 64~MB per port.
+For example, some NICs have a HW LRO capability\cite{mlx5_lro}, where a NIC can aggregate multiple TCP packets into a single TCP packet, larger than the MTU (e.g., bnx2x, mlx5\_core). On drivers configured with these options, each RX buffer is 64~KB regardless of MTU. As a result, these drivers have a much larger memory footprint. Mellanox, mlx5\_core driver on kernel 4.15, enables HW LRO and, as a result, allocates 2~GB of memory per physical device port on a 32 core machine. On kernel 5.0, HW LRO is disabled, and the driver allocates 2~KB per entry and thus only uses 64~MB per port.
 
 \begin{figure*}[t]
     \centering
@@ -151,7 +152,7 @@ RingFlood (Sec.~\ref{sec:ringflod}) allows a NIC to execute arbitrary code with 
 
 In this attack, the \kva is acquired by spoofing a malicious transmitted (TX) packet. That is, the attacker gains the needed \kva by \emph{reading} it in the \shinfo of the sent packet. 
 %
-There are multiple ways in which a malicious NIC device can initiate a TX flow on the server. \sout{We are listing a few examples below}\textcolor{red}{We list a few examples below}:
+There are multiple ways in which a malicious NIC device can initiate a TX flow on the server. We list a few examples below:
 \begin{enumerate}
     \item Coercing a userspace process into echoing a malicious buffer's contents can be achieved in various ways. For example, a proxy server, a key/value store and, a streaming service.
     \item A cloud VM (e.g., on GCP, AWS, or Azure). A publicly accessible VM may be used to compromise the \emph{host} in the presence of a malicious device.\footnote{Indeed, Google's OpenTitan~\cite{opentitan} exemplifies that cloud providers actively worry about the root of trust for their servers.}
@@ -188,7 +189,6 @@ Moreover, a TX completion event that fails to appear in due time will trigger a 
 %\smallskip
 %\noindent\textbf{User buffer.} An attacker could try storing the \mabaf{} and code in user-space. Such and attempt would fail due to SMEP/SMAP~\cite{smep} as the kernel will not be able to directly execute user-space code.
 
-\input{appendixes/more_attacks}
 
 
 
