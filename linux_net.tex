@@ -75,7 +75,7 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
 \begin{enumerate}[labelindent=0pt]
     \item A device can alter data structures that the CPU has modified \emph{after} unmapping (e.g., calling \texttt{dma\_unmap\_page}).
     \iova{} mappings, as a rule, are short-lived as they should be used only for the duration of I/O, usually for a few microseconds. The additional milliseconds provide the attacker with a wide time window sufficient to conduct its attack.
-    \item The page can be freed and then immediately reused by the OS. Fast reuse is a common scenario since Linux reuses \emph{hot} pages (i.e., recently used pages) as they are likely to reside in the CPU caches~\cite{hotcold}. However, this also opens up the kernel to additional random access attacks.
+    \item The page can be freed and then immediately reused by the OS. Fast reuse is a common scenario since Linux reuses \emph{hot} pages (i.e., recently used pages) as they are likely to reside in the CPU caches~\cite{hotcold}. However, this also opens up the kernel to additional random exposure attacks.
 \end{enumerate}
 
 

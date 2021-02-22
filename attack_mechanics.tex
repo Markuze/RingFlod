@@ -6,7 +6,7 @@
 %These paint a clear picture of risks and dangers posed by DMA capable devices.
 %We also discuss dangerous trade-offs and discuss the threat model.
 %\adam{similar comment to intro: not clear what this trifecta means on top of the first categorization}
-This section organizes and categorizes the risks associated with DMA operations, providing the building blocks for reasoning about code-injection attacks.
+This section organizes and categorizes the risks associated with DMA operations, providing the building blocks for reasoning about code injection attacks.
 In particular, we first present our threat model. Then, we categorise the different \subpage{} vulnerabilities into four categories.
 Finally, we identify a set of three vulnerability attributes that make it possible for a malicious device to exploit a \subpage{} vulnerability and execute a viable code injection attack.
 
@@ -95,7 +95,7 @@ metadata; (c) a page mapped by multiple \iova; (d) randomly co-located sensitive
 
 \subsection{Vulnerability Attributes for Code Injection}\label{sec:mmo}
 
-We introduce a schema that allows for a systematic analysis of code-injection attacks by DMA-capable devices.
+We introduce a schema that allows for a systematic analysis of code injection attacks by DMA-capable devices.
 %to categorizes DMA vulnerabilities. The goal of MMO is to define building blocks for reasoning about DMA attacks.
 For a successful privilege escalation attack (i.e., code injection), a malicious device needs the following set of three vulnerability attributes:
 \begin{enumerate}

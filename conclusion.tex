@@ -41,7 +41,7 @@ With the existing API used for I/O operations and due to performance considerati
 %We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers.
 
 \subsection{Random Exposure}\label{sec:rand_exp}
-While we do not demonstrate random exposure exploits, our findings indicate that random exposure attacks should not be disregarded. Accordingly, in Appendix \ref{appx:additional_compound} we show a compound attack that exploits an I/O buffer that is mapped twice, once for read and once for write. Line 1 in Fig.~\ref{fig:dkasan-report}  shows how such double mapping innocently occurs.
+While we do not demonstrate random exposure exploits, our findings indicate that random exposure vulnerabilities should not be disregarded. Accordingly, in Appendix \ref{appx:additional_compound} we show a compound attack that exploits an I/O buffer that is mapped twice, once for read and once for write. Line 1 in Fig.~\ref{fig:dkasan-report}  shows how such double mapping innocently occurs.
 
 \subsection{Conclusion}\label{sec:Conclusion}
 
