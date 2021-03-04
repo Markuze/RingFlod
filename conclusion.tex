@@ -16,7 +16,8 @@
 %\adam{this paragraph was weak. It implies that IOMMU was thought to be a protection before, which is not the case, since we go on to cite papers dealing with sub-page vulns. This paragraph should try to summarize the contribution. I suggest using text from the abstract/intro, along the lines of: we have shown that sub-page vulns are caused by the OS, not drivers, we have characterized them, etc.}
 
 By introducing and demonstrating \compound{} attacks on the Linux kernel, we have shown that IOMMU, as it is used today, leaves the OS vulnerable to DMA attacks. While such vulnerabilities have been considered to be caused by buggy device drivers or poor (but isolated) driver design choices, we find that it is often the OS design choices that compromise the system security.
-Accordingly, in Sec. \ref{sec:api}, we provide examples of such OS design choices and summarize APIs we have exploited for executing \compound{} DMA attacks. In Sec. \ref{sec:rand_exp} we discuss random exposure vulnerabilities. Finally, in Sec. \ref{sec:Conclusion} we conclude the paper.
+Accordingly, in Sec. \ref{sec:api}, we provide examples of such OS design choices and summarize APIs we have exploited for executing \compound{} DMA attacks, %In Sec. \ref{sec:rand_exp} we discuss random exposure vulnerabilities.
+then, in Sec. \ref{sec:Conclusion} we conclude the paper.
 
 \subsection{API}\label{sec:api}
 
@@ -39,9 +40,6 @@ With the existing API used for I/O operations and due to performance considerati
 
 %\subsection{Discussion}
 %We contend that a better API and better mechanisms can provide driver authors with better options for writing secure and performant device drivers.
-
-\subsection{Random Exposure}\label{sec:rand_exp}
-While we do not demonstrate random exposure exploits, our findings indicate that random exposure vulnerabilities should not be disregarded. Accordingly, in Appendix \ref{appx:additional_compound} we show a compound attack that exploits an I/O buffer that is mapped twice, once for read and once for write. Line 1 in Fig.~\ref{fig:dkasan-report}  shows how such double mapping innocently occurs.
 
 \subsection{Conclusion}\label{sec:Conclusion}
 

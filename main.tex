@@ -1,5 +1,5 @@
 %\documentclass[sigplan,review,anonymous]{acmart}
-\documentclass[sigplan]{acmart}
+\documentclass[sigplan,10pt]{acmart}
 \acmSubmissionID{336}
 \renewcommand\footnotetextcopyrightpermission[1]{}
 \settopmatter{printacmref=false}
@@ -124,7 +124,8 @@
     $^{\diamond}$VMware\\
     \ \\
   }}
-  
+ 
+\renewcommand{\shortauthors}{Markuze, Vargaftik, Kupfer, Pismeny, Amit, Morrison, and Tsafrir}
   %\gdef\authors{Alex Markuze, Shay Vargaftik, Gil Kupfer, Boris Pismeny, Nadav Amit, Adam Morrison, and Dan Tsafrir}
 % \begin{comment}
 %\author{ 
@@ -180,6 +181,7 @@ Specifically, while all previously reported attacks are \emph{single-step}, i.e.
 \input{tool}
 \input{dma_kasan}
 \input{linux_net}
+\input{appendixes/more_attacks}
 \input{setup}
 \input{other_os}
 \input{related_work}
@@ -189,8 +191,7 @@ Specifically, while all previously reported attacks are \emph{single-step}, i.e.
 \bibliographystyle{plain}
 \bibliography{references}
 
-\appendix
-\input{appendixes/more_attacks}
+%\appendix
 
 %\input{appendixes/shellcode}
 %\input{appendixes/dma_bidir.tex}
