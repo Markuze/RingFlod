@@ -5,8 +5,7 @@ We cover DMA attacks in the presence of IOMMU, defenses, and emerging ROP mitiga
 \noindent\textbf{DMA attacks in the presence of IOMMU.}
 Beniamini demonstrated attacks on cellular devices, e.g., the iPhone 7 and Nexus 5/6/6P, through their Wi-Fi chips~\cite{Ben17a, Ben17b}. 
 %While Nexus phones do not use an IOMMU, iPhones do. 
-The attack exploited a TOCTTOU (Time of Check To Time of Use) vulnerability in the NIC driver. From an I/O point of view, all the DMA writes were still legal (i.e., only to buffers currently mapped to the NIC).
-
+The attack exploited a TOCTTOU (Time of Check To Time of Use) vulnerability in the NIC driver. Kupfer~\cite{kupfer2018iommu}, has demonstrated \simple attacks exploiting weaknesses in the Linux FireWire driver. In both cases, all the DMA writes were legal, i.e., only to buffers currently mapped to the device.
 % \noindent\textbf{Thunderclap~\cite{thunder}} A recent paper has introduced an FPGA tool using which they demonstrated several ad-hoc \simple DMA attacks on Windows, macOS, and FreeBSD. 
 % %
 % Our work takes a significant step forward in characterizing, exploiting, and detecting DMA vulnerabilities. Specifically: (1) we provide characterizations and taxonomy that facilitate reasoning about DMA vulnerabilities; (2) we provide tools for finding DMA vulnerabilities and exemplify their use; (3) we devise and demonstrate \compound DMA attacks by carefully exploiting standard OS behavior.
