@@ -45,6 +45,6 @@ Packet forwarding allows the NIC to inspect arbitrary pages at will.
 Instead of sending a TCP packet and letting the GRO layer fill in the \texttt{frags} information, the NIC can generate a small UDP packet and fill in the \texttt{frags} array with any arbitrary \page{} addresses within the system. This results in the mapping of these pages by the driver, providing READ access to any page in the system to the NIC. 
 
 
-To avoid detection and, more importantly, preserve OS stability, the device must undo the changes to \shinfo{} before creating a TX completion. That is, before letting the CPU know that the packet was sent and its buffer can now be freed. Otherwise, the OS will try freeing the pages, indicated by \shinfo.
+To avoid detection and preserve OS stability, the device must undo the changes to \shinfo{} before creating a TX completion. That is, before letting the CPU know that the packet was sent and its buffer can now be freed. Otherwise, the OS will try freeing the pages, indicated by \shinfo.
 
 

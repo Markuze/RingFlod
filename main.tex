@@ -1,8 +1,8 @@
 %\documentclass[sigplan,review,anonymous]{acmart}
 \documentclass[sigplan,10pt]{acmart}
-\acmSubmissionID{336}
-\renewcommand\footnotetextcopyrightpermission[1]{}
-\settopmatter{printacmref=false}
+%\acmSubmissionID{336}
+%\renewcommand\footnotetextcopyrightpermission[1]{}
+%\settopmatter{printacmref=false}
 %\documentclass[letterpaper,twocolumn,10pt]{article}
 %\usepackage{usenix2019_v3}
 %\pagestyle{plain}
@@ -90,7 +90,13 @@
 %-------------------------------------------------------------------------------
 \begin{document}
 %-------------------------------------------------------------------------------
-
+\acmYear{2021}\copyrightyear{2021}
+\setcopyright{acmlicensed}
+\acmConference[EuroSys '21]{Sixteenth European Conference on Computer Systems}{April 26--29, 2021}{Online, United Kingdom}
+\acmBooktitle{Sixteenth European Conference on Computer Systems (EuroSys '21), April 26--29, 2021, Online, United Kingdom}
+\acmPrice{15.00}
+\acmDOI{10.1145/3447786.3456249}
+\acmISBN{978-1-4503-8334-9/21/04}
 
 %don't want date printed
 %\date{}
@@ -168,16 +174,29 @@
 %\textcolor{red}{Before: chaos Now Oder == MMO, taxonomy of DMA vulnerabilities Result \compound attacks. + tool. We expose  a deep-rooted issue in OS design rather than ad-hoc buggies... The language:\simple vs. \compound, MMO, \subpage types.}
 
 
-Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware IOMMU protection cannot prevent all DMA attacks because it restricts DMA at page-level granularity leading to \subpage vulnerabilities. Conventional wisdom is that \subpage vulnerabilities that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
+Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware IOMMU protection cannot prevent all DMA attacks because it restricts DMA at page-level granularity leading to \subpage vulnerabilities. 
 
-This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. To this end, we first categorize \subpage vulnerabilities into four categories, providing insight into the structure of DMA vulnerabilities. 
+Currently, known DMA attacks rely on simple situations in which write access to a kernel pointer is obtained due to \subpage vulnerabilities and all other attack ingredients are available and reside on the same page. 
+However, this paper shows that DMA vulnerabilities are a deep-rooted issue where it is often the kernel design that enables complex and multistage DMA attacks.  
+In this paper, we seek to provide a structured top-down approach \mbox{to characterize, exploit, and detect them.}
+
+
+
+%Conventional wisdom is that \subpage vulnerabilities that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
+
+%This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. 
+
+%This paper shows that it is often the kernel design choices that facilitate a DMA attack. 
+To this end, we first categorize \subpage vulnerabilities into four categories, providing insight into the structure of DMA vulnerabilities. 
 Then, to exploit these vulnerabilities, we identify a set of three vulnerability attributes which are sufficient to execute code injection attacks. 
 
 We then build analysis tools that detect \subpage vulnerabilities and analyze the Linux kernel. 
 We find that 72\% of the device drivers expose sensitive callback pointers, which may be overwritten by a device to hijack kernel control flow.
 
 Aided by the tools' output, we demonstrate novel code injection attacks on the Linux kernel we term \compound{} attacks.
-Specifically, while all previously reported attacks are \emph{single-step}, i.e., with the vulnerability attributes present in a single page, in \compound{} attacks, the vulnerability attributes are initially incomplete. However, they can be attained by carefully exploiting standard OS behavior. 
+Specifically, while all previously reported attacks are \emph{single-step}, i.e., with the vulnerability attributes present in a single page, in \compound{} attacks, the vulnerability attributes are initially incomplete. However, they can be attained by carefully exploiting standard OS behavior.
+
+Finally, our code is publicly available \cite{DKASAN,SPADE}.
 
 \end{abstract}
 \maketitle

@@ -14,13 +14,13 @@ The attack exploited a TOCTTOU (Time of Check To Time of Use) vulnerability in t
 \noindent\textbf{Thunderclap~\cite{thunder}.} This work also considers sub-page vulnerabilities and \simple attacks. In particular, they introduced an FPGA tool using which they demonstrated several ad-hoc \simple DMA attacks on Windows, macOS, and FreeBSD. However, our work takes a significant step forward in characterizing, exploiting, and detecting DMA vulnerabilities. Below we summarize the main differences \mbox{between our work and Thunderclap:}
 \begin{itemize}
 
-    \item Thunderclap does not distinguish \simple from \compound attacks. But this distinction is crucial because it teaches the community that merely having write access to a kernel pointer might not be sufficient to mount an attack. For instance, Thunderclap's "attack story 6" is not exploitable without a technique to identify the buffer's kernel virtual address (KVAs), an important missing piece that is not discussed/acknowledged in the Thunderclap paper.
+    \item Thunderclap does not distinguish \simple from \compound attacks. However, this distinction is crucial because it shows that merely having write access to a kernel pointer might not be sufficient to mount an attack. For instance, Thunderclap's ``attack story 6'' is not exploitable without a technique to identify the buffer's kernel virtual address (KVAs), an important missing piece that is not discussed/acknowledged in the Thunderclap paper.
     
     \item We propose new techniques to identify KVAs (Sec.~\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound}).
     
     \item We explicitly characterize/enumerate the attributes required for a successful DMA attack. These are not systematically defined by Thunderclap. Further, we demonstrate a complete \compound attack in Sec.~\ref{Sec:setup}.
     
-    \item We taxonomize sub-page vulnerabilities (Sec.~\ref{sec:subpage}). Thunderclap's vulnerability taxonomy is general: it differentiates "data leakage" from "kernel pointer" but doesn't fully characterize kernel pointer attacks---our work carefully addresses this issue.
+    \item We taxonomize sub-page vulnerabilities (Sec.~\ref{sec:subpage}). Thunderclap's vulnerability taxonomy is general: it differentiates "data leakage" from "kernel pointer" but does not fully characterize kernel pointer attacks---our work carefully addresses this issue.
     
     \item Whereas Thunderclap claims that Linux is safe from skbuff attacks because ``its skbuff locates function pointers and data on different pages'' (quoting its Sec. VI), we show that this is, in fact, incorrect by discovering and describing a new vulnerability/attack on Linux skbuffs.
     

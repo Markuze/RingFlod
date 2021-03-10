@@ -53,7 +53,7 @@ An attacker can access sensitive data and/or overwrite the OS code and data stru
 Accessible expansion ports, e.g., FireWire or Thunderbolt, allow external devices to initiate DMA transactions merely by connecting a programmable accessory~\cite{Dor04, Vol, MM, thunder}. 
 Exploiting internal devices is more challenging, but enables persistent and stealthy attacks. 
 
-Multiple options to gain control of an internal device are available.
+Many options to gain control of an internal device are available.
 A resourceful attacker can exploit firmware bugs~\cite{SB12}. These can be well-known exploits, as end-users are often slow in deploying firmware updates~\cite{DPVL10}, and even newly discovered zero-day vulnerabilities~\cite{Ben17b}. Alternatively, certain attackers may be able to replace the device firmware altogether with a malicious one~\cite{ZKB13, NL14}. It is also possible to manufacture devices that appear to be legitimate but are, in fact, malicious at the circuitry level~\cite{YHD16}.
 
 Once an attacker gains control over a DMA device connected to a victim machine, various attacks are possible, ranging from keyloggers~\cite{LKV13, SB12} to full control over commodity OS and hypervisor, including Windows~\cite{AD10,thunder}, Linux, OSX~\cite{Fri16, thunder}, Android~\cite{Ben17b}, and Xen~\cite{Woj08}.

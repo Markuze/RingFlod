@@ -7,17 +7,17 @@
 %So far, we have demonstrated a \simple attack by exploiting type (a) \subpage vulnerability of the FireWire driver. 
 This section explores new attacks on the Linux network stack where the vulnerability attributes are initially missing but are attainable via compound steps.
 We focus on the Linux network stack which initially seems secure~\cite{thunder}.
-Nevertheless, as we demonstrate, the Linux network stack is actually responsible for 60\% of the DMA vulnerabilities we have found.
+Nevertheless, as we demonstrate, the Linux network stack is actually responsible for 60\% of the DMA vulnerabilities \mbox{we have found.}
 
 Recall that, once we have discovered a \subpage{} vulnerability, our goal is to obtain the three vulnerability attributes (Sec. \ref{sec:mmo}: (1) a KVA, (2) a callback pointer and, (3) timing). 
 Accordingly, in Sec.~\ref{sec:shinfo_exploit}, we first describe how to obtain (2) a callback function pointer. Then, in Sec.~\ref{sec:timely}, we show that (3) a time window for exploiting this pointer is available. 
 While these two steps for obtaining vulnerability attributes (2) and (3) are generic, there are different recipes for how to obtain the remaining vulnerability attribute (1), i.e., the KVA of the malicious buffer.
-We complete the vulnerability attributes in Sec.~\ref{sec:ringflod} and Sec.~\ref{sec:posion} by showing different ways (by which we also name the compound attack) to obtain (1) the KVA.
+We complete the vulnerability attributes in Sec.~\ref{sec:ringflod}, Sec.~\ref{sec:posion} and Sec.~\ref{appx:additional_compound} by showing different ways (by which we also name the compound attack) \mbox{to obtain (1) the KVA.}
 
 
 
-Due to space limitations we demonstrate only selected compound DMA attacks. 
-Upon the publication of our work, we aim to release extended material, including evaluation scripts and additional \compound and previously unknown \simple attacks found by our tools.
+%Due to space limitations we demonstrate only selected compound DMA attacks. 
+%Upon the publication of our work, we aim to release extended material, including evaluation scripts and additional \compound and previously unknown \simple attacks found by our tools.
 %\sout{We first describe the vulnerable data structures shared by \emph{all} Linux network drivers, which exposes a callback pointer. Then, after providing some necessary technical background (Sec.~\ref{sec:deferred}), we show how that the device is often provided with a timing window during which a modified callback pointer will be executed by the CPU~(Sec.~\ref{sec:shinfo}). Finally, we discuss various methods to identify kernel virtual addresses of pages containing malicious code (Sec.~\ref{sec:ringflod} and~\ref{sec:posion}).}
 %In the interest of space, additional methods for gaining \motivation are deferred to Appendix~\ref{appx:additional_compound}.
 
@@ -50,7 +50,7 @@ Fig.~\ref{fig:sh_info} depicts how a malicious device can mount an attack using 
     %\adam{how does this work? you overwrite a pointer to a callback function, not to the stack pointer.}\SV{a JOP attack, aslo mentioned in 2.4}
     \item when the \skb{} is released, the callback is invoked.
 \end{enumerate}
-To expand this scenario into a complete attack, the attacker must obtain all three vulnerability attributes. That is, the attacker needs the actual \kva{} of the \mabaf{} and the NIC must have a timely WRITE access to the page. In the next subsection, we demonstrate how an attacker can leverage standard OS behavior to obtain both missing vulnerability attributes.
+To expand this scenario into a complete attack, the attacker must obtain all three vulnerability attributes. Namely, the attacker needs the actual \kva{} of the \mabaf{} and the NIC must have a timely WRITE access to the page. Next, we demonstrate how an attacker can leverage standard OS behavior to obtain both missing \mbox{vulnerability attributes.}
 
 \begin{figure}[t]
     \centering
