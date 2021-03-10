@@ -50,7 +50,7 @@ We use our tools to find and demonstrate attacks on the Linux kernel. We focus o
 We observe that unlike compound attacks, previous work has explored \simple{} attacks, i.e., attacks in which the three vulnerability attributes are trivially provided. 
 Namely, a mapped I/O buffer co-resides on a mapped page which, due to \subpage{} vulnerability, also exposes a callback pointer and a kernel virtual address, and the timing is such that the CPU will not overwrite the modifications.
 
-Analysis of such \simple{} attacks, that can typically be blocked with localized fixes, may lead to a dangerous misconception. In particular, one may assume that buggy device drivers or poor but isolated design choices are to blame for DMA vulnerabilities.
+Analysis of such \simple{} attacks, that can typically be blocked with localized fixes, may lead to a dangerous misconception. In particular, one may assume that buggy device drivers or poor but isolated design choices are to blame for DMA vulnerabilities\cite{malka2015efficient,malka2015riommu}.
 However, by introducing \compound attacks, we demonstrate that it is often the kernel itself that supplements the missing pieces, showing that this is a deep-rooted issue rather than a collection of disjoint incidents.
 We identify multiple kernel APIs and data structure designs that facilitate the acquisition of the vulnerability attributes by a malicious device.
 
