@@ -1,0 +1,76 @@
+\subsection{DMA Kernel Address SANitizer}\label{sec:dma-kasan} 
+
+In Sec.~\ref{sec:static-analysis}, we have shown that more than 70\% of DMA-map operations result in exposed pointers. 
+%Exposed pointers may be used in a DMA attack either passively to subvert KASLR or actively to execute an attack. 
+Most of the remaining 30\% DMA-map operations are executed on allocated objects that are presumably not co-located on the same page with vulnerable meta-data. However, this is often not the case in practice.
+Indeed, objects allocated via the kmalloc API~\cite{Cor07} may share a page with objects of similar size. As a result, vulnerable metadata may still be mapped. 
+%
+Such a vulnerability is not visible to \tool as it is of a dynamic nature. Accordingly, we have developed a run-time tool that reports such vulnerabilities. 
+
+Our solution is based on an existing kernel tool, KASAN~\cite{kasan}, which is a dynamic memory error detector designed to detect out-of-bounds and use-after-free bugs. KASAN uses shadow memory to record whether a memory byte is safe to access. KASAN uses compile-time instrumentation to insert checks of shadow memory on each memory access. 
+We modify KASAN to record DMA-map operations in addition to memory allocations. Our tool, termed DMA-KASAN (\dkasan) reports: 
+\begin{enumerate}
+    \item alloc-after-map:  kmalloc object is allocated from a mapped page.
+    \item map-after-alloc:  the containing page is mapped after an object was allocated.
+    \item access-after-map: the CPU accesses a DMA mapped page.
+    \item multiple-map: an object is mapped multiple times with possibly different permissions.
+\end{enumerate}
+%alloc-after-map, map-after-alloc.We term by ``alloc-after-map'' a situation in which kmalloc object is allocated from a mapped page. Likewise, we term by ``map-after-alloc'' a situation in which the containing page is mapped after an object was allocated.
+%\adam{the meaning of these terms shouldn't be in a footnote, it's important}
+%The tool also detects cases when a DMA mapped page is accessed by the CPU. 
+%\dkasan, therefore, identifies all cases where an allocated object was inadvertently dma-mapped after allocation or has already been allocated on a dma-mapped page. 
+We tested \dkasan using our setup (Sec.~\ref{Sec:setup}).
+%\adam{setup wasn't discussed or defined until this point}\SV{Added a forward ref}.
+In our experiment we cloned a large project from a git repository and compiled it concurrently with light network traffic (i.e., ICMP ping). This experiment has identified numerous cases where a DMA-mapped page is used to hold network and file system metadata. Example results are shown in Fig.~\ref{fig:dkasan-report}. \DIFdelbegin \DIFdel{Among the identified vulnerabilities we have identified cases (e.g., line 1 in Fig.~\ref{fig:dkasan-report}) where a network I/O bufferis simultaneously mapped with READ and WRITE. The same physical page mapped twice, once for read and once for write. Such cases greatly simplify the attacker's effort.In the interest of space, such examples are omitted from the paper}\DIFdelend \DIFaddbegin \DIFadd{Each line shows an allocation that resulted in a random exposure; namely, it shows the size of the allocated buffer, the DMA access type and the allocating location (i.e., function name and offset)}\DIFaddend .
+
+\DIFdelbegin \DIFdel{We have also encountered cases where }\DIFdelend \DIFaddbegin \DIFadd{Fig.~\ref{fig:dkasan-report} also shows how }\DIFaddend random kernel data structures \DIFdelbegin \DIFdel{are mapped for READ/}\DIFdelend \DIFaddbegin \DIFadd{can be mapped for both READ and }\DIFaddend WRITE. Some of these \DIFdelbegin \DIFdel{mapped data structures }\DIFdelend also contain callback pointers \DIFdelbegin \DIFdel{. For example, }\texttt{\DIFdel{struct assoc\_array\_edit}} %DIFAUXCMD
+\DIFdel{is mapped (}\DIFdelend \DIFaddbegin \DIFadd{(e.g., }\DIFaddend line 5\DIFdelbegin \DIFdel{in Fig.~\ref{fig:dkasan-report})exposing callback pointers to the device. 
+ }\DIFdelend \DIFaddbegin \DIFadd{). 
+ }
+
+\DIFaddend %
+%In case of deferred protection
+%It is important to note that even if these pages are invalidated, an access attempt by the device will %simply result in a dmesg warning line. Namely, the device may repeatedly probe pages for access.
+\begin{figure}[t]
+\begin{adjustbox}{width=0.9\linewidth}
+\lstset{
+    escapechar={|},
+}
+        \begin{lstlisting}[
+        basicstyle = \small,
+        %basicstyle=\ttfamily,
+        columns = fixed,
+        tabsize=1,
+        %frame = l,
+        language = C
+        ]
+[1] size 512 [|\color{purple}READ, WRITE|] __alloc_skb+0xe0/0x3f0
+[2] size 512 [|\color{purple}WRITE|] load_elf_phdrs+0xbf/0x130
+[3] size 512 [|\color{purple}WRITE|] __do_execve_file.isra.0+0x287/0x1080
+[4] size 64  [|\color{purple}WRITE|] sock_alloc_inode+0x4f/0x120
+[5] size 328 [|\color{purple}READ, WRITE|] assoc_array_insert+0xa9/0x7e0
+        
+\end{lstlisting}
+\end{adjustbox}
+        \caption{\dkasan report example.}
+        %\vspace{-3mm}
+        \label{fig:dkasan-report}
+\end{figure}
+
+%DIF > \subsection{Random Exposure Exploits}\label{sec:rand_exp}
+\DIFaddbegin \DIFadd{While we do not demonstrate random exposure exploits, these findings indicate that random exposure vulnerabilities should not be disregarded. Accordingly, in Sec.~\ref{appx:additional_compound} we show a compound attack that exploits an I/O buffer that is mapped twice, once for read and once for write. Line 1 in Fig.~\ref{fig:dkasan-report}  shows how such double mapping innocently occurs.
+}
+
+\DIFaddend \subsection{Discussion and Limitations}
+\dkasan \DIFdelbegin \DIFdel{Is }\DIFdelend \DIFaddbegin \DIFadd{is }\DIFaddend a run-time tool that has a large memory footprint and the obvious overhead of callbacks on each memory access. This tool is useful for testing specific systems for vulnerabilities.
+\tool is a static analysis tool that may fail to follow a mapped variable due to potential code obfuscation like function pointers, macros and others, potentially resulting in a false-negative result. \DIFdelbegin \DIFdel{False-positive }\DIFdelend \DIFaddbegin \DIFadd{False positives }\DIFaddend may happen in a rare case
+%\adam{the footnote and its purposes are't clear. Bugs by who\textcolor{red}{\textbf{m}}? Tool writers (you) or kernel devs? And what exactly is the point?}\SV{Removed} 
+where the mapped data structure crosses a  page boundary. In this case, \tool may flag a callback function, which may not be exposed, since it resides on a different page. Namely, only part of a data structure is accessible to the device due to the \subpage{} vulnerability at the mapped page, whereas the callback pointer resides on a different page which is not accessible to the device.%DIF < \DIFdelbegin %DIFDELCMD < \adam{%%%
+\DIFdel{explain why this can happen}%DIFDELCMD < }\SV{%%%
+\DIFdel{Is this what you were looking for ?}%DIFDELCMD < } %%%
+\DIFdelend %DIF > \adam{explain why this can happen}\SV{Is this what you were looking for?}
+\DIFaddbegin 
+
+\DIFadd{Our code for }\dkasan \DIFadd{is publicly available \mbox{%DIFAUXCMD
+\cite{DKASAN}}\hspace{0pt}%DIFAUXCMD
+. }\DIFaddend

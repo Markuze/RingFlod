@@ -1,0 +1,120 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% force figure to page 3... belongs to the next section.
+\DIFdelbegin %DIFDELCMD < \begin{figure*}[t]
+%DIFDELCMD < %%%
+\DIFdelendFL %DIF >  \begin{figure*}[t]
+
+\DIFdelbeginFL %DIFDELCMD < \begin{lstlisting}[
+%DIFDELCMD < %DIFVRB         basicstyle = \small,
+%DIFDELCMD < %DIFVRB         %basicstyle=\ttfamily,
+%DIFDELCMD < %DIFVRB         columns = fixed,
+%DIFDELCMD < %DIFVRB         tabsize=8,
+%DIFDELCMD < %DIFVRB         %frame = l,
+%DIFDELCMD < %DIFVRB         xleftmargin=.1\textwidth,
+%DIFDELCMD < %DIFVRB         language = C
+%DIFDELCMD < %DIFVRB         ]
+%DIFDELCMD < %%%
+%DIFAUXCMD NEXT
+\DIFmodbegin
+\begin{lstlisting}[alsolanguage=DIFcode]
+[
+
+
+
+
+
+
+
+
+%DIF < Start addr       |   Offset   |     End addr     |  Size   | VM area description
+%DIF < ==================================================================================
+%DIF < ...
+%DIF < ffff888000000000 | -119.5  TB | ffffc87fffffffff |   64 TB | page_offset_base
+%DIF < ...
+%DIF < ffffea0000000000 |  -22    TB | ffffeaffffffffff |    1 TB |  vmemmap_base
+%DIF < ...
+%DIF < ffffffff80000000 |   -2    GB | ffffffff9fffffff |  512 MB | kernel text mapping
+%DIF <                 
+-\end{lstlisting}
+\DIFmodend %DIFAUXCMD
+%DIFDELCMD < \end{lstlisting}
+%DIFDELCMD <         %%%
+\DIFdelendFL %DIF >          \begin{lstlisting}[
+%DIF >          basicstyle = \small,
+%DIF >          %basicstyle=\ttfamily,
+%DIF >          columns = fixed,
+%DIF >          tabsize=8,
+%DIF >          %frame = l,
+%DIF >          xleftmargin=.1\textwidth,
+%DIF >          language = C
+%DIF >          ]
+%DIF >  Start addr       |   Offset   |     End addr     |  Size   | VM area description
+%DIF >  ==================================================================================
+%DIF >  ...
+%DIF >  ffff888000000000 | -119.5  TB | ffffc87fffffffff |   64 TB | page_offset_base
+%DIF >  ...
+%DIF >  ffffea0000000000 |  -22    TB | ffffeaffffffffff |    1 TB |  vmemmap_base
+%DIF >  ...
+%DIF >  ffffffff80000000 |   -2    GB | ffffffff9fffffff |  512 MB | kernel text mapping
+%DIF >                  \end{lstlisting}
+%DIF >          \caption{ Linux kernel memory layout.}
+%DIF >          \label{fig:mem_layot}
+\DIFaddbeginFL 
+
+%DIF >  \end{figure*}
+
+\begin{table*}[ht]
+\begin{tabular}{l|l|l|l|l}
+\DIFaddFL{Start Addr                                 }& \DIFaddFL{Offset    }& \DIFaddFL{End Addr                                   }& \DIFaddFL{Size    }& \DIFaddFL{VM are description                             }\\ \hline
+\texttt{\DIFaddFL{ffff888000000000}} & \DIFaddFL{-119.5 TB }& \texttt{\DIFaddFL{ffffc87fffffffff}}   & \DIFaddFL{64 TB   }& \DIFaddFL{direct map of phys memory (page\_offset\_base) }\\
+\texttt{\DIFaddFL{ffffc90000000000}} & \DIFaddFL{-55 TB    }& \texttt{\DIFaddFL{ffffe8ffffffffff}}   & \DIFaddFL{32 TB   }& \DIFaddFL{vmalloc/ioremap space (vmalloc\_base)          }\\
+\texttt{\DIFaddFL{ffffea0000000000}} & \DIFaddFL{-22 TB    }& \texttt{\DIFaddFL{ffffeaffffffffff}} & \DIFaddFL{1 TB    }& \DIFaddFL{virtual memory map (vmemmap\_base)             }\\
+\texttt{\DIFaddFL{ffffec0000000000}} & \DIFaddFL{-20 TB    }& \texttt{\DIFaddFL{fffffbffffffffff}} & \DIFaddFL{16 TB   }& \DIFaddFL{KASAN shadow memory                            }\\
+\texttt{\DIFaddFL{ffffffff80000000}} & \DIFaddFL{-2  GB    }& \texttt{\DIFaddFL{ffffffff9fffffff}} & \DIFaddFL{512 MB  }& \DIFaddFL{kernel text mapping (physical address 0)       }\\
+\texttt{\DIFaddFL{ffffffffa0000000}} & \DIFaddFL{-1536 MB  }& \texttt{\DIFaddFL{fffffffffeffffff}} & \DIFaddFL{1520 MB }& \DIFaddFL{module mapping space                           }\\ \hline
+\end{tabular}
+        \DIFaddendFL \caption{ Linux kernel memory layout.}
+        \label{fig:mem_layot}
+\DIFdelbeginFL %DIFDELCMD < 
+
+%DIFDELCMD < \end{figure*}
+%DIFDELCMD < %%%
+\DIFdelend \DIFaddbegin \end{table*}
+\DIFaddend %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Background}\label{sec:background}
+
+In this section, we provide the necessary background needed to discuss DMA related attacks. First, we describe classic DMA attacks and the IOMMU protection against them. Then, we discuss well-established protection practices against privilege escalation (i.e., code injection) attacks and methods of their circumvention.
+
+\subsection{DMA attacks}
+
+DMA allows I/O devices direct access to memory~\cite{oC54} without CPU involvement. While DMA is essential for fast I/O, it also provides ample opportunity for unmonitored and malicious activity by DMA-capable devices, i.e., DMA attacks. 
+
+An attacker can access sensitive data and/or overwrite the OS code and data structures and even gain full control of the victim system. DMA attacks can be carried out using an external or internal DMA-capable device. 
+
+Accessible expansion ports, e.g., FireWire or Thunderbolt, allow external devices to initiate DMA transactions merely by connecting a programmable accessory~\cite{Dor04, Vol, MM, thunder}. 
+Exploiting internal devices is more challenging, but enables persistent and stealthy attacks. 
+\DIFdelbegin \DIFdel{Clearly, an internal device is simply less conspicuous than an external peripheral connected via a Thunderbolt cable.
+}\DIFdelend 
+
+\DIFdelbegin \DIFdel{Multiple }\DIFdelend \DIFaddbegin \DIFadd{Many }\DIFaddend options to gain control of an internal device are available.
+A resourceful attacker can exploit firmware bugs~\cite{SB12}. These can be well-known exploits, as end-users are often slow in deploying firmware updates~\cite{DPVL10}, and even newly discovered zero-day vulnerabilities~\cite{Ben17b}. Alternatively, certain attackers may be able to replace the device firmware altogether with a malicious one~\cite{ZKB13, NL14}. It is also possible to manufacture devices that appear to be legitimate but are, in fact, malicious at the circuitry level~\cite{YHD16}.
+
+Once an attacker gains control over a DMA device connected to a victim machine, various attacks are possible, ranging from keyloggers~\cite{LKV13, SB12} to full control over commodity OS and hypervisor, including Windows~\cite{AD10,thunder}, Linux, OSX~\cite{Fri16, thunder}, Android~\cite{Ben17b}, and Xen~\cite{Woj08}.
+
+Several software tools for perpetrating DMA attacks exist, some are open source. Tools such as Volatility~\cite{Vol}, Inception~\cite{MM}, GoldFish~\cite{GA10}, and FinFireWire~\cite{Fin14} can extract target machine memory and unlock victim machines by patching the OS code. These tools are reportedly used by government agencies, such as the NSA.
+
+\subsection{IOMMU}
+
+With the lack of software protection against DMA attacks, the common practice is to restrict DMA accesses through hardware protection. The most common mechanism for this purpose is the I/O memory management unit (IOMMU). The IOMMU adds a level of indirection for DMA addresses~\cite{WRC08,YZ15,SB12,MTF12}, effectively providing peripheral devices with virtual addresses termed~\iova{} (I/O virtual \DIFdelbegin \DIFdel{address}\DIFdelend \DIFaddbegin \DIFadd{addresses}\DIFaddend ). This way, the device can access only these pages that the OS has explicitly allowed. Inspired by the x86 MMU, the IOMMU uses a page table for address translation and an IOTLB for caching recent accesses.  The page tables are managed by the OS and as with the MMU, have a page granularity. The common page size is 4\,KB, though other larger page sizes, up to GBs, also exist.
+
+The IOMMU page table also holds page access rights for each \iova. An access right can be either READ, WRITE, or BIDIRECTIONAL. Note that WRITE access does not grant a DMA device READ access, whereas BIDIRECTIONAL access is needed to both read and write from/to the page. It is also important to note that a single physical page can be mapped by multiple \iova{}s, each with a possibly different access right.
+
+IOMMUs were not designed primarily with regard to providing security~\cite{DWT79}. \DIFaddbegin \DIFadd{Instead, }\DIFaddend IOMMUs were used to allow devices that did not support vectored I/O, to access contiguous virtual memory, which may map non-contiguous physical memory~\cite{Chu96, WMM97}. IOMMUs also enabled legacy devices that only supported \DIFaddbegin \DIFadd{a }\DIFaddend limited address width (32-bit), to access high memory (64 bit). More recently, IOMMUs were used to assign I/O devices directly to virtual machines while maintaining their isolation properties~\cite{Int16b, AMD16}. 
+%Throughout this period, OS developers did not appear to consider protection against malicious devices important. To date, Windows 10 is the first Windows version that uses IOMMU for protection~\cite{Mic17}.\adam{aren't these two sentences detracting from the paper? The premise is that IOMMUs are used for protection, and they contradict this premise.}
+\subsection{DMA API}
+Device drivers must use the DMA API to manage DMA buffers. Drivers \texttt{dma\_map} a buffer before initiating a DMA to that buffer, thereby passing ownership of
+the buffer to the device. Drivers \texttt{dma\_unmap} the buffer upon
+DMA completion, thereby regaining ownership of the buffer.
+The \texttt{dma\_map} call returns an \iova. The driver must configure the device to DMA to that specific \iova;
+\texttt{dma\_unmap} later takes this \iova as its parameter. There are analogous methods to map and unmap for non-contiguous scatter/gather lists.
