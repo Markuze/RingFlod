@@ -19,9 +19,9 @@ We modify KASAN to record DMA-map operations in addition to memory allocations. 
 %\adam{the meaning of these terms shouldn't be in a footnote, it's important}
 %The tool also detects cases when a DMA mapped page is accessed by the CPU. 
 %\dkasan, therefore, identifies all cases where an allocated object was inadvertently dma-mapped after allocation or has already been allocated on a dma-mapped page. 
-We tested \dkasan using our setup (Sec.~\ref{Sec:setup}).
+We test \dkasan using our setup (Sec.~\ref{Sec:setup}).
 %\adam{setup wasn't discussed or defined until this point}\SV{Added a forward ref}.
-In our experiment we cloned a large project from a git repository and compiled it concurrently with light network traffic (i.e., ICMP ping). This experiment has identified numerous cases where a DMA-mapped page is used to hold network and file system metadata. Example results are shown in Fig.~\ref{fig:dkasan-report}. Each line shows an allocation that resulted in a random exposure; namely, it shows the size of the allocated buffer, the DMA access type and the allocating location (i.e., function name and offset).
+In our experiment we clone a large project from a git repository and compile it concurrently with light network traffic (i.e., ICMP ping). This experiment identifies numerous cases where a DMA-mapped page is used to hold network and file system metadata. Example results are shown in Fig.~\ref{fig:dkasan-report}. Each line shows an allocation that results in a random exposure; namely, it shows the size of the allocated buffer, the DMA access type and the allocating location (i.e., function name and offset).
 
 Fig.~\ref{fig:dkasan-report} also shows how random kernel data structures can be mapped for both READ and WRITE. Some of these also contain callback pointers (e.g., line 5). 
  

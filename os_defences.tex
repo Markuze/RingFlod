@@ -46,7 +46,7 @@ By carefully selecting these gadgets, an attacker can execute any payload. To bo
 
 Address Space Layout Randomization (ASLR) is a common mechanism for mitigating code injection attacks in the context of user-level processes. Systems that support ASLR, randomize the memory layout for each process on every execution. This way, ROP attacks built for a specific layout fail. Similarly to ASLR, KASLR~\cite{kalsr} randomizes the kernel memory layout.
 
-In particular, the Linux kernel has predetermined ranges for its virtual memory layout~\cite{mem_layout}. This layout defines the location of the kernel text mapping, the direct mapping of physical memory and the virtual memory~\ref{fig:mem_layot}. KASLR randomizes the offset of these segments in the corresponding range on each boot.
+In particular, the Linux kernel has predetermined ranges for its virtual memory layout~\cite{mem_layout}. This layout defines the location of the kernel text mapping, the direct mapping of physical memory and the virtual memory, as depicted in Tab.~\ref{fig:mem_layot}. KASLR randomizes the offset of these segments in the corresponding range on each boot.
 
 %\adam{from here -->}
 %\adam{<-- and up to here, it's not really background.  At the very least, put it in its own subsection ``how DMA attacks can break KASLR'' or you risk reviewers missing this point, since people are familiar with ASLR and might skip the relevant background section}

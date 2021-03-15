@@ -10,21 +10,22 @@ The attack exploited a TOCTTOU (Time of Check To Time of Use) vulnerability in t
 % %
 % Our work takes a significant step forward in characterizing, exploiting, and detecting DMA vulnerabilities. Specifically: (1) we provide characterizations and taxonomy that facilitate reasoning about DMA vulnerabilities; (2) we provide tools for finding DMA vulnerabilities and exemplify their use; (3) we devise and demonstrate \compound DMA attacks by carefully exploiting standard OS behavior.
 
+
+
 \smallskip
-\noindent\textbf{Thunderclap~\cite{thunder}.} This work also considers sub-page vulnerabilities and \simple attacks. In particular, they introduced an FPGA tool using which they demonstrated several ad-hoc \simple DMA attacks on Windows, macOS, and FreeBSD. However, our work takes a significant step forward in characterizing, exploiting, and detecting DMA vulnerabilities. Below we summarize the main differences \mbox{between our work and Thunderclap:}
+\noindent\textbf{Thunderclap~\cite{thunder}.} This work also considers sub-page vulnerabilities and \simple attacks. They developed a security evaluation platform built on FPGA hardware that mimics a legitimate peripheral device's functionality to convince a target operating system to grant it access to regions of memory. They used this platform to demonstrate \simple DMA attacks on Windows, macOS, and FreeBSD.
+Our work takes a step forward in characterizing, exploiting, and detecting DMA vulnerabilities. In particular:
 \begin{itemize}
 
-    \item Thunderclap does not distinguish \simple from \compound attacks. However, this distinction is crucial because it shows that merely having write access to a kernel pointer might not be sufficient to mount an attack. For instance, Thunderclap's ``attack story 6'' is not exploitable without a technique to identify the buffer's KVA, an important missing piece that is not discussed/acknowledged in the Thunderclap paper.
+    \item Thunderclap provides a taxonomy that differentiates between data leakage and kernel pointer attacks. We extend this taxonomy by characterizing the different types of \subpage vulnerabilities (Sec.~\ref{sec:subpage}).
     
-    \item We propose new techniques to identify KVAs (Sec.~\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound}).
+    \item We explicitly characterize the attributes required for a successful code injection DMA attack. This allows us to better reason about a DMA attack focusing on each of its constituting parts separately. 
     
-    \item We explicitly characterize/enumerate the attributes required for a successful DMA attack. These are not systematically defined by Thunderclap. Further, we demonstrate a complete \compound attack in Sec.~\ref{Sec:setup}.
+    \item We introduce \compound attacks and propose techniques to identify the buffer's KVA (Sec.~\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound}) that enable their execution.
     
-    \item We taxonomize sub-page vulnerabilities (Sec.~\ref{sec:subpage}). Thunderclap's vulnerability taxonomy is general: it differentiates ``data leakage'' from ``kernel pointer'' but does not fully characterize kernel pointer attacks. Our work carefully addresses this issue.
+    \item We demonstrate (Sec.~\ref{Sec:setup}) that Linux is not safe from DMA attacks on the network data structures.
     
-    \item Whereas Thunderclap claims that Linux is safe from skbuff attacks because ``its skbuff locates function pointers and data on different pages'' (quoting its Sec. VI), we show that this is incorrect by discovering and describing a new vulnerability/attack \mbox{on Linux skbuffs.}
-    
-    \item We contribute static and dynamic analyses to identify sub-page vulnerabilities, and we run them on Linux.
+    \item We introduce new static~\cite{SPADE} and dynamic~\cite{DKASAN} analysis tools that identify sub-page vulnerabilities, run them on Linux and, report many previously unknown DMA vulnerabilities.
     
 \end{itemize}
 
