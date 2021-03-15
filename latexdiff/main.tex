@@ -1,23 +1,16 @@
-%DIF 1-4c1-5
+%\documentclass[sigplan,review,anonymous]{acmart}
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL ../orig/main.tex   Mon Mar 15 13:25:09 2021
+%DIF DEL ../orig/main.tex   Mon Mar 15 13:34:55 2021
 %DIF ADD main.tex           Mon Mar 15 13:18:48 2021
-%DIF < \documentclass[sigplan,review,anonymous]{acmart}
-%DIF < \acmSubmissionID{336}
-%DIF < \renewcommand\footnotetextcopyrightpermission[1]{}
-%DIF < \settopmatter{printacmref=false}
-%DIF -------
-%\documentclass[sigplan,review,anonymous]{acmart} %DIF > 
-\documentclass[sigplan,10pt]{acmart} %DIF > 
-%\acmSubmissionID{336} %DIF > 
-%\renewcommand\footnotetextcopyrightpermission[1]{} %DIF > 
-%\settopmatter{printacmref=false} %DIF > 
-%DIF -------
+\documentclass[sigplan,10pt]{acmart}
+%\acmSubmissionID{336}
+%\renewcommand\footnotetextcopyrightpermission[1]{}
+%\settopmatter{printacmref=false}
 %\documentclass[letterpaper,twocolumn,10pt]{article}
 %\usepackage{usenix2019_v3}
 %\pagestyle{plain}
 
-%DIF 9d10
+%DIF 10d10
 %DIF < 
 %DIF -------
 \usepackage{color}
@@ -75,9 +68,7 @@
 \providecommand{\kva}{KVA\xspace}
 \providecommand{\iova}{IOVA\xspace}
 \providecommand{\mabaf}{malicious buffer\xspace}
-%DIF 65a65
-\providecommand{\Mabaf}{Malicious buffer\xspace} %DIF > 
-%DIF -------
+\providecommand{\Mabaf}{Malicious buffer\xspace}
 \providecommand{\spb}{SPB\-2\xspace}
 \providecommand{\oportunity}{\textcolor{red}{Opportunity}\xspace}
 \providecommand{\means}{\textcolor{red}{Means}\xspace}
@@ -183,14 +174,13 @@
 
 \begin{document}
 %-------------------------------------------------------------------------------
-\DIFaddbegin \acmYear{2021}\copyrightyear{2021}
+\acmYear{2021}\copyrightyear{2021}
 \setcopyright{acmlicensed}
 \acmConference[EuroSys '21]{Sixteenth European Conference on Computer Systems}{April 26--29, 2021}{Online, United Kingdom}
 \acmBooktitle{Sixteenth European Conference on Computer Systems (EuroSys '21), April 26--29, 2021, Online, United Kingdom}
 \acmPrice{15.00}
 \acmDOI{10.1145/3447786.3456249}
 \acmISBN{978-1-4503-8334-9/21/04}
-\DIFaddend 
 
 %don't want date printed
 %\date{}
@@ -199,34 +189,32 @@
 %\title{\Large \bf Motive, Means \& Opportunity: The Anatomy of DMA Attacks}
 %\title{\Large \bf The Anatomy of IOMMU subverting DMA Attacks}
 
-\DIFdelbegin %DIFDELCMD < \title{%%%
-\DIFdel{Understanding }\DIFdelend %DIF > \title{Understanding DMA Attacks in the Presence of an IOMMU}
-\DIFaddbegin \title[Characterizing, Exploiting, and Detecting DMA Code Injection Vulnerabilities]{\DIFadd{Characterizing, Exploiting, and Detecting }\DIFaddend DMA \DIFdelbegin \DIFdel{Attacks }\DIFdelend \DIFaddbegin \DIFadd{Code Injection Vulnerabilities }\DIFaddend in the Presence of an IOMMU}
+%\title{Understanding DMA Attacks in the Presence of an IOMMU}
+\title[Characterizing, Exploiting, and Detecting DMA Code Injection Vulnerabilities]{Characterizing, Exploiting, and Detecting DMA Code Injection Vulnerabilities in the Presence of an IOMMU}
 %\title{\Large \bf Endemic Weakness in DMA I/O: The Anatomy of DMA Attacks}
 %\title{\Large \bf Systematizing DMA Vulnerabilities}
 %\title{\Large \bf Endemic Weakness in DMA I/O: Systematizing DMA Vulnerabilities}
 
-%DIF > \author{Markuze Alex$^{\dagger,\diamond}$}
-%DIF > \author{Shay Vargaftik}
-%DIF > \affiliation{VMware Research}
-%DIF > \author{Gil Kupfer}
-%DIF > \author{Boris Pismeny}
-\DIFaddbegin 
+%\author{Markuze Alex$^{\dagger,\diamond}$}
+%\author{Shay Vargaftik}
+%\affiliation{VMware Research}
+%\author{Gil Kupfer}
+%\author{Boris Pismeny}
 
-%DIF > \affiliation{\institution{$^{\dagger}$Technion -- Israel Institute of Technology}}
-%DIF > \affiliation{\institution{$^{\diamond}$VMware}}
-%DIF > \affiliation{\institution{$^{\ddagger}$Tel Aviv University }}
-%DIF > \affiliation{Technion -- Israel Institute of Technology}
-\DIFaddend % % USENIX Security has double blind submissions
- \DIFaddbegin \author{%DIF > 
-   \DIFadd{Alex Markuze$^{\dagger,\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%\affiliation{\institution{$^{\dagger}$Technion -- Israel Institute of Technology}}
+%\affiliation{\institution{$^{\diamond}$VMware}}
+%\affiliation{\institution{$^{\ddagger}$Tel Aviv University }}
+%\affiliation{Technion -- Israel Institute of Technology}
+% % USENIX Security has double blind submissions
+ \author{%
+   Alex Markuze$^{\dagger,\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
    Shay Vargaftik$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
    Gil Kupfer$^{\dagger}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
    Boris Pismeny$^{\dagger}$\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
    Nadav Amit$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
    Adam Morrison$^{\ddagger}$ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
    Dan Tsafrir$^{\dagger,\diamond}$
- }}
+ }
 \affiliation{
    \institution{%
      \ \\[-2mm]
@@ -239,37 +227,28 @@
 }}
 
 \renewcommand{\shortauthors}{Markuze, Vargaftik, Kupfer, Pismeny, Amit, Morrison, and Tsafrir}
-  %DIF > \gdef\authors{Alex Markuze, Shay Vargaftik, Gil Kupfer, Boris Pismeny, Nadav Amit, Adam Morrison, and Dan Tsafrir}
-\DIFaddend % \begin{comment}
-%DIF <  \author{
-%DIF <  {\rm Markuze Alex}\\
-%DIF <  Technion, VMware Research
-%DIF > \author{ 
-%DIF >     {Markuze Alex Technion, VMware Research}
-    %DIF > \and
-    %DIF > {Shay Vargaftik}\\VMware Research
-%DIF > }
-%DIF > {\rm Markuze Alex}\\
-%DIF > Technion, VMware Research \\
-%DIF > }
+  %\gdef\authors{Alex Markuze, Shay Vargaftik, Gil Kupfer, Boris Pismeny, Nadav Amit, Adam Morrison, and Dan Tsafrir}
+% \begin{comment}
+%\author{ 
+%    {Markuze Alex Technion, VMware Research}
+    %\and
+    %{Shay Vargaftik}\\VMware Research
+%}
+%{\rm Markuze Alex}\\
+%Technion, VMware Research \\
+%}
 % \and
 % {\rm Shay Vargaftik}\\
-%DIF <  VMware Research
-%DIF >  VMware Research \\
+% VMware Research \\
 % \and
 % {\rm Gil Kupfer}\\
-%DIF <  Technion
-%DIF <  % copy the following lines to add more authors
-%DIF >  Technion \\
+% Technion \\
 % \and
 % {\rm Nadav Amit}\\
 % VMware Research
-%DIF <  \and{\rm Dan Tsafrir}\\
-%DIF <  Technion, VMware Research
-%DIF <  } % end author
-%DIF >  \and
-%DIF >  {\rm Dan Tsafrir}\\
-%DIF >  Technion, VMware Research \\} % end author
+% \and
+% {\rm Dan Tsafrir}\\
+% Technion, VMware Research \\} % end author
 % \end{comment}
 
 %\maketitle
@@ -280,26 +259,19 @@
 
 
 Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware IOMMU protection cannot prevent all DMA attacks because it restricts DMA at page-level granularity leading to \subpage vulnerabilities. 
-\DIFdelbegin \DIFdel{Conventional wisdom is that }\DIFdelend \DIFaddbegin 
 
-\DIFadd{Currently, known DMA attacks rely on simple situations in which write access to a kernel pointer is obtained due to }\DIFaddend \subpage vulnerabilities \DIFdelbegin \DIFdel{that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
-}%DIFDELCMD < 
-
-%DIFDELCMD < %%%
-\DIFdel{This paper disproves the above belief, showing that }\DIFdelend \DIFaddbegin \DIFadd{and all other attack ingredients are available and reside on the same page. 
-However, this paper shows that DMA vulnerabilities are a deep-rooted issue where }\DIFaddend it is often the kernel design that enables \DIFdelbegin \DIFdel{a DMA attack.  
-}\DIFdelend \DIFaddbegin \DIFadd{complex and multistage DMA attacks.  
+Currently, known DMA attacks rely on simple situations in which write access to a kernel pointer is obtained due to \subpage vulnerabilities and all other attack ingredients are available and reside on the same page. 
+However, this paper shows that DMA vulnerabilities are a deep-rooted issue where it is often the kernel design that enables complex and multistage DMA attacks.  
 In this paper, we seek to provide a structured top-down approach \mbox{to characterize, exploit, and detect them.}
-}
 
 
 
-%DIF > Conventional wisdom is that \subpage vulnerabilities that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
+%Conventional wisdom is that \subpage vulnerabilities that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
 
-%DIF > This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. 
+%This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. 
 
-%DIF > This paper shows that it is often the kernel design choices that facilitate a DMA attack. 
-\DIFaddend To this end, we first categorize \subpage vulnerabilities into four categories, providing insight into the structure of DMA vulnerabilities. 
+%This paper shows that it is often the kernel design choices that facilitate a DMA attack. 
+To this end, we first categorize \subpage vulnerabilities into four categories, providing insight into the structure of DMA vulnerabilities. 
 Then, to exploit these vulnerabilities, we identify a set of three vulnerability attributes which are sufficient to execute code injection attacks. 
 
 We then build analysis tools that detect \subpage vulnerabilities and analyze the Linux kernel. 
@@ -308,12 +280,9 @@ We find that 72\% of the device drivers expose sensitive callback pointers, whic
 Aided by the tools' output, we demonstrate novel code injection attacks on the Linux kernel we term \compound{} attacks.
 Specifically, while all previously reported attacks are \emph{single-step}, i.e., with the vulnerability attributes present in a single page, in \compound{} attacks, the vulnerability attributes are initially incomplete. However, they can be attained by carefully exploiting standard OS behavior.
 
-\DIFaddbegin \DIFadd{Finally, our code is publicly available \mbox{%DIFAUXCMD
-\cite{DKASAN,SPADE}}\hspace{0pt}%DIFAUXCMD
-.
-}
+Finally, our code is publicly available \cite{DKASAN,SPADE}.
 
-\DIFaddend \end{abstract}
+\end{abstract}
 \maketitle
 
 %-------------------------------------------------------------------------------
@@ -325,29 +294,23 @@ Specifically, while all previously reported attacks are \emph{single-step}, i.e.
 \input{attack_mechanics}
 \input{tool}
 \input{dma_kasan}
-\DIFdelbegin %DIFDELCMD < \input{setup}
-%DIFDELCMD < %%%
-\DIFdelend \input{linux_net}
-\DIFaddbegin \input{appendixes/more_attacks}
+\input{linux_net}
+\input{appendixes/more_attacks}
 \input{setup}
-\DIFaddend \input{other_os}
+\input{other_os}
 \input{related_work}
 \input{conclusion}
 
-\DIFaddbegin \begin{acks}
-%DIF > This work was funded in part by ISF under grant 2005/17 and Blavatnik ICRC at TAU.
-\DIFadd{This work was funded in part by ISF under grant 2005/17, Blavatnik ICRC at TAU, Technion Hiroshi Fujiwara Cyber Security Research Center, the Israel National Cyber Directorate, and VMware Research.
-}\end{acks}
+\begin{acks}
+%This work was funded in part by ISF under grant 2005/17 and Blavatnik ICRC at TAU.
+This work was funded in part by ISF under grant 2005/17, Blavatnik ICRC at TAU, Technion Hiroshi Fujiwara Cyber Security Research Center, the Israel National Cyber Directorate, and VMware Research.
+\end{acks}
 
 
-\DIFaddend \bibliographystyle{plain}
+\bibliographystyle{plain}
 \bibliography{references}
-\DIFdelbegin %DIFDELCMD < \appendix
-%DIFDELCMD < %%%
-\DIFdelend \DIFaddbegin 
 
-%DIF > \appendix
-\DIFaddend 
+%\appendix
 
 %\input{appendixes/shellcode}
 %\input{appendixes/dma_bidir.tex}

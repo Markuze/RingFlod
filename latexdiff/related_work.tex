@@ -5,45 +5,48 @@ We cover DMA attacks in the presence of IOMMU, defenses, and emerging ROP mitiga
 \noindent\textbf{DMA attacks in the presence of IOMMU.}
 Beniamini demonstrated attacks on cellular devices, e.g., the iPhone 7 and Nexus 5/6/6P, through their Wi-Fi chips~\cite{Ben17a, Ben17b}. 
 %While Nexus phones do not use an IOMMU, iPhones do. 
-The attack exploited a TOCTTOU (Time of Check To Time of Use) vulnerability in the NIC driver. \DIFdelbegin \DIFdel{From an I/O point of view, }\DIFdelend \DIFaddbegin \DIFadd{Kupfer~\mbox{%DIFAUXCMD
-\cite{kupfer2018iommu}}\hspace{0pt}%DIFAUXCMD
-, has demonstrated }\simple \DIFadd{attacks exploiting weaknesses in the Linux FireWire driver. In both cases, }\DIFaddend all the DMA writes were \DIFdelbegin \DIFdel{still legal(}\DIFdelend \DIFaddbegin \DIFadd{legal, }\DIFaddend i.e., only to buffers currently mapped to the \DIFdelbegin \DIFdel{NIC).
-A recent paper~\mbox{%DIFAUXCMD
-\cite{thunder} }\hspace{0pt}%DIFAUXCMD
-has introduced an FPGA tool that perpetrates DMA attacks. They demonstrated }\DIFdelend \DIFaddbegin \DIFadd{device.
-%DIF >  \noindent\textbf{Thunderclap~\cite{thunder}} A recent paper has introduced an FPGA tool using which they demonstrated several ad-hoc \simple DMA attacks on Windows, macOS, and FreeBSD. 
-%DIF >  %
-%DIF >  Our work takes a significant step forward in characterizing, exploiting, and detecting DMA vulnerabilities. Specifically: (1) we provide characterizations and taxonomy that facilitate reasoning about DMA vulnerabilities; (2) we provide tools for finding DMA vulnerabilities and exemplify their use; (3) we devise and demonstrate \compound DMA attacks by carefully exploiting standard OS behavior.
-}
+The attack exploited a TOCTTOU (Time of Check To Time of Use) vulnerability in the NIC driver. Kupfer~\cite{kupfer2018iommu}, has demonstrated \simple attacks exploiting weaknesses in the Linux FireWire driver. In both cases, all the DMA writes were legal, i.e., only to buffers currently mapped to the device.
+% \noindent\textbf{Thunderclap~\cite{thunder}} A recent paper has introduced an FPGA tool using which they demonstrated several ad-hoc \simple DMA attacks on Windows, macOS, and FreeBSD. 
+% %
+% Our work takes a significant step forward in characterizing, exploiting, and detecting DMA vulnerabilities. Specifically: (1) we provide characterizations and taxonomy that facilitate reasoning about DMA vulnerabilities; (2) we provide tools for finding DMA vulnerabilities and exemplify their use; (3) we devise and demonstrate \compound DMA attacks by carefully exploiting standard OS behavior.
 
 
 
 \smallskip
-\noindent\textbf{\DIFadd{Thunderclap~\mbox{%DIFAUXCMD
-\cite{thunder}}\hspace{0pt}%DIFAUXCMD
-.}} \DIFadd{This work also considers sub-page vulnerabilities and }\DIFaddend \simple \DIFaddbegin \DIFadd{attacks. They developed a security evaluation platform built on FPGA hardware that mimics a legitimate peripheral device's functionality to convince a target operating system to grant it access to regions of memory. They used this platform to demonstrate }\simple \DIFaddend DMA attacks on Windows, macOS, and FreeBSD.
-\DIFaddbegin \DIFadd{Our work takes a step forward in characterizing, exploiting, and detecting DMA vulnerabilities. In particular:
-}\begin{itemize}
-\DIFaddend 
+\noindent\textbf{Thunderclap~\cite{thunder}.} This work also considers sub-page vulnerabilities and \simple attacks. \DIFdelbegin \DIFdel{In particular, they introduced an FPGA tool using which they demonstrated several ad-hoc }\DIFdelend \DIFaddbegin \DIFadd{They developed a security evaluation platform built on FPGA hardware that mimics a legitimate peripheral device's functionality to convince a target operating system to grant it access to regions of memory. They used this platform to demonstrate }\DIFaddend \simple DMA attacks on Windows, macOS, and FreeBSD.
+\DIFdelbegin \DIFdel{However, our }\DIFdelend \DIFaddbegin \DIFadd{Our }\DIFaddend work takes a \DIFdelbegin \DIFdel{significant }\DIFdelend step forward in characterizing, exploiting, and detecting DMA vulnerabilities. \DIFdelbegin \DIFdel{Below we summarize the main differences \mbox{between our work and Thunderclap:}
+}\DIFdelend \DIFaddbegin \DIFadd{In particular:
+}\DIFaddend \begin{itemize}
 
-    \DIFaddbegin \item \DIFadd{Thunderclap provides a taxonomy that differentiates between data leakage and kernel pointer attacks. We extend this taxonomy by characterizing the different types of }\subpage \DIFadd{vulnerabilities (Sec.~\ref{sec:subpage}).
-    }
+    \item Thunderclap \DIFdelbegin \DIFdel{does not distinguish }%DIFDELCMD < \simple %%%
+\DIFdel{from }%DIFDELCMD < \compound %%%
+\DIFdel{attacks. However, this distinction is crucial because it shows that merely having write access to a kernel pointer might not be sufficient to mount an attack. For instance, Thunderclap's ``attack story 6'' is not exploitable without a technique to identify the buffer's KVA, an important missing piece that is not discussed/acknowledged in the Thunderclap paper.
+    }%DIFDELCMD < 
 
-    \item \DIFadd{We explicitly characterize the attributes required for a successful code injection DMA attack. This allows us to better reason about a DMA attack focusing on each of its constituting parts separately. 
-    }
+%DIFDELCMD <     \item %%%
+\item%DIFAUXCMD
+\DIFdel{We propose new techniques to identify KVAs }\DIFdelend \DIFaddbegin \DIFadd{provides a taxonomy that differentiates between data leakage and kernel pointer attacks. We extend this taxonomy by characterizing the different types of }\subpage \DIFadd{vulnerabilities }\DIFaddend (Sec.~\DIFdelbegin \DIFdel{\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound}}\DIFdelend \DIFaddbegin \DIFadd{\ref{sec:subpage}}\DIFaddend ).
 
-    \item \DIFadd{We introduce }\compound \DIFadd{attacks and propose techniques to identify the buffer's KVA (Sec.~\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound}) that enable their execution.
-    }
+    \item We explicitly characterize \DIFdelbegin \DIFdel{/enumerate }\DIFdelend the attributes required for a successful \DIFaddbegin \DIFadd{code injection }\DIFaddend DMA attack. \DIFdelbegin \DIFdel{These are not systematically defined by Thunderclap. Further, we demonstrate a complete }%DIFDELCMD < \compound %%%
+\DIFdel{attack in Sec. 
+    ~\ref{Sec:setup}.
+    }\DIFdelend \DIFaddbegin \DIFadd{This allows us to better reason about a DMA attack focusing on each of its constituting parts separately. 
+    }\DIFaddend 
 
-    \item \DIFadd{We demonstrate (Sec.~\ref{Sec:setup}) that Linux is not safe from DMA attacks on the network data structures.
-    }
+    \item We \DIFdelbegin \DIFdel{taxonomize sub-page vulnerabilities }\DIFdelend \DIFaddbegin \DIFadd{introduce }\compound \DIFadd{attacks and propose techniques to identify the buffer's KVA }\DIFaddend (Sec.~\DIFdelbegin \DIFdel{\ref{sec:subpage}) . Thunderclap's vulnerability taxonomy is general: it differentiates ``data leakage'' from ``kernel pointer'' but does not fully characterize kernel pointer attacks. Our work carefully addresses this issue.
+    }\DIFdelend \DIFaddbegin \DIFadd{\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound}) that enable their execution.
+    }\DIFaddend 
 
-    \item \DIFadd{We introduce new static~\mbox{%DIFAUXCMD
+    \item \DIFdelbegin \DIFdel{Whereas Thunderclap claims }\DIFdelend \DIFaddbegin \DIFadd{We demonstrate (Sec.~\ref{Sec:setup}) }\DIFaddend that Linux is \DIFdelbegin \DIFdel{safe from skbuff attacks because ``its skbuff locates function pointers and data on different pages'' (quoting its Sec.
+    VI), we show that this is incorrect by discovering and describing a new vulnerability/attack \mbox{on Linux skbuffs.}
+    }\DIFdelend \DIFaddbegin \DIFadd{not safe from DMA attacks on the network data structures.
+    }\DIFaddend 
+
+    \item We \DIFdelbegin \DIFdel{contribute staticand dynamic analyses to }\DIFdelend \DIFaddbegin \DIFadd{introduce new static~\mbox{%DIFAUXCMD
 \cite{SPADE} }\hspace{0pt}%DIFAUXCMD
 and dynamic~\mbox{%DIFAUXCMD
 \cite{DKASAN} }\hspace{0pt}%DIFAUXCMD
-analysis tools that identify sub-page vulnerabilities, run them on Linux and, report many previously unknown DMA vulnerabilities.
-    }
+analysis tools that }\DIFaddend identify sub-page vulnerabilities, \DIFdelbegin \DIFdel{and we }\DIFdelend run them on Linux \DIFaddbegin \DIFadd{and, report many previously unknown DMA vulnerabilities}\DIFaddend .
 
 \end{itemize}
 
@@ -51,7 +54,7 @@ analysis tools that identify sub-page vulnerabilities, run them on Linux and, re
 
 
 
-\DIFaddend \smallskip
+\smallskip
 \noindent\textbf{Adressing IOMMU vulnerabilities.}
 Boyd-Wickizer and Zeldovich~\cite{BWZ10} and LeVasseur et al.~\cite{LUSG04} suggested isolating unmodified device drivers in user space programs and virtual machines, respectively. Similarly, Cinch used an isolated red virtual machine for intercepting bus traffic~\cite{AWH16}. These methods could be applied to limit the damage of potential attacks in addition to other protection mechanisms. They do not, however, prevent code execution in an isolated environment. By attacking the isolation mechanism, attackers might still compromise the entire system.
 
@@ -61,7 +64,7 @@ Nevertheless, this solution imposes a large overhead of data copying and memory 
 %Previous works have painted DMA attacks in broad strokes only, without delving into details~\cite{MMT16,MSMT18,thunder}.
 
 %Several hardware mechanisms exist for protecting CPU buffers smaller than a page. These mechanisms could be implemented in the IOMMU in order to mitigate the sub-page vulnerabilities. 
-Intel’s sub-page protecting technology suggests protecting fixed-sized buffers smaller than a page~\cite{Int18}. Since the buffers are still fixed-sized, the same vulnerability remains, albeit \DIFdelbegin \DIFdel{in a more limited way}\DIFdelend \DIFaddbegin \DIFadd{for buffers smaller than a page}\DIFaddend . Intel MPX (Memory Protection Extensions) lets the user define boundaries for buffers and, later, explicitly checks that the corresponding pointers are between these boundaries~\cite{Int16a}. Oracle SSM (Silicon Secured Memory) lets the user \emph{color} buffers and associative pointers~\cite{Ora15}. The color is implicitly checked for a match at each memory access. MPX, SSM, and other similar approaches may be used for building a secure alternative to IOMMU. 
+Intel’s sub-page protecting technology suggests protecting fixed-sized buffers smaller than a page~\cite{Int18}. Since the buffers are still fixed-sized, the same vulnerability remains, albeit for buffers smaller than a page. Intel MPX (Memory Protection Extensions) lets the user define boundaries for buffers and, later, explicitly checks that the corresponding pointers are between these boundaries~\cite{Int16a}. Oracle SSM (Silicon Secured Memory) lets the user \emph{color} buffers and associative pointers~\cite{Ora15}. The color is implicitly checked for a match at each memory access. MPX, SSM, and other similar approaches may be used for building a secure alternative to IOMMU. 
 
 \smallskip
 \noindent\textbf{Emerging ROP mitigation techniques.}

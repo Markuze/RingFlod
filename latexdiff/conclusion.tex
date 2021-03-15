@@ -17,7 +17,8 @@
 
 By introducing and demonstrating \compound{} attacks on the Linux kernel, we have shown that IOMMU, as it is used today, leaves the OS vulnerable to DMA attacks. While such vulnerabilities have been considered to be caused by buggy device drivers or poor (but isolated) driver design choices, we find that it is often the OS design choices that compromise the system security.
 \DIFdelbegin \DIFdel{Accordingly, in Sec. \ref{sec:api}, we provide examples of such OS design choices and summarize APIs we have exploited for executing }%DIFDELCMD < \compound{} %%%
-\DIFdel{DMA attacks. Finally, in Sec. \ref{sec:Conclusion} we conclude the paper.
+\DIFdel{DMA attacks, %DIF < In Sec. \ref{sec:rand_exp} we discuss random exposure vulnerabilities.
+then, in Sec. \ref{sec:Conclusion} we conclude the paper.
 }\DIFdelend %DIF > Accordingly, in Sec. \ref{sec:api}, we provide examples of such OS design choices and summarize APIs we have exploited for executing \compound{} DMA attacks, %In Sec. \ref{sec:rand_exp} we discuss random exposure vulnerabilities.
 %DIF > then, in Sec. \ref{sec:Conclusion} we conclude the paper.
 
@@ -51,15 +52,11 @@ With the existing API used for I/O operations and due to performance considerati
 The success of a DMA attack relies on the exposure of restricted meta-data fields caused by \subpage{} vulnerability. 
 To prevent such exposure, previous works have proposed separating the I/O memory from CPU memory~\cite{MSMT18}, by providing a separate allocator for networking. 
 Nevertheless, this API can be easily thwarted by device drivers via functions such as \texttt{build\_skb} that add a vulnerable \shinfo into an I/O region. 
-Moreover, these solutions are focused solely on network devices\DIFdelbegin \DIFdel{leaving out }\DIFdelend \DIFaddbegin \DIFadd{, leaving }\DIFaddend the system unprotected against other DMA capable devices such as FireWire, USB C, NVMe and more.
+Moreover, these solutions are focused solely on network devices, leaving the system unprotected against other DMA capable devices such as FireWire, USB C, NVMe and more.
 
 
 To achieve better DMA security in future OSes, a possible direction is to consider the segregation of I/O memory from OS memory. 
-Alternatively, to prevent the existence of sensitive meta-data on I/O pages, we propose to open-source and offer, as a first step, \tool{}\DIFaddbegin \DIFadd{~\mbox{%DIFAUXCMD
-\cite{SPADE} }\hspace{0pt}%DIFAUXCMD
-}\DIFaddend and \dkasan{}\DIFaddbegin \DIFadd{~\mbox{%DIFAUXCMD
-\cite{DKASAN} }\hspace{0pt}%DIFAUXCMD
-}\DIFaddend to be used at the development and deployment stages to validate the security of the system. 
+Alternatively, to prevent the existence of sensitive meta-data on I/O pages, we propose to open-source and offer, as a first step, \tool{}~\cite{SPADE} and \dkasan{}~\cite{DKASAN} to be used at the development and deployment stages to validate the security of the system. 
 
 
 %We contend that there are two avenues which need to be followed concurrently in order to achieve DMA security.
