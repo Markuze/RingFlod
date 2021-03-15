@@ -1,0 +1,36 @@
+\section{Attack Demonstrations}\label{Sec:setup}
+
+%\adam{poor title and section, it comes out of nowhere. Title should be ``Attack Demonstrations,'' ``Discovered Attacks'' or something like that. The section should start with what are now the later paragraphs, saying you found attacks and are going to describe them. Last thing should be the setup, in a para heading.}\SV{Fixed}
+
+We implement and demonstrate \compound attacks against the Linux kernel network stack. 
+In order to demonstrate an attack by a malicious NIC, we use a FireWire device similarly to \DIFaddbegin \DIFadd{Sang et al.}\DIFaddend ~\cite{SLND10}. To emulate an attack by a malicious NIC using a FireWire device, we create an \iova{} page table sharing between the FireWire and the actual NIC. \DIFdelbegin \DIFdel{A minor patch is needed for the victim OS to facilitate this emulation. }\DIFdelend This way, the attacker machine can access the same pages as the NIC. This allows us to execute an attack using a programmable interface, emulating a malicious NIC.
+\DIFdelbegin \DIFdel{This minor patch is only needed to emulate a device. The core OS was unchanged.
+}\DIFdelend 
+
+
+We create a malicious FireWire device by modifying the Linux-IO Target (LIO) subsystem on the attacker machine. The LIO subsystem supports hard disk emulation for remote computers via the \spb{} protocol. 
+\DIFdelbegin \DIFdel{In an extended version, we will provide the source code for a previously unknown }%DIFDELCMD < \simple %%%
+\DIFdel{attack on the Linux kernel focused on the FireWire subsystem (which also exposes Thunderbolt/USB-C and other ports with FireWire adapters to DMA attacks.)
+}\DIFdelend 
+
+\DIFdelbegin \paragraph{\DIFdel{Test Setup}}
+%DIFAUXCMD
+\addtocounter{paragraph}{-1}%DIFAUXCMD
+\DIFdelend \DIFaddbegin \smallskip
+\noindent\textbf{\DIFadd{Test Setup.}}
+\DIFaddend We use a 28 core Dell PowerEdge R730 server, with Ubuntu 18.04 (kernel version 5.0), as our victim machine. This server is equipped with \DIFaddbegin \DIFadd{an }\DIFaddend Intel VT-d IOMMU, a Broadcom NetXtreme BCM5720 Gigabit Ethernet NIC, a Mellanox Technologies ConnectX-4 Ethernet NIC and VIA Technologies, Inc. VT6315 Series Firewire Controller. An identical machine connected to the victim via a FireWire cable acts as the attacker. 
+\DIFaddbegin 
+
+\smallskip
+\noindent\textbf{\DIFadd{Executed attacks.}}
+\DIFadd{We executed the }\textit{\DIFadd{Ring Flood}} \DIFadd{attack on the }\texttt{\DIFadd{skb\_shared\_info}} \DIFadd{structure to inject and run malicious code in the kernel.
+Our exploit places a ROP gadget on the DMA buffer page. To execute this ROP gadget, the device points the struct's callback pointer to a JOP gadget in the kernel. The kernel then passes the callback in the \%rdi register to its containing struct. Thus, this pointer contains the DMA buffer's address. 
+To complete the attack, we need to place a JOP~\mbox{%DIFAUXCMD
+\cite{BJFL11} }\hspace{0pt}%DIFAUXCMD
+gadget that performs }\texttt{\DIFadd{\%rsp = \%rdi + const}}\DIFadd{. We locate such a gadget using the ROPgadget tool~\mbox{%DIFAUXCMD
+\cite{ROPgadget}}\hspace{0pt}%DIFAUXCMD
+.
+%DIF > \footnote{\url{https://github.com/JonathanSalwan/ROPgadget}}
+}
+
+ \DIFaddend
