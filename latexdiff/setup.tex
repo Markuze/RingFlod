@@ -2,35 +2,20 @@
 
 %\adam{poor title and section, it comes out of nowhere. Title should be ``Attack Demonstrations,'' ``Discovered Attacks'' or something like that. The section should start with what are now the later paragraphs, saying you found attacks and are going to describe them. Last thing should be the setup, in a para heading.}\SV{Fixed}
 
-We implement and demonstrate \compound attacks against the Linux kernel network stack. 
-In order to demonstrate an attack by a malicious NIC, we use a FireWire device similarly to Sang et al.~\cite{SLND10}. To emulate an attack by a malicious NIC using a FireWire device, we create an \iova{} page table sharing between the FireWire and the actual NIC. This way, the attacker machine can access the same pages as the NIC. This allows us to execute an attack using a programmable interface, emulating a malicious NIC.
+We \DIFdelbegin \DIFdel{implement and demonstrate }\DIFdelend \DIFaddbegin \DIFadd{implemented and demonstrated }\DIFaddend \compound attacks against the Linux kernel network stack. 
+In order to demonstrate an attack by a malicious NIC, we \DIFdelbegin \DIFdel{use }\DIFdelend \DIFaddbegin \DIFadd{used }\DIFaddend a FireWire device \DIFdelbegin \DIFdel{similarly }\DIFdelend \DIFaddbegin \DIFadd{similar }\DIFaddend to Sang et al.~\cite{SLND10}. \DIFdelbegin \DIFdel{To emulate an attack by a malicious NIC using a FireWire device, we create an }\DIFdelend \DIFaddbegin \DIFadd{We created an }\DIFaddend \iova{} page table \DIFdelbegin \DIFdel{sharing }\DIFdelend \DIFaddbegin \DIFadd{that is shared }\DIFaddend between the FireWire and the actual NIC. \DIFdelbegin \DIFdel{This way, }\DIFdelend \DIFaddbegin \DIFadd{Because }\DIFaddend the attacker machine can access the same pages as the NIC\DIFdelbegin \DIFdel{. This allows }\DIFdelend \DIFaddbegin \DIFadd{, this allowed }\DIFaddend us to execute an attack using a programmable interface, emulating a malicious NIC.
 
 
-We create a malicious FireWire device by modifying the Linux-IO Target (LIO) subsystem on the attacker machine. The LIO subsystem supports hard disk emulation for remote computers via the \spb{} protocol. 
+We \DIFdelbegin \DIFdel{create }\DIFdelend \DIFaddbegin \DIFadd{created }\DIFaddend a malicious FireWire device by modifying the Linux-IO Target (LIO) subsystem on the attacker machine. The LIO subsystem supports hard disk emulation for remote computers via the \spb{} protocol. 
 
-\DIFdelbegin \paragraph{\DIFdel{Test Setup}}
-%DIFAUXCMD
-\addtocounter{paragraph}{-1}%DIFAUXCMD
-\DIFdelend \DIFaddbegin \smallskip
-\noindent\textbf{\DIFadd{Test Setup.}}
-\DIFaddend We use a 28 core Dell PowerEdge R730 server, with Ubuntu 18.04 (kernel version 5.0), as our victim machine. This server is equipped with an Intel VT-d IOMMU, a Broadcom NetXtreme BCM5720 Gigabit Ethernet NIC, a Mellanox Technologies ConnectX-4 Ethernet NIC and VIA Technologies, Inc. VT6315 Series Firewire Controller. An identical machine connected to the victim via a FireWire cable acts as the attacker. 
+\smallskip
+\noindent\textbf{Test Setup.}
+We \DIFdelbegin \DIFdel{use a 28 core }\DIFdelend \DIFaddbegin \DIFadd{used a 28-core }\DIFaddend Dell PowerEdge R730 server, with Ubuntu 18.04 (kernel version 5.0), as our victim machine. This server is equipped with an Intel VT-d IOMMU, a Broadcom NetXtreme BCM5720 Gigabit Ethernet NIC, a Mellanox Technologies ConnectX-4 Ethernet NIC\DIFaddbegin \DIFadd{, }\DIFaddend and VIA Technologies, Inc. VT6315 Series Firewire Controller. \DIFdelbegin \DIFdel{An identical machine connected }\DIFdelend \DIFaddbegin \DIFadd{We connected an identical machine }\DIFaddend to the victim via a FireWire cable\DIFdelbegin \DIFdel{acts }\DIFdelend \DIFaddbegin \DIFadd{, to act }\DIFaddend as the attacker. 
 
-\DIFdelbegin \paragraph{\DIFdel{Executed attacks}}
-%DIFAUXCMD
-\addtocounter{paragraph}{-1}%DIFAUXCMD
-\DIFdelend \DIFaddbegin \smallskip
-\noindent\textbf{\DIFadd{Executed attacks.}}
-\DIFaddend We executed the \textit{Ring Flood} attack on the \texttt{skb\_shared\_info} structure to inject and run malicious code in the kernel.
+\smallskip
+\noindent\textbf{Executed \DIFdelbegin \DIFdel{attacks}\DIFdelend \DIFaddbegin \DIFadd{Attacks}\DIFaddend .}
+We executed the \textit{\DIFdelbegin \DIFdel{Ring Flood}\DIFdelend \DIFaddbegin \DIFadd{RingFlood}\DIFaddend } attack on the \texttt{skb\_shared\_info} structure to inject and run malicious code in the kernel.
 Our exploit places a ROP gadget on the DMA buffer page. To execute this ROP gadget, the device points the struct's callback pointer to a JOP gadget in the kernel. The kernel then passes the callback in the \%rdi register to its containing struct. Thus, this pointer contains the DMA buffer's address. 
-\DIFdelbegin \DIFdel{It is remained }\DIFdelend \DIFaddbegin \DIFadd{To complete the attack, we need }\DIFaddend to place a JOP\DIFaddbegin \DIFadd{~\mbox{%DIFAUXCMD
-\cite{BJFL11} }\hspace{0pt}%DIFAUXCMD
-}\DIFaddend gadget that performs \texttt{\%rsp = \%rdi + const}. We locate such a gadget using the ROPgadget tool\DIFdelbegin \DIFdel{.}\footnote{%DIFDELCMD < \url{https://github.com/JonathanSalwan/ROPgadget}%%%
-} %DIFAUXCMD
-\addtocounter{footnote}{-1}%DIFAUXCMD
-\DIFdelend \DIFaddbegin \DIFadd{~\mbox{%DIFAUXCMD
-\cite{ROPgadget}}\hspace{0pt}%DIFAUXCMD
-.
-%DIF > \footnote{\url{https://github.com/JonathanSalwan/ROPgadget}}
-}
+To complete the attack, we \DIFdelbegin \DIFdel{need to place }\DIFdelend \DIFaddbegin \DIFadd{needed }\DIFaddend a JOP~\cite{BJFL11} gadget that performs \texttt{\%rsp = \%rdi + const}. We \DIFdelbegin \DIFdel{locate }\DIFdelend \DIFaddbegin \DIFadd{located }\DIFaddend such a gadget using the ROPgadget tool~\cite{ROPgadget}.
+%\footnote{\url{https://github.com/JonathanSalwan/ROPgadget}}
 
- \DIFaddend

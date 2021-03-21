@@ -1,11 +1,11 @@
 \section{Related Work}
-We cover DMA attacks in the presence of IOMMU, defenses, and emerging ROP mitigation techniques.
+\DIFdelbegin \DIFdel{We }\DIFdelend \DIFaddbegin \DIFadd{In this section, we }\DIFaddend cover DMA attacks in the presence of IOMMU, defenses, and emerging ROP mitigation techniques.
 
 \smallskip
-\noindent\textbf{DMA attacks in the presence of IOMMU.}
-Beniamini demonstrated attacks on cellular devices, e.g., the iPhone 7 and Nexus 5/6/6P, through their Wi-Fi chips~\cite{Ben17a, Ben17b}. 
+\noindent\textbf{DMA \DIFdelbegin \DIFdel{attacks }\DIFdelend \DIFaddbegin \DIFadd{Attacks }\DIFaddend in the \DIFdelbegin \DIFdel{presence }\DIFdelend \DIFaddbegin \DIFadd{Presence }\DIFaddend of IOMMU.}
+Beniamini demonstrated attacks on cellular devices \DIFdelbegin \DIFdel{, }\DIFdelend \DIFaddbegin \DIFadd{(}\DIFaddend e.g., \DIFdelbegin \DIFdel{the }\DIFdelend iPhone 7\DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend Nexus 5/6/6P\DIFaddbegin \DIFadd{)}\DIFaddend , through their \DIFdelbegin \DIFdel{Wi-Fi }\DIFdelend \DIFaddbegin \DIFadd{WiFi }\DIFaddend chips~\cite{Ben17a, Ben17b}. 
 %While Nexus phones do not use an IOMMU, iPhones do. 
-The attack exploited a TOCTTOU (Time of Check To Time of Use) vulnerability in the NIC driver. Kupfer~\cite{kupfer2018iommu}, has demonstrated \simple attacks exploiting weaknesses in the Linux FireWire driver. In both cases, all the DMA writes were legal, i.e., only to buffers currently mapped to the device.
+The attack exploited a \DIFdelbegin \DIFdel{TOCTTOU (}\DIFdelend Time of Check To Time of Use \DIFaddbegin \DIFadd{(TOCTTOU}\DIFaddend ) vulnerability in the NIC driver. Kupfer~\cite{kupfer2018iommu} \DIFdelbegin \DIFdel{, has }\DIFdelend demonstrated \simple attacks exploiting weaknesses in the Linux FireWire driver. In both cases, all the DMA writes were legal, \DIFdelbegin \DIFdel{i.e., }\DIFdelend \DIFaddbegin \DIFadd{made }\DIFaddend only to buffers currently mapped to the device.
 % \noindent\textbf{Thunderclap~\cite{thunder}} A recent paper has introduced an FPGA tool using which they demonstrated several ad-hoc \simple DMA attacks on Windows, macOS, and FreeBSD. 
 % %
 % Our work takes a significant step forward in characterizing, exploiting, and detecting DMA vulnerabilities. Specifically: (1) we provide characterizations and taxonomy that facilitate reasoning about DMA vulnerabilities; (2) we provide tools for finding DMA vulnerabilities and exemplify their use; (3) we devise and demonstrate \compound DMA attacks by carefully exploiting standard OS behavior.
@@ -13,40 +13,19 @@ The attack exploited a TOCTTOU (Time of Check To Time of Use) vulnerability in t
 
 
 \smallskip
-\noindent\textbf{Thunderclap~\cite{thunder}.} This work also considers sub-page vulnerabilities and \simple attacks. \DIFdelbegin \DIFdel{In particular, they introduced an FPGA tool using which they demonstrated several ad-hoc }\DIFdelend \DIFaddbegin \DIFadd{They developed a security evaluation platform built on FPGA hardware that mimics a legitimate peripheral device's functionality to convince a target operating system to grant it access to regions of memory. They used this platform to demonstrate }\DIFaddend \simple DMA attacks on Windows, macOS, and FreeBSD.
-\DIFdelbegin \DIFdel{However, our }\DIFdelend \DIFaddbegin \DIFadd{Our }\DIFaddend work takes a \DIFdelbegin \DIFdel{significant }\DIFdelend step forward in characterizing, exploiting, and detecting DMA vulnerabilities. \DIFdelbegin \DIFdel{Below we summarize the main differences \mbox{between our work and Thunderclap:}
-}\DIFdelend \DIFaddbegin \DIFadd{In particular:
-}\DIFaddend \begin{itemize}
+\noindent\textbf{Thunderclap~\cite{thunder}.} This work also considers sub-page vulnerabilities and \simple attacks. \DIFdelbegin \DIFdel{They }\DIFdelend \DIFaddbegin \DIFadd{Markettos et al. }\DIFaddend developed a security evaluation platform built on FPGA hardware\DIFdelbegin \DIFdel{that mimics }\DIFdelend \DIFaddbegin \DIFadd{. By mimicking }\DIFaddend a legitimate peripheral device's functionality\DIFdelbegin \DIFdel{to }\DIFdelend \DIFaddbegin \DIFadd{, the platform can }\DIFaddend convince a target operating system to grant it access to regions of memory. They used this platform to demonstrate \simple DMA attacks on Windows, macOS, and FreeBSD.
+Our work takes a step forward in characterizing, exploiting, and detecting DMA vulnerabilities. In particular:
+\begin{itemize}
 
-    \item Thunderclap \DIFdelbegin \DIFdel{does not distinguish }%DIFDELCMD < \simple %%%
-\DIFdel{from }%DIFDELCMD < \compound %%%
-\DIFdel{attacks. However, this distinction is crucial because it shows that merely having write access to a kernel pointer might not be sufficient to mount an attack. For instance, Thunderclap's ``attack story 6'' is not exploitable without a technique to identify the buffer's KVA, an important missing piece that is not discussed/acknowledged in the Thunderclap paper.
-    }%DIFDELCMD < 
+    \item Thunderclap provides a taxonomy that differentiates between data leakage and kernel pointer attacks. We extend this taxonomy by characterizing the different types of \subpage vulnerabilities (\DIFdelbegin \DIFdel{Sec.}\DIFdelend \DIFaddbegin \DIFadd{Section}\DIFaddend ~\ref{sec:subpage}).
 
-%DIFDELCMD <     \item %%%
-\item%DIFAUXCMD
-\DIFdel{We propose new techniques to identify KVAs }\DIFdelend \DIFaddbegin \DIFadd{provides a taxonomy that differentiates between data leakage and kernel pointer attacks. We extend this taxonomy by characterizing the different types of }\subpage \DIFadd{vulnerabilities }\DIFaddend (Sec.~\DIFdelbegin \DIFdel{\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound}}\DIFdelend \DIFaddbegin \DIFadd{\ref{sec:subpage}}\DIFaddend ).
+    \item We explicitly characterize the attributes required for a successful code injection DMA attack. This allows us to better reason about a DMA attack focusing \DIFaddbegin \DIFadd{separately }\DIFaddend on each of its constituting parts\DIFdelbegin \DIFdel{separately}\DIFdelend . 
 
-    \item We explicitly characterize \DIFdelbegin \DIFdel{/enumerate }\DIFdelend the attributes required for a successful \DIFaddbegin \DIFadd{code injection }\DIFaddend DMA attack. \DIFdelbegin \DIFdel{These are not systematically defined by Thunderclap. Further, we demonstrate a complete }%DIFDELCMD < \compound %%%
-\DIFdel{attack in Sec. 
-    ~\ref{Sec:setup}.
-    }\DIFdelend \DIFaddbegin \DIFadd{This allows us to better reason about a DMA attack focusing on each of its constituting parts separately. 
-    }\DIFaddend 
+    \item We introduce \compound attacks and propose techniques to identify the buffer's KVA (\DIFdelbegin \DIFdel{Sec.}\DIFdelend \DIFaddbegin \DIFadd{Section}\DIFaddend ~\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound})\DIFdelbegin \DIFdel{that enable }\DIFdelend \DIFaddbegin \DIFadd{, which enables }\DIFaddend their execution.
 
-    \item We \DIFdelbegin \DIFdel{taxonomize sub-page vulnerabilities }\DIFdelend \DIFaddbegin \DIFadd{introduce }\compound \DIFadd{attacks and propose techniques to identify the buffer's KVA }\DIFaddend (Sec.~\DIFdelbegin \DIFdel{\ref{sec:subpage}) . Thunderclap's vulnerability taxonomy is general: it differentiates ``data leakage'' from ``kernel pointer'' but does not fully characterize kernel pointer attacks. Our work carefully addresses this issue.
-    }\DIFdelend \DIFaddbegin \DIFadd{\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound}) that enable their execution.
-    }\DIFaddend 
+    \item We demonstrate (\DIFdelbegin \DIFdel{Sec.}\DIFdelend \DIFaddbegin \DIFadd{Section}\DIFaddend ~\ref{Sec:setup}) that Linux is not safe from DMA attacks on the network data structures.
 
-    \item \DIFdelbegin \DIFdel{Whereas Thunderclap claims }\DIFdelend \DIFaddbegin \DIFadd{We demonstrate (Sec.~\ref{Sec:setup}) }\DIFaddend that Linux is \DIFdelbegin \DIFdel{safe from skbuff attacks because ``its skbuff locates function pointers and data on different pages'' (quoting its Sec.
-    VI), we show that this is incorrect by discovering and describing a new vulnerability/attack \mbox{on Linux skbuffs.}
-    }\DIFdelend \DIFaddbegin \DIFadd{not safe from DMA attacks on the network data structures.
-    }\DIFaddend 
-
-    \item We \DIFdelbegin \DIFdel{contribute staticand dynamic analyses to }\DIFdelend \DIFaddbegin \DIFadd{introduce new static~\mbox{%DIFAUXCMD
-\cite{SPADE} }\hspace{0pt}%DIFAUXCMD
-and dynamic~\mbox{%DIFAUXCMD
-\cite{DKASAN} }\hspace{0pt}%DIFAUXCMD
-analysis tools that }\DIFaddend identify sub-page vulnerabilities, \DIFdelbegin \DIFdel{and we }\DIFdelend run them on Linux \DIFaddbegin \DIFadd{and, report many previously unknown DMA vulnerabilities}\DIFaddend .
+    \item We introduce new static~\cite{SPADE} and dynamic~\cite{DKASAN} analysis tools that identify sub-page vulnerabilities, run them on Linux\DIFdelbegin \DIFdel{and, }\DIFdelend \DIFaddbegin \DIFadd{, and }\DIFaddend report many previously unknown DMA vulnerabilities.
 
 \end{itemize}
 
@@ -55,19 +34,27 @@ analysis tools that }\DIFaddend identify sub-page vulnerabilities, \DIFdelbegin 
 
 
 \smallskip
-\noindent\textbf{Adressing IOMMU vulnerabilities.}
-Boyd-Wickizer and Zeldovich~\cite{BWZ10} and LeVasseur et al.~\cite{LUSG04} suggested isolating unmodified device drivers in user space programs and virtual machines, respectively. Similarly, Cinch used an isolated red virtual machine for intercepting bus traffic~\cite{AWH16}. These methods could be applied to limit the damage of potential attacks in addition to other protection mechanisms. They do not, however, prevent code execution in an isolated environment. By attacking the isolation mechanism, attackers might still compromise the entire system.
+\noindent\textbf{Adressing IOMMU \DIFdelbegin \DIFdel{vulnerabilities}\DIFdelend \DIFaddbegin \DIFadd{Vulnerabilities}\DIFaddend .}
+Boyd-Wickizer and Zeldovich~\cite{BWZ10} and LeVasseur et al.~\cite{LUSG04} suggested isolating unmodified device drivers in user space programs and virtual machines, respectively. Similarly, Cinch\DIFaddbegin \DIFadd{~\mbox{%DIFAUXCMD
+\cite{AWH16} }\hskip0pt%DIFAUXCMD
+}\DIFaddend used an isolated red virtual machine \DIFdelbegin \DIFdel{for intercepting bus traffic~\mbox{%DIFAUXCMD
+\cite{AWH16}}\hskip0pt%DIFAUXCMD
+}\DIFdelend \DIFaddbegin \DIFadd{to intercept bus traffic}\DIFaddend . These methods could be applied to limit the damage of potential attacks in addition to other protection mechanisms. They do not, however, prevent code execution in an isolated environment. By attacking the isolation mechanism, attackers \DIFdelbegin \DIFdel{might }\DIFdelend \DIFaddbegin \DIFadd{can }\DIFaddend still compromise the entire system.
 
 Markuze et al. suggested that the IOMMU driver should use bounce buffers~\cite{MMT16}. Typically, device drivers invoke map/unmap requests for desired buffers through the DMA API. According to their suggestion, instead of dynamically mapping/unmapping pages, the DMA backend would copy the buffer to/from designated pages with fixed mapping. By keeping separate data pages for each device, they avoid data co-location and, as a result, eliminate the sub-page granularity vulnerability. Since the mappings are static, the issue of deferred invalidation is eliminated as well. 
 %
-Nevertheless, this solution imposes a large overhead of data copying and memory wastage. In a later work, Markuze et al. suggested reducing these overheads by implementing the DMA-Aware Malloc for Networking (DAMN)~\cite{MSMT18}. The security of the system still depends on developers avoiding mistakes (e.g., not using \texttt{build\_skb}) and does not provide a solution for packet forwarding or zero-copy I/O (e.g., \texttt{sendfile}, XDP~\cite{xdp}). %Furthermore, these ideas have yet to be introduced or even proposed to the Linux community, rendering current deployments at high risk.
+Nevertheless, this solution imposes a large overhead of data copying and memory \DIFdelbegin \DIFdel{wastage}\DIFdelend \DIFaddbegin \DIFadd{waste}\DIFaddend . In a later work, Markuze et al. suggested reducing these overheads by implementing the DMA-Aware Malloc for Networking (DAMN)~\cite{MSMT18}. The security of the system still depends on developers avoiding mistakes (e.g., not using \texttt{build\_skb}) and does not provide a solution for packet forwarding or zero-copy I/O (e.g., \texttt{sendfile}, XDP~\cite{xdp}). %Furthermore, these ideas have yet to be introduced or even proposed to the Linux community, rendering current deployments at high risk.
 %Previous works have painted DMA attacks in broad strokes only, without delving into details~\cite{MMT16,MSMT18,thunder}.
 
 %Several hardware mechanisms exist for protecting CPU buffers smaller than a page. These mechanisms could be implemented in the IOMMU in order to mitigate the sub-page vulnerabilities. 
-Intel’s sub-page protecting technology suggests protecting fixed-sized buffers smaller than a page~\cite{Int18}. Since the buffers are still fixed-sized, the same vulnerability remains, albeit for buffers smaller than a page. Intel MPX (Memory Protection Extensions) lets the user define boundaries for buffers and, later, explicitly checks that the corresponding pointers are between these boundaries~\cite{Int16a}. Oracle SSM (Silicon Secured Memory) lets the user \emph{color} buffers and associative pointers~\cite{Ora15}. The color is implicitly checked for a match at each memory access. MPX, SSM, and other similar approaches may be used for building a secure alternative to IOMMU. 
+Intel’s sub-page \DIFdelbegin \DIFdel{protecting }\DIFdelend \DIFaddbegin \DIFadd{security }\DIFaddend technology suggests protecting fixed-sized buffers smaller than a page~\cite{Int18}. Since the buffers are still \DIFdelbegin \DIFdel{fixed-sized}\DIFdelend \DIFaddbegin \DIFadd{fixed in size}\DIFaddend , the same vulnerability remains, albeit for buffers smaller than a page. Intel\DIFdelbegin \DIFdel{MPX (}\DIFdelend \DIFaddbegin \DIFadd{'s }\DIFaddend Memory Protection Extensions \DIFaddbegin \DIFadd{(MPX}\DIFaddend ) lets the user define boundaries for buffers and \DIFdelbegin \DIFdel{, later , }\DIFdelend \DIFaddbegin \DIFadd{later }\DIFaddend explicitly checks that the corresponding pointers are between these boundaries~\cite{Int16a}. Oracle\DIFdelbegin \DIFdel{SSM (}\DIFdelend \DIFaddbegin \DIFadd{'s }\DIFaddend Silicon Secured Memory \DIFaddbegin \DIFadd{(SSM}\DIFaddend ) lets the user \emph{color} buffers and associative pointers~\cite{Ora15}. The color is implicitly checked for a match at each memory access. MPX, SSM, and other similar approaches may be used \DIFdelbegin \DIFdel{for building }\DIFdelend \DIFaddbegin \DIFadd{to build }\DIFaddend a secure alternative to IOMMU. 
 
 \smallskip
-\noindent\textbf{Emerging ROP mitigation techniques.}
-Intel Control-Flow Enforcement Technology (CET) is a new instruction set for mitigating ROP attacks~\cite{Int17}. Processors that support CET use two stacks simultaneously instead of the regular one, with the new shadow stack having only return addresses rather than a full copy of the data. During each RET command, the shadow stack address is checked, and the code continues running only if the stacks agree on the address. Even if an attacker manages to control the regular stack, the shadow stack prevents the attack. Also, each legitimate indirect jump target is marked with a special instruction. Thus, it is impossible to jump to arbitrary locations in the code, and JOP attacks are also prevented. Similarly, each legitimate call target is also marked. De Raadt recently announced the Kernel Address Randomized Link (KARL) for OpenBSD~\cite{dr17}. Each time the system is booted, it links a new, randomized kernel binary. This is strong randomization (as opposed to Linux’s KASLR), making it harder to patch the payload during runtime. 
+\noindent\textbf{Emerging ROP \DIFdelbegin \DIFdel{mitigation techniques}\DIFdelend \DIFaddbegin \DIFadd{Mitigation Techniques}\DIFaddend .}
+Intel Control-Flow Enforcement Technology (CET) is a new instruction set for mitigating ROP attacks~\cite{Int17}. Processors that support CET use two stacks simultaneously instead of the regular one\DIFdelbegin \DIFdel{, with }\DIFdelend \DIFaddbegin \DIFadd{; }\DIFaddend the new shadow stack \DIFdelbegin \DIFdel{having }\DIFdelend \DIFaddbegin \DIFadd{has }\DIFaddend only return addresses rather than a full copy of the data. During each RET command, the shadow stack address is checked, and the code continues running only if the stacks agree on the address. Even if an attacker manages to control the regular stack, the shadow stack prevents the attack. \DIFdelbegin \DIFdel{Also}\DIFdelend \DIFaddbegin \DIFadd{Moreover}\DIFaddend , each legitimate indirect jump target is marked with a special instruction. Thus, it is impossible to jump to arbitrary locations in the code, and JOP attacks are also prevented. Similarly, each legitimate call target is also marked. De Raadt\DIFaddbegin \DIFadd{~\mbox{%DIFAUXCMD
+\cite{dr17} }\hskip0pt%DIFAUXCMD
+}\DIFaddend recently announced the Kernel Address Randomized Link (KARL) for OpenBSD\DIFdelbegin \DIFdel{~\mbox{%DIFAUXCMD
+\cite{dr17}}\hskip0pt%DIFAUXCMD
+}\DIFdelend . Each time the system is booted, it links a new, randomized kernel binary. \DIFdelbegin \DIFdel{This is strong randomization (as opposed to Linux’s KASLR), making }\DIFdelend \DIFaddbegin \DIFadd{As opposed to the Linux KASLR, this strong randomization makes }\DIFaddend it harder to patch the payload during \DIFdelbegin \DIFdel{runtime}\DIFdelend \DIFaddbegin \DIFadd{run-time}\DIFaddend . 
 
 %Both KARL and CET should successfully mitigate simple ROP/KASLR attacks whenever widely applied.

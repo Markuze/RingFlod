@@ -1,5 +1,5 @@
 \section{Detecting Sub-Page Vulnerabilities}
-We next present the tools we have developed to identify \subpage vulnerabilities described in the previous section.
+We \DIFdelbegin \DIFdel{next }\DIFdelend \DIFaddbegin \DIFadd{now }\DIFaddend present the tools we \DIFdelbegin \DIFdel{have }\DIFdelend developed to identify \DIFaddbegin \DIFadd{the }\DIFaddend \subpage vulnerabilities described in the previous section.
 
 \begin{figure*}
 \begin{adjustbox}{width=\linewidth}
@@ -37,7 +37,7 @@ We next present the tools we have developed to identify \subpage vulnerabilities
                 
 \end{lstlisting}
 \end{adjustbox}
-        \caption{\tool output example. Showing a path in the nvme\_fc driver where a callback pointer is exposed with write access.}
+        \caption{\tool output example \DIFdelbeginFL \DIFdelFL{. Showing }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{showing }\DIFaddendFL a path in the nvme\_fc driver where a callback pointer is exposed with write access.}
         \label{fig:tool_example}
 
 \end{figure*}
@@ -46,12 +46,12 @@ We next present the tools we have developed to identify \subpage vulnerabilities
 \subsection{Sub-Page Analysis for DMA Exposure}\label{sec:static-analysis}
 
 %\adam{modify the subsection's title accordingly}\SV{updated.. in 5.2 as well..}
-We devise a static code analysis tool that performs Sub-Page Analysis for DMA Exposure (\tool). With well over a 1000 \texttt{dma\_map*} function calls (i.e., the set of functions implementing the DMA API), in the Linux kernel, a manual process would be arduous. \tool performs the following operations to detect the different \subpage{} vulnerability types (Fig.~\ref{fig:colocation}) where a callback pointer may be exposed:
+We \DIFdelbegin \DIFdel{devise }\DIFdelend \DIFaddbegin \DIFadd{devised }\DIFaddend a static code analysis tool that performs Sub-Page Analysis for DMA Exposure (\tool). With well over \DIFdelbegin \DIFdel{a }\DIFdelend 1000 \texttt{dma\_map*} function calls (i.e., the set of functions implementing the DMA API) \DIFdelbegin \DIFdel{, }\DIFdelend in the Linux kernel, a manual process would be arduous. \tool performs the following operations to detect the different \subpage{} vulnerability types (\DIFdelbegin \DIFdel{Fig.}\DIFdelend \DIFaddbegin \DIFadd{Figure}\DIFaddend ~\ref{fig:colocation}) where a callback pointer may be exposed:
 \begin{enumerate}
-    \item Type A: Looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure.
+    \item Type A: Looks for \texttt{dma\_map*} functions and traces back the call stack to identify \DIFdelbegin \DIFdel{if }\DIFdelend \DIFaddbegin \DIFadd{whether }\DIFaddend the mapped buffer is embedded inside a data structure.
     \item Type B: Looks for kernel APIs that create a data structure inside a mapped buffer (e.g., \texttt{build\_skb}).
-    \item Type C: Looks for functions that are used for fast allocation by slicing a contiguous memory buffer into segments (e.g., netdev\_alloc\_skb, napi\_alloc\_skb). These may result in multiple \iova mapping the same page. These functions utilize the \texttt{page\_frag} API, which we discuss in greater detail in Sec. \ref{sec:shinfo_exploit} 
-\end{enumerate}
+    \item Type C: Looks for functions that \DIFdelbegin \DIFdel{are used for }\DIFdelend \DIFaddbegin \DIFadd{offer }\DIFaddend fast allocation by slicing a contiguous memory buffer into segments (e.g., netdev\_alloc\_skb, napi\_alloc\_skb). These may result in multiple \iova mapping the same page. These functions utilize the \texttt{page\_frag} API, which we discuss in greater detail in \DIFdelbegin \DIFdel{Sec. \ref{sec:shinfo_exploit}}\DIFdelend \DIFaddbegin \DIFadd{Section \ref{sec:shinfo_exploit}. 
+}\DIFaddend \end{enumerate}
 
 
 %\sout{\tool looks for \texttt{dma\_map*} functions and traces back the call stack to identify if the mapped buffer is embedded inside a data structure (Fig.~\ref{fig:colocation} (a)). Additionally we look for potentially hazardous functions (e.g., \texttt{build\_skb}), that create a data structure inside a mapped buffer (Fig.~\ref{fig:colocation} (b))}.\adam{this ``hazardous function'' comes out of nowhere and wasn't discussed in the characterization, which makes the  characterization looks questionable}
@@ -68,11 +68,11 @@ We devise a static code analysis tool that performs Sub-Page Analysis for DMA Ex
 
 \subsubsection{High-Level Design Overview}
 
-\tool operates recursively starting from calls to dma\_map* functions. From this initial set of calls, \tool identifies the mapped variables and backtracks their declarations and assignments to these variables. When a data structure is identified as exposed, \tool identifies exposed callback pointers or mapped heap pointers. 
+\tool operates recursively starting from calls to \DIFaddbegin \DIFadd{the }\DIFaddend dma\_map* functions. From this initial set of calls, \tool identifies the mapped variables and backtracks their declarations and assignments to these variables. When a data structure is identified as exposed, \tool identifies \DIFdelbegin \DIFdel{exposed }\DIFdelend \DIFaddbegin \DIFadd{the related }\DIFaddend callback pointers or mapped heap pointers. 
 
 
 
-\tool is implemented in $\approx$2000 lines of Perl 5 code. It utilises \texttt{pahole}~\cite{dwarves} to explore the compiled binaries for the layout of the exposed data structures. Pahole is a tool that uses the DWARF~\cite{dwarf} standardized debugging data format to examine data structure layout. To navigate the kernel code \tool utilises Cscope~\cite{cscope,cscope_92} which is an open source tool for browsing C source code.
+\tool is implemented in \DIFdelbegin \DIFdel{$\approx$}\DIFdelend \DIFaddbegin \DIFadd{approximately }\DIFaddend 2000 lines of Perl 5 code. It \DIFdelbegin \DIFdel{utilises }\DIFdelend \DIFaddbegin \DIFadd{uses }\DIFaddend \texttt{pahole}~\cite{dwarves} to explore the compiled binaries for the layout of the exposed data structures. Pahole is a tool that uses the DWARF~\cite{dwarf} standardized debugging data format to examine data structure layout. To navigate the kernel code\DIFaddbegin \DIFadd{, }\DIFaddend \tool \DIFdelbegin \DIFdel{utilises }\DIFdelend \DIFaddbegin \DIFadd{uses }\DIFaddend Cscope~\cite{cscope,cscope_92} which is an open source tool for browsing C source code.
 
 \tool is applicable to any kernel code written in C. We intend to make the \tool publicly available for the benefit of the research community.
 
@@ -101,27 +101,31 @@ We devise a static code analysis tool that performs Sub-Page Analysis for DMA Ex
 \subsubsection{Output}
 %
 %\adam{shouldn't this section come after the Design section, before discussing the results?}\SV{Done}
-For each DMA-mapping call, \tool outputs the line numbers of relevant declarations, function calls, and assignments, allowing for a human expert to trace back and validate the vulnerability. We present an example output of a vulnerability found in the NVMe host driver in Fig.~\ref{fig:tool_example}.
+For each DMA-mapping call, \tool outputs the line numbers of relevant declarations, function calls, and assignments, allowing \DIFdelbegin \DIFdel{for a human expert }\DIFdelend \DIFaddbegin \DIFadd{human experts }\DIFaddend to trace back and validate the vulnerability. \DIFdelbegin \DIFdel{We present an example output of }\DIFdelend \DIFaddbegin \DIFadd{Figure~\ref{fig:tool_example} presents an example of output for }\DIFaddend a vulnerability found in the NVMe host driver\DIFdelbegin \DIFdel{in Fig.
+~\ref{fig:tool_example}.
+}\DIFdelend \DIFaddbegin \DIFadd{.
+}\DIFaddend 
 
-The output starts from the impact evaluation (e.g., detected exposed callback pointers) and continues with pertinent code lines. %\sout{Starred lines contain script analysis}.
+The output starts from the impact evaluation\DIFdelbegin \DIFdel{(e.g.,  }\DIFdelend \DIFaddbegin \DIFadd{,  such as }\DIFaddend detected exposed callback pointers\DIFdelbegin \DIFdel{) }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend and continues with pertinent code lines. %\sout{Starred lines contain script analysis}.
 %\adam{what is script analysis? Who said anything about a script?}. 
-Line 7 reveals \DIFdelbegin \DIFdel{us }\DIFdelend that a single callback pointer is mapped in the mapped \texttt{nvme\_fc\_fcp\_op} data structure (i.e., \texttt{fcp\_req.done}) and line 8 reveals that it is possible to spoof another 931 callback pointers.\footnote{In this case, spoofing means replacing this pointer to indicate an instance of the structure created by the device, with its own callback pointers.}
-In Line 6, \tool, after finding the variable declaration (i.e., line 5) and looking at the mapped pointer (i.e., \texttt{\&op->rsp\_iu} on line 4), concludes that the whole \texttt{struct nvme\_fc\_fcp\_op} is exposed to the device. Lines \DIFdelbegin \DIFdel{3-1 }\DIFdelend \DIFaddbegin \DIFadd{1--3 }\DIFaddend repeat the same analysis process for the \texttt{dma\_map\_single} call that exposes the data structure to the device. 
+Line 7 reveals that a single callback pointer is mapped in the mapped \texttt{nvme\_fc\_fcp\_op} data structure (i.e., \texttt{fcp\_req.done}) and line 8 reveals that it is possible to spoof another 931 callback pointers.\footnote{In this case, spoofing means replacing this pointer to indicate an instance of the structure created by the device, with its own callback pointers.}
+\DIFdelbegin \DIFdel{In Line 6, }%DIFDELCMD < \tool%%%
+\DIFdel{, after }\DIFdelend \DIFaddbegin \DIFadd{After }\DIFaddend finding the variable declaration \DIFdelbegin \DIFdel{(i.e., }\DIFdelend \DIFaddbegin \DIFadd{in }\DIFaddend line 5\DIFdelbegin \DIFdel{) }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend and looking at the mapped pointer \DIFdelbegin \DIFdel{(i.e., }\DIFdelend \texttt{\&op->rsp\_iu} \DIFdelbegin \DIFdel{on }\DIFdelend \DIFaddbegin \DIFadd{in }\DIFaddend line 4\DIFdelbegin \DIFdel{), concludes that the whole }\DIFdelend \DIFaddbegin \DIFadd{, }\tool \DIFadd{concludes in line 6  that the entire }\DIFaddend \texttt{struct nvme\_fc\_fcp\_op} is exposed to the device. Lines \DIFdelbegin \DIFdel{1--3 }\DIFdelend \DIFaddbegin \DIFadd{1 through 3 }\DIFaddend repeat the same analysis process for the \texttt{dma\_map\_single} call that exposes the data structure to the device. 
 
 This example demonstrates the recursive nature of the script.
-\tool first identifies the suspect function call, then finds the mapped pointer's declaration, and lastly prints its type. This pattern repeats itself in lines \DIFdelbegin \DIFdel{1-3 and 4-6 }\DIFdelend \DIFaddbegin \DIFadd{1--3 and 4--6 }\DIFaddend until a vulnerability is discovered. The findings are then displayed; line 7 counts the number of directly exposed callback pointers, and line 8 displays the number of callback pointers that may be potentially spoofed.
+\tool first identifies the suspect function call, \DIFdelbegin \DIFdel{then }\DIFdelend finds the mapped pointer's declaration, and \DIFdelbegin \DIFdel{lastly }\DIFdelend \DIFaddbegin \DIFadd{then }\DIFaddend prints its type. This pattern repeats itself in lines \DIFdelbegin \DIFdel{1--3 and 4--6 }\DIFdelend \DIFaddbegin \DIFadd{1 through 3 and 4 through 6 }\DIFaddend until a vulnerability is discovered. The findings are then displayed\DIFdelbegin \DIFdel{; }\DIFdelend \DIFaddbegin \DIFadd{: }\DIFaddend line 7 counts the number of directly exposed callback pointers, and line 8 displays the number of callback pointers that may be potentially spoofed.
 
 
 
 \subsubsection{Analysis and Results}
-We use \tool over Linux kernel 5.0 code,
-analysing 1019 dma\_map\_single calls over 447 files. We present the results in Tab.~\ref{tab:static_analysis}. 
-We find 156 cases in which device drivers expose callback pointers. Of these, 54 are cases where the pointers are exposed directly, and the rest are cases where callback pointers can be spoofed.
-We find that 13\%~(line 1 in Fig.~\ref{fig:tool_example}) of the drivers expose data structures via type (a) vulnerabilities whereas 60\%~(lines 2,7 in Fig.~\ref{fig:tool_example}) expose data structures via type (b) vulnerabilities. Namely, 13\% are vulnerable due to driver bugs and 60\%~ of drivers are vulnerable due to OS design choices. In the case of the Linux kernel, the most common source of vulnerability caused by the OS design is struct \shinfo, which is used ubiquitously in Linux networking. This data structure is \textit{always} located on the same page as the \texttt{skb->data}, and it also contains a callback pointer. We discuss the vulnerabilities related to \shinfo in Sec.~\ref{sec:linux_net}. We find that more than 50\% of the dma-map calls either directly map the \texttt{skb->data} or use the \texttt{build\_skb} API (lines 2 \& 7 in Table ~\ref{tab:static_analysis}), which exposes \shinfo. The OS provides this data structure layout and API rather than it being an isolated driver bug. Additionally, we find 19 data structures that are exposed via APIs that store \texttt{private} data structures on the same page as vulnerable meta-data, e.g., netdev\_priv, aead\_request\_ctx and scsi\_cmd\_priv.
+We \DIFdelbegin \DIFdel{use }\DIFdelend \DIFaddbegin \DIFadd{used }\DIFaddend \tool over Linux kernel 5.0 code,
+\DIFdelbegin \DIFdel{analysing }\DIFdelend \DIFaddbegin \DIFadd{analyzing }\DIFaddend 1019 dma\_map\_single calls over 447 files. We present the results in \DIFdelbegin \DIFdel{Tab.}\DIFdelend \DIFaddbegin \DIFadd{Table}\DIFaddend ~\ref{tab:static_analysis}. 
+We \DIFdelbegin \DIFdel{find }\DIFdelend \DIFaddbegin \DIFadd{found }\DIFaddend 156 cases in which device drivers expose callback pointers. Of these, 54 are cases \DIFdelbegin \DIFdel{where }\DIFdelend \DIFaddbegin \DIFadd{in which }\DIFaddend the pointers are exposed directly, and the rest are cases \DIFdelbegin \DIFdel{where }\DIFdelend \DIFaddbegin \DIFadd{in which }\DIFaddend callback pointers can be spoofed.
+We \DIFdelbegin \DIFdel{find }\DIFdelend \DIFaddbegin \DIFadd{found }\DIFaddend that 13\%~(line 1 in Fig.~\ref{fig:tool_example}) of the drivers expose data structures via type (a) vulnerabilities\DIFaddbegin \DIFadd{, }\DIFaddend whereas 60\%~(lines 2,7 in Fig.~\ref{fig:tool_example}) expose data structures via type (b) vulnerabilities. Namely, 13\% are vulnerable due to driver bugs and 60\%~of drivers are vulnerable due to OS design choices. In the case of the Linux kernel, the most common source of vulnerability caused by the OS design is struct \shinfo, which is used ubiquitously in Linux networking. This data structure is \textit{always} located on the same page as the \texttt{skb->data}, and it also contains a callback pointer. We discuss the vulnerabilities related to \shinfo in \DIFdelbegin \DIFdel{Sec.}\DIFdelend \DIFaddbegin \DIFadd{Section}\DIFaddend ~\ref{sec:linux_net}. We \DIFdelbegin \DIFdel{find }\DIFdelend \DIFaddbegin \DIFadd{found }\DIFaddend that more than 50\% of the dma-map calls either directly map the \texttt{skb->data} or use the \texttt{build\_skb} API (lines 2 \DIFdelbegin \DIFdel{\& }\DIFdelend \DIFaddbegin \DIFadd{and }\DIFaddend 7 in Table ~\ref{tab:static_analysis}), which exposes \shinfo. The OS provides this data structure layout and API rather than it being an isolated driver bug. Additionally, we \DIFdelbegin \DIFdel{find }\DIFdelend \DIFaddbegin \DIFadd{found }\DIFaddend 19 data structures that are exposed via APIs that store \texttt{private} data structures on the same page as vulnerable \DIFdelbegin \DIFdel{meta-data}\DIFdelend \DIFaddbegin \DIFadd{metadata}\DIFaddend , e.g., netdev\_priv, aead\_request\_ctx\DIFaddbegin \DIFadd{, }\DIFaddend and scsi\_cmd\_priv.
 
-In addition to type (a) and (b) vulnerabilities, \tool has additionally flagged 344 cases where a type (c) vulnerability is present. Our analysis also finds three instances where the stack pointer is mapped, potentially simplifying the execution of a ROP attack.
+In addition to type (a) and (b) vulnerabilities, \tool \DIFdelbegin \DIFdel{has additionally }\DIFdelend \DIFaddbegin \DIFadd{also }\DIFaddend flagged 344 cases where a type (c) vulnerability is present. Our analysis \DIFdelbegin \DIFdel{also finds }\DIFdelend \DIFaddbegin \DIFadd{found }\DIFaddend three instances where the stack pointer is mapped, potentially simplifying the execution of a ROP attack.
 
-In total, we find 742 dma-map calls (i.e., 72.8\% of all dma-map calls) with a potential vulnerability, of which 344 also admit a type (c) vulnerability.
+In total, we \DIFdelbegin \DIFdel{find }\DIFdelend \DIFaddbegin \DIFadd{found }\DIFaddend 742 dma-map calls (i.e., 72.8\% of all dma-map calls) with a potential vulnerability, of which 344 also admit a type (c) vulnerability.
 
 Our code for \tool is publicly available \cite{SPADE}.
 
@@ -138,22 +142,37 @@ Our code for \tool is publicly available \cite{SPADE}.
 
 \begin{table}[t]
 \centering
-\resizebox{1.0\linewidth}{!}{%
+\DIFdelbeginFL %DIFDELCMD < \resizebox{1.0\linewidth}{!}{%
+%DIFDELCMD < \begin{tabular}{l|c|c}
+%DIFDELCMD <    Stat  & \#API calls   & \#Files      \\ \hline
+%DIFDELCMD < 1. Callbacks exposed          & 156 (15.3\%) & 57 (12.8\%) \\
+%DIFDELCMD < 2. \texttt{skb\_shared\_info} mapped   & 464 (45.5\%) & 232 (51.9\%) \\
+%DIFDELCMD < 3. Callbacks exposed Directly & 54            & 28           \\
+%DIFDELCMD < 4. Private data mapped        & 19            & 7            \\
+%DIFDELCMD < 5. Stack Mapped                &     3          &         3     \\
+%DIFDELCMD < 6. Type C vulnerability       & 344           & 227          \\
+%DIFDELCMD < 7. \texttt{build\_skb} used            & 46            & 40           \\ \hline
+%DIFDELCMD < Total dma-map calls        & 1019          & 447       \\  
+%DIFDELCMD < \end{tabular}
+%DIFDELCMD < %
+%DIFDELCMD < }
+%DIFDELCMD < %%%
+\DIFdelendFL \DIFaddbeginFL \resizebox{1.0\linewidth}{!}{%
 \begin{tabular}{l|c|c}
    Stat  & \#API calls   & \#Files      \\ \hline
 1. Callbacks exposed          & 156 (15.3\%) & 57 (12.8\%) \\
 2. \texttt{skb\_shared\_info} mapped   & 464 (45.5\%) & 232 (51.9\%) \\
-3. Callbacks exposed Directly & 54            & 28           \\
+3. Callbacks exposed directly & 54            & 28           \\
 4. Private data mapped        & 19            & 7            \\
-5. Stack Mapped                &     3          &         3     \\
+5. Stack mapped                &     3          &         3     \\
 6. Type C vulnerability       & 344           & 227          \\
 7. \texttt{build\_skb} used            & 46            & 40           \\ \hline
 Total dma-map calls        & 1019          & 447       \\  
 \end{tabular}
 %
 }
-\vspace{1mm}
-\caption{\tool result summary.}
+\DIFaddendFL \vspace{1mm}
+\caption{\tool \DIFdelbeginFL \DIFdelFL{result }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{results }\DIFaddendFL summary\DIFdelbeginFL \DIFdelFL{.}\DIFdelendFL }
 \vspace{-7mm}
 \label{tab:static_analysis}
 \end{table}

@@ -15,29 +15,28 @@
 %By introducing and demonstrating \compound{} attacks on the Linux kernel, we have shown that IOMMU, as it is used today, is not sufficient to protect the OS against DMA attacks.
 %\adam{this paragraph was weak. It implies that IOMMU was thought to be a protection before, which is not the case, since we go on to cite papers dealing with sub-page vulns. This paragraph should try to summarize the contribution. I suggest using text from the abstract/intro, along the lines of: we have shown that sub-page vulns are caused by the OS, not drivers, we have characterized them, etc.}
 
-By introducing and demonstrating \compound{} attacks on the Linux kernel, we have shown that IOMMU, as it is used today, leaves the OS vulnerable to DMA attacks. While such vulnerabilities have been considered to be caused by buggy device drivers or poor (but isolated) driver design choices, we find that it is often the OS design choices that compromise the system security.
-\DIFdelbegin \DIFdel{Accordingly, in Sec. \ref{sec:api}, we provide examples of such OS design choices and summarize APIs we have exploited for executing }%DIFDELCMD < \compound{} %%%
-\DIFdel{DMA attacks, %DIF < In Sec. \ref{sec:rand_exp} we discuss random exposure vulnerabilities.
-then, in Sec. \ref{sec:Conclusion} we conclude the paper.
-}\DIFdelend %DIF > Accordingly, in Sec. \ref{sec:api}, we provide examples of such OS design choices and summarize APIs we have exploited for executing \compound{} DMA attacks, %In Sec. \ref{sec:rand_exp} we discuss random exposure vulnerabilities.
-%DIF > then, in Sec. \ref{sec:Conclusion} we conclude the paper.
+By introducing and demonstrating \compound{} attacks on the Linux kernel, we have shown that IOMMU, as it is used today, leaves the OS vulnerable to DMA attacks. \DIFdelbegin \DIFdel{While such }\DIFdelend \DIFaddbegin \DIFadd{Such }\DIFaddend vulnerabilities have been considered to be caused by buggy device drivers or poor\DIFdelbegin \DIFdel{(but isolated) }\DIFdelend \DIFaddbegin \DIFadd{, but isolated, }\DIFaddend driver design choices\DIFdelbegin \DIFdel{, we }\DIFdelend \DIFaddbegin \DIFadd{. We }\DIFaddend find that it is often the OS design choices that compromise the system security.
+%Accordingly, in Sec. \ref{sec:api}, we provide examples of such OS design choices and summarize APIs we have exploited for executing \compound{} DMA attacks, %In Sec. \ref{sec:rand_exp} we discuss random exposure vulnerabilities.
+%then, in Sec. \ref{sec:Conclusion} we conclude the paper.
 
 \subsection{API}\label{sec:api}
 
-With the existing API used for I/O operations and due to performance considerations, it is extremely difficult not to create a \subpage{} vulnerability that can be later exploited. Thus, even well-written drivers can be subverted by the OS (e.g., bnx2 by deferred protection). Examples to this include:
+\DIFdelbegin \DIFdel{With the existing API }\DIFdelend \DIFaddbegin \DIFadd{Existing APIs }\DIFaddend used for I/O operations and \DIFdelbegin \DIFdel{due to performance considerations , }\DIFdelend \DIFaddbegin \DIFadd{associated performance considerations make }\DIFaddend it is extremely difficult not to create a \subpage{} vulnerability that can \DIFdelbegin \DIFdel{be later }\DIFdelend \DIFaddbegin \DIFadd{later be }\DIFaddend exploited. Thus, even well-written drivers can be subverted by the OS (e.g., bnx2 by deferred protection)\DIFdelbegin \DIFdel{. Examples to this include:
+}\DIFdelend \DIFaddbegin \DIFadd{, as in the following examples.
+}\DIFaddend 
 
 %\begin{enumerate}
     %\item API: 
     \begin{itemize}[wide, labelwidth=!, labelindent=3pt]
         \item The \textit{dma\_map\_single} call accepts a pointer and the buffer length. This API insinuates that only the mapped bytes are exposed, when, in fact, the whole page is accessible.
-        \item \textit{dma\_unmap\_single}, insinuates that the buffer is not accessible to the device after the call. This does not hold both due to deferred protection and type (c) \subpage{} vulnerabilities.
-        \item \textit{build\_skb} facilitates building an \skb{} around an arbitrary I/O buffer, in turn, embedding critical data structures inside an I/O buffer.
-        \item While \texttt{page\_frag} (Sec. \ref{sec:shinfo}) is an efficient allocator, it inherently creates a type (c) \subpage{} vulnerability.
+        \item \textit{dma\_unmap\_single}, insinuates that the buffer is not accessible to the device after the call. This does not hold \DIFdelbegin \DIFdel{both due to }\DIFdelend \DIFaddbegin \DIFadd{due to both the }\DIFaddend deferred protection and type (c) \subpage{} vulnerabilities.
+        \item \textit{build\_skb} facilitates building an \skb{} around an arbitrary I/O buffer, in turn, embedding critical data structures inside \DIFdelbegin \DIFdel{an }\DIFdelend \DIFaddbegin \DIFadd{the }\DIFaddend I/O buffer.
+        \item While \texttt{page\_frag} (\DIFdelbegin \DIFdel{Sec. }\DIFdelend \DIFaddbegin \DIFadd{Section }\DIFaddend \ref{sec:shinfo}) is an efficient allocator, it inherently creates a type (c) \subpage{} vulnerability.
     %\end{itemize} 
     %\item Tools/Infrastructure: 
     %\begin{itemize}[wide, labelwidth=!, labelindent=0pt]
             %\item \texttt{page\_pool} API, \adam{NOTHING in the paper explains what page\_pool is...} by caching I/O buffers and avoiding expensive unmaps, the drivers \emph{circumvent} the security techniques of the OS. 
-            \item \shinfo{} is by design built within an I/O buffer. Avoiding type (b) \subpage{} vulnerabilities imposes a challenge.
+            \item \DIFaddbegin \DIFadd{By design, }\DIFaddend \shinfo{} is \DIFdelbegin \DIFdel{by design }\DIFdelend built within an I/O buffer. Avoiding type (b) \subpage{} vulnerabilities imposes a challenge.
     \end{itemize}
 %\end{enumerate}
 
@@ -49,14 +48,14 @@ With the existing API used for I/O operations and due to performance considerati
 
 
 
-The success of a DMA attack relies on the exposure of restricted meta-data fields caused by \subpage{} vulnerability. 
-To prevent such exposure, previous works have proposed separating the I/O memory from CPU memory~\cite{MSMT18}, by providing a separate allocator for networking. 
-Nevertheless, this API can be easily thwarted by device drivers via functions such as \texttt{build\_skb} that add a vulnerable \shinfo into an I/O region. 
-Moreover, these solutions are focused solely on network devices, leaving the system unprotected against other DMA capable devices such as FireWire, USB C, NVMe and more.
+The success of a DMA attack relies on the exposure of restricted \DIFdelbegin \DIFdel{meta-data fields}\DIFdelend \DIFaddbegin \DIFadd{metadata fields, }\DIFaddend caused by \subpage{} vulnerability. 
+To prevent such exposure, previous works \DIFdelbegin \DIFdel{have }\DIFdelend proposed separating the I/O memory from CPU memory~\cite{MSMT18}, by providing a separate allocator for networking. 
+Nevertheless, this API can be easily thwarted by device drivers via functions\DIFaddbegin \DIFadd{, }\DIFaddend such as \texttt{build\_skb}\DIFaddbegin \DIFadd{, }\DIFaddend that add a vulnerable \shinfo into an I/O region. 
+Moreover, these solutions are focused solely on network devices, leaving the system unprotected against other \DIFdelbegin \DIFdel{DMA capable }\DIFdelend \DIFaddbegin \DIFadd{DMA-capable }\DIFaddend devices such as FireWire, USB C, NVMe\DIFaddbegin \DIFadd{, }\DIFaddend and more.
 
 
-To achieve better DMA security in future OSes, a possible direction is to consider the segregation of I/O memory from OS memory. 
-Alternatively, to prevent the existence of sensitive meta-data on I/O pages, we propose to open-source and offer, as a first step, \tool{}~\cite{SPADE} and \dkasan{}~\cite{DKASAN} to be used at the development and deployment stages to validate the security of the system. 
+To achieve better DMA security in future \DIFdelbegin \DIFdel{OSes, a }\DIFdelend \DIFaddbegin \DIFadd{OSs, one }\DIFaddend possible direction is to consider the segregation of I/O memory from OS memory. 
+Alternatively, to prevent the existence of sensitive \DIFdelbegin \DIFdel{meta-data }\DIFdelend \DIFaddbegin \DIFadd{metadata }\DIFaddend on I/O pages, we propose to open-source and offer \DIFdelbegin \DIFdel{, as a first step, }\DIFdelend \tool{}~\cite{SPADE} and \dkasan{}~\cite{DKASAN} to \DIFdelbegin \DIFdel{be used at the development and deployment stages to }\DIFdelend validate the security of the system \DIFaddbegin \DIFadd{in the development and deployment stages}\DIFaddend . 
 
 
 %We contend that there are two avenues which need to be followed concurrently in order to achieve DMA security.

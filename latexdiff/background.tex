@@ -35,42 +35,44 @@ Start Addr                                 & Offset    & End Addr               
 \texttt{ffffffff80000000} & -2  GB    & \texttt{ffffffff9fffffff} & 512 MB  & kernel text mapping (physical address 0)       \\
 \texttt{ffffffffa0000000} & -1536 MB  & \texttt{fffffffffeffffff} & 1520 MB & module mapping space                           \\ \hline
 \end{tabular}
-        \caption{ Linux kernel memory layout.}
+        \caption{ Linux kernel memory layout\DIFdelbeginFL \DIFdelFL{.}\DIFdelendFL }
         \label{fig:mem_layot}
 \end{table*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Background}\label{sec:background}
 
-In this section, we provide the necessary background needed to discuss DMA related attacks. First, we describe classic DMA attacks and the IOMMU protection against them. Then, we discuss well-established protection practices against privilege escalation (i.e., code injection) attacks and methods of their circumvention.
+In this section, we provide \DIFdelbegin \DIFdel{the necessary background needed to discuss DMA related }\DIFdelend \DIFaddbegin \DIFadd{background on DMA-related }\DIFaddend attacks. First, we describe classic DMA attacks and \DIFdelbegin \DIFdel{the IOMMU protectionagainst them}\DIFdelend \DIFaddbegin \DIFadd{their IOMMU protection}\DIFaddend . Then, we discuss well-established protection practices \DIFdelbegin \DIFdel{against }\DIFdelend \DIFaddbegin \DIFadd{to prevent }\DIFaddend privilege escalation (i.e., code injection) attacks and methods \DIFdelbegin \DIFdel{of }\DIFdelend \DIFaddbegin \DIFadd{for }\DIFaddend their circumvention.
 
-\subsection{DMA attacks}
+\subsection{DMA \DIFdelbegin \DIFdel{attacks}\DIFdelend \DIFaddbegin \DIFadd{Attacks}\DIFaddend }
 
-DMA allows I/O devices direct access to memory~\cite{oC54} without CPU involvement. While DMA is essential for fast I/O, it also provides ample opportunity for unmonitored and malicious activity by DMA-capable devices, i.e., DMA attacks. 
+DMA allows I/O devices direct access to memory~\cite{oC54} without CPU involvement. While DMA is essential for fast I/O, it also provides ample opportunity for unmonitored and malicious activity by DMA-capable devices, \DIFdelbegin \DIFdel{i.e., }\DIFdelend \DIFaddbegin \DIFadd{resulting in }\DIFaddend DMA attacks. 
 
-An attacker can access sensitive data and/or overwrite the OS code and data structures and even gain full control of the victim system. DMA attacks can be carried out using an external or internal DMA-capable device. 
+An attacker can access sensitive data\DIFdelbegin \DIFdel{and/or }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend overwrite the OS code and data structures\DIFaddbegin \DIFadd{, }\DIFaddend and even gain full control of the victim system. DMA attacks can be carried out using an external or internal DMA-capable device. 
 
 Accessible expansion ports, e.g., FireWire or Thunderbolt, allow external devices to initiate DMA transactions merely by connecting a programmable accessory~\cite{Dor04, Vol, MM, thunder}. 
 Exploiting internal devices is more challenging, but enables persistent and stealthy attacks. 
 
-Many options to gain control of an internal device are available.
-A resourceful attacker can exploit firmware bugs~\cite{SB12}. These can be well-known exploits, as end-users are often slow in deploying firmware updates~\cite{DPVL10}, and even newly discovered zero-day vulnerabilities~\cite{Ben17b}. Alternatively, certain attackers may be able to replace the device firmware altogether with a malicious one~\cite{ZKB13, NL14}. It is also possible to manufacture devices that appear to be legitimate but are, in fact, malicious at the circuitry level~\cite{YHD16}.
+Many options \DIFaddbegin \DIFadd{are available }\DIFaddend to gain control of an internal device\DIFdelbegin \DIFdel{are available.
+A }\DIFdelend \DIFaddbegin \DIFadd{.
+For example, a }\DIFaddend resourceful attacker can exploit firmware bugs~\cite{SB12}. These can be well-known exploits, \DIFdelbegin \DIFdel{as }\DIFdelend \DIFaddbegin \DIFadd{since }\DIFaddend end-users are often slow in deploying firmware updates~\cite{DPVL10}\DIFdelbegin \DIFdel{, and even }\DIFdelend \DIFaddbegin \DIFadd{; they may even be }\DIFaddend newly discovered zero-day vulnerabilities~\cite{Ben17b}. Alternatively, certain attackers may be able to replace the device firmware altogether with a malicious one~\cite{ZKB13, NL14}. It is also possible to manufacture devices that appear to be legitimate but are, in fact, malicious at the circuitry level~\cite{YHD16}.
 
-Once an attacker gains control over a DMA device connected to a victim machine, various attacks are possible, ranging from keyloggers~\cite{LKV13, SB12} to full control over commodity OS and hypervisor, including Windows~\cite{AD10,thunder}, Linux, OSX~\cite{Fri16, thunder}, Android~\cite{Ben17b}, and Xen~\cite{Woj08}.
+Once an attacker gains control over a DMA device connected to a victim machine, various attacks are possible\DIFdelbegin \DIFdel{, ranging }\DIFdelend \DIFaddbegin \DIFadd{. These attacks can range }\DIFaddend from keyloggers~\cite{LKV13, SB12} to full control over commodity OS and hypervisor, including Windows~\cite{AD10,thunder}, Linux, OSX~\cite{Fri16, thunder}, Android~\cite{Ben17b}, and Xen~\cite{Woj08}.
 
-Several software tools for perpetrating DMA attacks exist, some are open source. Tools such as Volatility~\cite{Vol}, Inception~\cite{MM}, GoldFish~\cite{GA10}, and FinFireWire~\cite{Fin14} can extract target machine memory and unlock victim machines by patching the OS code. These tools are reportedly used by government agencies, such as the NSA.
+Several software tools \DIFaddbegin \DIFadd{exist }\DIFaddend for perpetrating DMA attacks\DIFdelbegin \DIFdel{exist, some are }\DIFdelend \DIFaddbegin \DIFadd{, with some of them being }\DIFaddend open source. Tools such as Volatility~\cite{Vol}, Inception~\cite{MM}, GoldFish~\cite{GA10}, and FinFireWire~\cite{Fin14} can extract target machine memory and unlock victim machines by patching the OS code. These tools are reportedly used by government agencies, such as the NSA.
 
 \subsection{IOMMU}
 
-With the lack of software protection against DMA attacks, the common practice is to restrict DMA accesses through hardware protection. The most common mechanism for this purpose is the I/O memory management unit (IOMMU). The IOMMU adds a level of indirection for DMA addresses~\cite{WRC08,YZ15,SB12,MTF12}, effectively providing peripheral devices with virtual addresses termed~\iova{} (I/O virtual addresses). This way, the device can access only these pages that the OS has explicitly allowed. Inspired by the x86 MMU, the IOMMU uses a page table for address translation and an IOTLB for caching recent accesses.  The page tables are managed by the OS and as with the MMU, have a page granularity. The common page size is 4\,KB, though other larger page sizes, up to GBs, also exist.
+With the lack of software protection against DMA attacks, the common practice is to restrict DMA accesses through hardware protection. The most common mechanism for this purpose is the I/O memory management unit (IOMMU). The IOMMU adds a level of indirection for DMA addresses~\cite{WRC08,YZ15,SB12,MTF12}, effectively providing peripheral devices with \DIFdelbegin \DIFdel{virtual addresses termed~}%DIFDELCMD < \iova{} %%%
+\DIFdel{(}\DIFdelend I/O virtual addresses \DIFaddbegin \DIFadd{(}\iova{}\DIFaddend ). This way, the device can access only \DIFdelbegin \DIFdel{these pages that the OS has explicitly allowed }\DIFdelend \DIFaddbegin \DIFadd{those pages explicitly allowed by the OS}\DIFaddend . Inspired by the x86 MMU, the IOMMU uses a page table for address translation and an IOTLB for caching recent accesses.  The page tables are managed by the OS\DIFaddbegin \DIFadd{, }\DIFaddend and as with the MMU, have a page granularity. The common page size is 4\,KB, \DIFdelbegin \DIFdel{though other }\DIFdelend \DIFaddbegin \DIFadd{although there exist }\DIFaddend larger page sizes, up to GBs\DIFdelbegin \DIFdel{, also exist}\DIFdelend .
 
-The IOMMU page table also holds page access rights for each \iova. An access right can be either READ, WRITE, or BIDIRECTIONAL. Note that WRITE access does not grant a DMA device READ access, whereas BIDIRECTIONAL access is needed to both read and write from/to the page. It is also important to note that a single physical page can be mapped by multiple \iova{}s, each with a possibly different access right.
+The IOMMU page table also holds page access rights for each \iova. An access right can be either READ, WRITE, or BIDIRECTIONAL. Note that WRITE access does not grant a DMA device READ access, whereas BIDIRECTIONAL access is needed to both read and write from/to the page. It is also important to note that a single physical page can be mapped by multiple \iova{}s, each with \DIFdelbegin \DIFdel{a }\DIFdelend possibly different access \DIFdelbegin \DIFdel{right}\DIFdelend \DIFaddbegin \DIFadd{rights}\DIFaddend .
 
-IOMMUs were not designed primarily with regard to providing security~\cite{DWT79}. Instead, IOMMUs were used to allow devices that did not support vectored I/O, to access contiguous virtual memory, which may map non-contiguous physical memory~\cite{Chu96, WMM97}. IOMMUs also enabled legacy devices that only supported a limited address width (32-bit), to access high memory (64 bit). More recently, IOMMUs were used to assign I/O devices directly to virtual machines while maintaining their isolation properties~\cite{Int16b, AMD16}. 
+IOMMUs were not designed primarily \DIFdelbegin \DIFdel{with regard to providing }\DIFdelend \DIFaddbegin \DIFadd{to provide }\DIFaddend security~\cite{DWT79}. Instead, IOMMUs were used to allow devices that did not support vectored I/O, to access contiguous virtual memory \DIFdelbegin \DIFdel{, which }\DIFdelend \DIFaddbegin \DIFadd{that }\DIFaddend may map non-contiguous physical memory~\cite{Chu96, WMM97}. IOMMUs also enabled legacy devices that only supported a limited address width (32-bit) \DIFdelbegin \DIFdel{, }\DIFdelend to access high memory (\DIFdelbegin \DIFdel{64 bit}\DIFdelend \DIFaddbegin \DIFadd{64-bit}\DIFaddend ). More recently, IOMMUs were used to assign I/O devices directly to virtual machines\DIFaddbegin \DIFadd{, }\DIFaddend while maintaining their isolation properties~\cite{Int16b, AMD16}. 
 %Throughout this period, OS developers did not appear to consider protection against malicious devices important. To date, Windows 10 is the first Windows version that uses IOMMU for protection~\cite{Mic17}.\adam{aren't these two sentences detracting from the paper? The premise is that IOMMUs are used for protection, and they contradict this premise.}
 \subsection{DMA API}
-Device drivers must use the DMA API to manage DMA buffers. Drivers \texttt{dma\_map} a buffer before initiating a DMA to that buffer, thereby passing ownership of
+Device drivers must use the DMA API to manage \DIFaddbegin \DIFadd{the }\DIFaddend DMA buffers. Drivers \texttt{dma\_map} a buffer before initiating a DMA to that buffer, thereby passing ownership of
 the buffer to the device. Drivers \texttt{dma\_unmap} the buffer upon
 DMA completion, thereby regaining ownership of the buffer.
-The \texttt{dma\_map} call returns an \iova. The driver must configure the device to DMA to that specific \iova;
+The \texttt{dma\_map} call returns an \iova. The driver must configure the device to DMA \DIFdelbegin \DIFdel{to }\DIFdelend \DIFaddbegin \DIFadd{for }\DIFaddend that specific \iova;
 \texttt{dma\_unmap} later takes this \iova as its parameter. There are analogous methods to map and unmap for non-contiguous scatter/gather lists.

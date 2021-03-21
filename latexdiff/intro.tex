@@ -1,12 +1,16 @@
 \section{Introduction}
 
-Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access memory without CPU involvement, improving system performance.
-DMA capable devices include internal devices, such as GPUs, Network Interface Cards (NICs), storage devices (e.g., NVMe) and other peripheral devices, and external devices such as FireWire and Thunderbolt devices.\footnote{Currently, the Linux kernel (version 5.0) has as many as 700 such device drivers, where a third of those are network device drivers.} However, in its basic form, DMA makes the system vulnerable to DMA attacks. Namely, cases where malicious DMA-capable devices (e.g., compromised firmware \cite{Gal14,Ben17a}) access sensitive memory regions not intended for their use. 
+Direct Memory Access (DMA) is a technology that allows input-output (I/O) devices to access memory without CPU involvement, \DIFaddbegin \DIFadd{thereby }\DIFaddend improving system performance.
+\DIFdelbegin \DIFdel{DMA capable }\DIFdelend \DIFaddbegin \DIFadd{DMA-capable }\DIFaddend devices include internal devices, such as GPUs, Network Interface Cards (NICs), storage devices (e.g., NVMe)\DIFaddbegin \DIFadd{, }\DIFaddend and other peripheral devices, \DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{including }\DIFaddend external devices such as FireWire and Thunderbolt\DIFdelbegin \DIFdel{devices.}\DIFdelend \DIFaddbegin \DIFadd{.}\DIFaddend \footnote{Currently, the Linux kernel (version 5.0) has as many as 700 such device drivers, \DIFdelbegin \DIFdel{where a third }\DIFdelend of \DIFdelbegin \DIFdel{those }\DIFdelend \DIFaddbegin \DIFadd{which one third }\DIFaddend are network device drivers.} However, in its basic form, DMA makes the system vulnerable to DMA attacks. \DIFdelbegin \DIFdel{Namely, }\DIFdelend \DIFaddbegin \DIFadd{These are }\DIFaddend cases where malicious DMA-capable devices\DIFdelbegin \DIFdel{(e.g., }\DIFdelend \DIFaddbegin \DIFadd{, such as  }\DIFaddend compromised firmware \cite{Gal14,Ben17a}\DIFdelbegin \DIFdel{) }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend access sensitive memory regions not intended for their use. 
 
 
-Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealing and manipulating sensitive data to taking over the victim machine. Widespread attacks include: opening a locked computer \cite{MM, Fin14}; executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}; stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}; and extracting a full memory dump of a victim machine \cite{MM, Vol, Fin14, GA10}. These threats are supposed to be mitigated by the Input–Output Memory Management Unit (IOMMU). The IOMMU adds a layer of virtual memory to devices. The IOMMU brokers all I/O requests, translating their target I/O virtual addresses (IOVA) to physical addresses. In the process, the IOMMU provides address space isolation, allowing a device to access only permitted pages, rendering all other memory inaccessible.
+Numerous DMA exploits are known \cite{Dor04,BDK10,thunder}, ranging from stealing and manipulating sensitive data to taking over the victim machine. Widespread attacks include: opening a locked computer \cite{MM, Fin14}\DIFdelbegin \DIFdel{; }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend executing arbitrary code on the victim machine \cite{Fri16, Woj08, AD10,thunder}\DIFdelbegin \DIFdel{; }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend stealing sensitive data items such as passwords \cite{SB12, LKV13, Cim16, BR12}\DIFdelbegin \DIFdel{; }\DIFdelend \DIFaddbegin \DIFadd{, }\DIFaddend and extracting a full memory dump of a victim machine \cite{MM, Vol, Fin14, GA10}. These threats are supposed to be mitigated by the \DIFdelbegin \DIFdel{Input–Output }\DIFdelend \DIFaddbegin \DIFadd{Input-Output }\DIFaddend Memory Management Unit (IOMMU)\DIFdelbegin \DIFdel{. The IOMMU }\DIFdelend \DIFaddbegin \DIFadd{, which }\DIFaddend adds a layer of virtual memory to devices. The IOMMU brokers all I/O requests, translating their target I/O virtual addresses (IOVA) to physical addresses. In the process, the IOMMU provides address space isolation, allowing a device to access only permitted pages \DIFdelbegin \DIFdel{, }\DIFdelend \DIFaddbegin \DIFadd{and }\DIFaddend rendering all other memory inaccessible.
 
-Unlike processes that operate in page granularity, however, I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these kernel buffers to the device. For this reason, known as the \subpage{} vulnerability\cite{MMT16,thunder}, IOMMU fails to fully protect the kernel from unprivileged access. Consequently, \subpage{} vulnerabilities were the basis for several recent DMA exploits~\cite{kupfer2018iommu,thunder,Ben17a,Ben17b}.
+Unlike processes that operate \DIFdelbegin \DIFdel{in }\DIFdelend \DIFaddbegin \DIFadd{at }\DIFaddend page granularity, \DIFdelbegin \DIFdel{however, }\DIFdelend I/O buffers can be significantly smaller than a page. I/O buffers and other kernel buffers can co-reside on the same physical pages, inadvertently exposing these kernel buffers to the device. For this reason, known as the \subpage{} vulnerability\DIFdelbegin \DIFdel{\mbox{%DIFAUXCMD
+\cite{MMT16,thunder}}\hskip0pt%DIFAUXCMD
+, IOMMU fails to }\DIFdelend \DIFaddbegin \DIFadd{~\mbox{%DIFAUXCMD
+\cite{MMT16,thunder}}\hskip0pt%DIFAUXCMD
+, the IOMMU cannot }\DIFaddend fully protect the kernel from unprivileged access. Consequently, \subpage{} vulnerabilities were the basis for several recent DMA exploits~\cite{kupfer2018iommu,thunder,Ben17a,Ben17b}.
 %\st{Unfortunately, there is no systematic study of \subpage{} vulnerabilities and how to exploit them} 
 %\adam{defend, no? Ultimately, EuroSys people want to prevent the vulns}.\SV{Rephrased below. Since there are paper on defences, such a satement may weaken our cliam?}
 Nevertheless, these previously reported vulnerabilities have an ad-hoc nature rather than a structured top-down approach. 
@@ -15,55 +19,61 @@ Nevertheless, these previously reported vulnerabilities have an ad-hoc nature ra
 % %
 % This paper is focused on the Linux kernel and disproves the above belief, showing that it is the kernel design that often enables a DMA attack (see Sec. \ref{sec:other_os} for a discussion on other OSes).}
 
-Accordingly, in this paper, we conduct a systematic study of \subpage{} vulnerabilities. Specifically, we first break down \subpage{} vulnerabilities into four types, providing insight into the structure of DMA vulnerabilities (Sec.~\ref{sec:subpage}):
+Accordingly, \DIFdelbegin \DIFdel{in this paper, we conduct }\DIFdelend \DIFaddbegin \DIFadd{we conducted }\DIFaddend a systematic study of \subpage{} vulnerabilities. \DIFdelbegin \DIFdel{Specifically}\DIFdelend \DIFaddbegin \DIFadd{To provide  insight into the structure of DMA vulnerabilities}\DIFaddend , we first break down \subpage{} vulnerabilities into four types \DIFdelbegin \DIFdel{, providing insight into the structure of DMA vulnerabilities (Sec.}\DIFdelend \DIFaddbegin \DIFadd{(Section}\DIFaddend ~\ref{sec:subpage}):
 \begin{itemize}
-    \item Exposed driver metadata.
-    \item Exposed OS metadata. 
-    \item Mapped by multiple \iova due to multiple co-located buffers.
-    %\adam{the previous two are somehow intuitively understandable, but the latter two aren't. It would be good to add a short explanation of why each of the bullets is a vuln. Also see comment in Section 4: I think this 3rd bullet should be removed}\SV{This is type C Vuln it is important for many attacks, its caused due to two buffers co-residing on a page, we need to discuss this.}
-    \item Randomly co-located.
-\end{itemize}
+    \item Exposed driver metadata
+    \DIFdelbegin \DIFdel{.
+    }\DIFdelend \item Exposed OS metadata 
+    \DIFdelbegin \DIFdel{. 
+    }\DIFdelend \item Mapped by multiple \iova due to multiple co-located buffers
+    \DIFdelbegin \DIFdel{.
+    }\DIFdelend %\adam{the previous two are somehow intuitively understandable, but the latter two aren't. It would be good to add a short explanation of why each of the bullets is a vuln. Also see comment in Section 4: I think this 3rd bullet should be removed}\SV{This is type C Vuln it is important for many attacks, its caused due to two buffers co-residing on a page, we need to discuss this.}
+    \item Randomly co-located
+\DIFdelbegin \DIFdel{.
+}\DIFdelend \end{itemize}
 
 %\st{Then, to exploit these vulnerabilities, we present a schema for identifying viable attack vectors by malicious DMA capable devices.}
 %\adam{this sentence isn't clear, can you clarify what an ``attack vector'' means, i.e., what is needed in addition to the 4-type classification? Usually, having identified a vuln, an attack simply exploits it. Here, there is a two-level structure that isn't clear at this point. I guess it becomes clearer in the next paragraph, but at this point it isn't. Perhaps this sentence should be moved to the next paragraph and merged with it.}\SV{See new paragraph below. Better?}
 
-Next, to reason about the four types of \subpage{} vulnerabilities, we identify the ingredients that make it possible for a malicious device to exploit these vulnerabilities and execute a viable DMA attack.
-Our focus is on \emph{code injection} attacks; accordingly, we introduce a set of three vulnerability attributes, which are sufficient to execute such attacks by exploiting a \subpage{} vulnerability (Sec.~\ref{sec:mmo}):
+Next, \DIFdelbegin \DIFdel{to reason about the four types of }%DIFDELCMD < \subpage{} %%%
+\DIFdel{vulnerabilities, }\DIFdelend we identify the ingredients that make it possible for a malicious device to exploit these \DIFaddbegin \DIFadd{four types of }\subpage{} \DIFaddend vulnerabilities and execute a viable DMA attack.
+\DIFdelbegin \DIFdel{Our focus is }\DIFdelend \DIFaddbegin \DIFadd{Focusing }\DIFaddend on \emph{code injection} attacks\DIFdelbegin \DIFdel{; accordingly}\DIFdelend , we introduce \DIFaddbegin \DIFadd{(Section~\ref{sec:mmo}) }\DIFaddend a set of three vulnerability attributes \DIFdelbegin \DIFdel{, which are sufficient }\DIFdelend \DIFaddbegin \DIFadd{that can be used }\DIFaddend to execute such attacks\DIFdelbegin \DIFdel{by exploiting a }%DIFDELCMD < \subpage{} %%%
+\DIFdel{vulnerability (Sec.~\ref{sec:mmo})}\DIFdelend :
 
 \begin{itemize}
     \item A kernel virtual address (KVA) of a buffer filled with malicious executable code~(i.e., \mabaf).
     \item Write access to a function callback pointer, exposed in a data structure via one of the four \subpage vulnerability types. 
     %\adam{suggest mentioning that this bullet is what one of the 4 types gives you} 
-    \item Existence of a time window such that the device can modify the callback pointer during that time window and the CPU will subsequently jump to the pointed code (before the pointer gets overwritten, if it is ever overwritten). 
+    \item Existence of a time window such that the device can modify the callback pointer during that time window\DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{; }\DIFaddend the CPU will subsequently jump to the pointed code \DIFdelbegin \DIFdel{(}\DIFdelend before the pointer gets overwritten, if it is ever overwritten\DIFdelbegin \DIFdel{)}\DIFdelend . 
 \end{itemize} 
 
-With the characterization of the different \subpage{} vulnerabilities and the vulnerability attributes, we build analysis tools that detect potentially hazardous \subpage{} vulnerabilities:
+With the characterization of the different \subpage{} vulnerabilities and the vulnerability attributes, we \DIFaddbegin \DIFadd{were able to }\DIFaddend build analysis tools that \DIFaddbegin \DIFadd{can }\DIFaddend detect potentially hazardous \subpage{} vulnerabilities:
 
 \begin{itemize}
-    \item We build a static code analysis tool that performs a Sub-Page Analysis for DMA Exposure (\tool). \tool scans for potentially exposed callback pointers on DMA-mapped pages. We use \tool on Linux kernel 5.0 and find that as many as 72\% of device drivers are potentially vulnerable to code injection attacks (Sec.~\ref{sec:static-analysis}). 
+    \item We \DIFdelbegin \DIFdel{build }\DIFdelend \DIFaddbegin \DIFadd{built }\DIFaddend a static code analysis tool that performs a Sub-Page Analysis for DMA Exposure (\tool). \tool scans for potentially exposed callback pointers on DMA-mapped pages. We \DIFdelbegin \DIFdel{use }\DIFdelend \DIFaddbegin \DIFadd{used }\DIFaddend \tool on Linux kernel 5.0 and \DIFdelbegin \DIFdel{find }\DIFdelend \DIFaddbegin \DIFadd{found }\DIFaddend that as many as 72\% of device drivers are potentially vulnerable to code injection attacks (\DIFdelbegin \DIFdel{Sec.}\DIFdelend \DIFaddbegin \DIFadd{Section}\DIFaddend ~\ref{sec:static-analysis}). 
 
-    \item Some \subpage{} vulnerabilities can only manifest dynamically at run-time, potentially exposing callback pointers and/or kernel addresses. Static analysis may not reveal such vulnerabilities, where a memory buffer is exposed randomly. For example, such a random exposure can occur when a memory buffer is co-located on the same page as a mapped I/O buffer. Accordingly, we further develop a run-time analysis tool, termed DMA-Kernel-Address-SANitizer (\dkasan) that reports such vulnerabilities and exemplify its use. \dkasan reports on all cases (inadvertent or otherwise) where a kernel buffer is exposed~(Sec.~\ref{sec:dma-kasan}).
+    \item Some \subpage{} vulnerabilities can only manifest dynamically at run-time, potentially exposing callback pointers and/or kernel addresses. Static analysis may not reveal  \DIFdelbegin \DIFdel{such vulnerabilities , }\DIFdelend \DIFaddbegin \DIFadd{vulnerabilities }\DIFaddend where a memory buffer is exposed randomly. For example, \DIFdelbegin \DIFdel{such }\DIFdelend a random exposure can occur when a memory buffer is co-located on the same page as a mapped I/O buffer. Accordingly, we \DIFdelbegin \DIFdel{further develop }\DIFdelend \DIFaddbegin \DIFadd{developed }\DIFaddend a run-time analysis tool \DIFdelbegin \DIFdel{, termed DMA-Kernel-Address-SANitizer (}%DIFDELCMD < \dkasan%%%
+\DIFdel{) }\DIFdelend that reports such vulnerabilities and \DIFdelbegin \DIFdel{exemplify }\DIFdelend \DIFaddbegin \DIFadd{demonstrate }\DIFaddend its use. \DIFaddbegin \DIFadd{Termed DMA-Kernel-Address-SANitizer (}\DIFaddend \dkasan\DIFdelbegin \DIFdel{reports on all cases (inadvertent or otherwise) }\DIFdelend \DIFaddbegin \DIFadd{), this tool reports all cases }\DIFaddend where a kernel buffer is exposed\DIFaddbegin \DIFadd{, inadvertently or otherwise~(Section}\DIFaddend ~\DIFdelbegin \DIFdel{(Sec.~}\DIFdelend \ref{sec:dma-kasan}).
 \end{itemize}
 
-We use our tools to find and demonstrate attacks on the Linux kernel. We focus on \compound attacks, cases where a detected \subpage vulnerability alone is insufficient to execute a code injection attack since at least one of the three vulnerability attributes is initially missing, but can be attained via compound steps. 
+We \DIFdelbegin \DIFdel{use }\DIFdelend \DIFaddbegin \DIFadd{used }\DIFaddend our tools to find and demonstrate attacks on the Linux kernel. We focus on \compound attacks, \DIFdelbegin \DIFdel{cases where }\DIFdelend \DIFaddbegin \DIFadd{since }\DIFaddend a detected \subpage vulnerability alone is \DIFaddbegin \DIFadd{sometimes }\DIFaddend insufficient to execute a code injection attack\DIFdelbegin \DIFdel{since }\DIFdelend \DIFaddbegin \DIFadd{. We show cases where }\DIFaddend at least one of the three vulnerability attributes is initially missing, but can be \DIFdelbegin \DIFdel{attained }\DIFdelend \DIFaddbegin \DIFadd{obtained }\DIFaddend via compound steps. 
 
-We observe that unlike compound attacks, previous work has explored \simple{} attacks, i.e., attacks in which the three vulnerability attributes are trivially provided. 
-Namely, a mapped I/O buffer co-resides on a mapped page which, due to \subpage{} vulnerability, also exposes a callback pointer and a kernel virtual address, and the timing is such that the CPU will not overwrite the modifications.
+\DIFdelbegin \DIFdel{We observe that unlike compound attacks, previous work has explored }\DIFdelend \DIFaddbegin \DIFadd{Previous work has been done to explore }\DIFaddend \simple{} attacks  \DIFdelbegin \DIFdel{, i.e., attacks }\DIFdelend in which the three vulnerability attributes are trivially provided. \DIFdelbegin \DIFdel{Namely, }\DIFdelend \DIFaddbegin \DIFadd{We examine the situation in which }\DIFaddend a mapped I/O buffer co-resides on a mapped page\DIFdelbegin \DIFdel{which, due }\DIFdelend \DIFaddbegin \DIFadd{. Due }\DIFaddend to \subpage{} vulnerability, \DIFaddbegin \DIFadd{this situation }\DIFaddend also exposes a callback pointer and a kernel virtual address, and the timing is such that the CPU will not overwrite the modifications.
 
-Analysis of such \simple{} attacks, that can typically be blocked with localized fixes, may lead to a dangerous misconception. In particular, one may assume that buggy device drivers or poor but isolated design choices are to blame for DMA vulnerabilities\cite{malka2015efficient,malka2015riommu}.
-However, by introducing \compound attacks, we demonstrate that it is often the kernel itself that supplements the missing pieces, showing that this is a deep-rooted issue rather than a collection of disjoint incidents.
-We identify multiple kernel APIs and data structure designs that facilitate the acquisition of the vulnerability attributes by a malicious device.
+\DIFdelbegin \DIFdel{Analysis of such }\DIFdelend \DIFaddbegin \DIFadd{The analysis of }\DIFaddend \simple{} attacks \DIFdelbegin \DIFdel{, }\DIFdelend that can typically be blocked with localized fixes, may lead to a dangerous misconception. In particular, one may assume that buggy device drivers or poor but isolated design choices are to blame for DMA vulnerabilities~\cite{malka2015efficient,malka2015riommu}.
+\DIFdelbegin \DIFdel{However, by }\DIFdelend \DIFaddbegin \DIFadd{By }\DIFaddend introducing \compound attacks, we \DIFdelbegin \DIFdel{demonstrate }\DIFdelend \DIFaddbegin \DIFadd{show }\DIFaddend that it is often the kernel itself that supplements the missing pieces\DIFdelbegin \DIFdel{, showing }\DIFdelend \DIFaddbegin \DIFadd{. We demonstrate }\DIFaddend that this is a deep-rooted issue rather than a collection of disjoint incidents.
+We identify multiple kernel APIs and data structure designs that \DIFdelbegin \DIFdel{facilitate the acquisition of the vulnerability attributes by }\DIFdelend \DIFaddbegin \DIFadd{help }\DIFaddend a malicious device \DIFaddbegin \DIFadd{acquire the vulnerability attributes}\DIFaddend .
 
 %\adam{still poor flow, you're mixing technical description of the attacks (some of which are missing) with the \sout{hype} message. I suggest the following flow from the previous sentence: We focus on \emph{compound} attack, which <DEFINE THEM (it's not clear what ``trifecta is incomplete'' means). Next paragraph: We observe that unlike compound attacks, previous work has explored \emph{single-step} attacks... <REPEAT THE CURRENT NEXT PARAGRAPH, EXCEPT FOR THE FIXES PART>. Next paragraph: Single-step attacks can typically be block with localized fixes (did you mean fixing the affected device driver? suggest saying so). In contrast, compound attacks are not enabled by buggy device drivers or poor but isolated design choices. <REPEAT THE END OF THE 2ND PARAGRAPH>}
 
-To summarize, our contributions are:
+To summarize, \DIFdelbegin \DIFdel{our contributionsare}\DIFdelend \DIFaddbegin \DIFadd{we make the following contributions}\DIFaddend :
 \begin{itemize}
-    \item We provide a categorization of the four \subpage{} vulnerability types.
-    \item We introduce a set of three vulnerability attributes which are sufficient to execute code injection attacks.
-    \item We develop a static code analysis tool (\tool) that flags code paths that may expose callback pointers. 
-    \item We develop a run-time tool (\dkasan) to identify \subpage{} vulnerabilities at run-time, including vulnerabilities caused by random exposure.
-    \item We demonstrate novel DMA attacks on the Linux kernel, termed \compound{} attacks.
-    \item We make our code publicly available \cite{DKASAN,SPADE}.
+    \item \DIFdelbegin \DIFdel{We provide }\DIFdelend \DIFaddbegin \DIFadd{Provide }\DIFaddend a categorization of the four \subpage{} vulnerability types.
+    \item \DIFdelbegin \DIFdel{We introduce }\DIFdelend \DIFaddbegin \DIFadd{Introduce }\DIFaddend a set of three vulnerability attributes \DIFdelbegin \DIFdel{which }\DIFdelend \DIFaddbegin \DIFadd{that }\DIFaddend are sufficient to execute code injection attacks.
+    \item \DIFdelbegin \DIFdel{We develop }\DIFdelend \DIFaddbegin \DIFadd{Develop }\DIFaddend a static code analysis tool (\tool) \DIFdelbegin \DIFdel{that flags }\DIFdelend \DIFaddbegin \DIFadd{to flag }\DIFaddend code paths that may expose callback pointers. 
+    \item \DIFdelbegin \DIFdel{We develop }\DIFdelend \DIFaddbegin \DIFadd{Develop }\DIFaddend a run-time tool (\dkasan) to identify \subpage{} vulnerabilities at run-time, including vulnerabilities caused by random exposure.
+    \item \DIFdelbegin \DIFdel{We demonstrate }\DIFdelend \DIFaddbegin \DIFadd{Demonstrate }\DIFaddend novel DMA attacks on the Linux kernel, termed \compound{} attacks.
+    \item \DIFdelbegin \DIFdel{We make }\DIFdelend \DIFaddbegin \DIFadd{Make }\DIFaddend our code publicly available \cite{DKASAN,SPADE}.
 \end{itemize}
 
 % The rest of the paper is organized as follows:

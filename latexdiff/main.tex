@@ -1,7 +1,7 @@
 %\documentclass[sigplan,review,anonymous]{acmart}
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL ../orig/main.tex   Mon Mar 15 13:34:55 2021
-%DIF ADD main.tex           Mon Mar 15 13:18:48 2021
+%DIF DEL main.tex                 Mon Mar 15 13:18:48 2021
+%DIF ADD ../ReviewEU21/main.tex   Sun Mar 21 11:38:28 2021
 \documentclass[sigplan,10pt]{acmart}
 %\acmSubmissionID{336}
 %\renewcommand\footnotetextcopyrightpermission[1]{}
@@ -10,9 +10,6 @@
 %\usepackage{usenix2019_v3}
 %\pagestyle{plain}
 
-%DIF 10d10
-%DIF < 
-%DIF -------
 \usepackage{color}
 \usepackage{xspace}
 \usepackage{graphicx}
@@ -154,7 +151,7 @@
 \DeclareRobustCommand{\DIFaddendFL}{\DIFOaddendFL \let\includegraphics\DIFOincludegraphics} %DIF PREAMBLE
 \DeclareRobustCommand{\DIFdelbeginFL}{\DIFOdelbeginFL \let\includegraphics\DIFdelincludegraphics} %DIF PREAMBLE
 \DeclareRobustCommand{\DIFdelendFL}{\DIFOaddendFL \let\includegraphics\DIFOincludegraphics} %DIF PREAMBLE
-%DIF LISTINGS PREAMBLE %DIF PREAMBLE
+%DIF COLORLISTINGS PREAMBLE %DIF PREAMBLE
 \RequirePackage{listings} %DIF PREAMBLE
 \RequirePackage{color} %DIF PREAMBLE
 \lstdefinelanguage{DIFcode}{ %DIF PREAMBLE
@@ -258,11 +255,10 @@
 %\textcolor{red}{Before: chaos Now Oder == MMO, taxonomy of DMA vulnerabilities Result \compound attacks. + tool. We expose  a deep-rooted issue in OS design rather than ad-hoc buggies... The language:\simple vs. \compound, MMO, \subpage types.}
 
 
-Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware IOMMU protection cannot prevent all DMA attacks because it restricts DMA at page-level granularity leading to \subpage vulnerabilities. 
+Direct \DIFdelbegin \DIFdel{Memory Access }\DIFdelend \DIFaddbegin \DIFadd{memory access }\DIFaddend (DMA) \DIFdelbegin \DIFdel{makes the }\DIFdelend \DIFaddbegin \DIFadd{renders a }\DIFaddend system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware \DIFdelbegin \DIFdel{IOMMU protection }\DIFdelend \DIFaddbegin \DIFadd{input–output memory management units (IOMMU) connect a direct-memory-access–capable  I/O bus to the main memory and can be used to provide protection. However, an IOMMU }\DIFaddend cannot prevent all DMA attacks because it \DIFaddbegin \DIFadd{only }\DIFaddend restricts DMA at page-level granularity\DIFaddbegin \DIFadd{, }\DIFaddend leading to \subpage vulnerabilities. 
 
-Currently, known DMA attacks rely on simple situations in which write access to a kernel pointer is obtained due to \subpage vulnerabilities and all other attack ingredients are available and reside on the same page. 
-However, this paper shows that DMA vulnerabilities are a deep-rooted issue where it is often the kernel design that enables complex and multistage DMA attacks.  
-In this paper, we seek to provide a structured top-down approach \mbox{to characterize, exploit, and detect them.}
+\DIFdelbegin \DIFdel{Currently, known }\DIFdelend \DIFaddbegin \DIFadd{Current }\DIFaddend DMA attacks rely on simple situations in which write access to a kernel pointer is obtained due to \subpage vulnerabilities\DIFdelbegin \DIFdel{and }\DIFdelend \DIFaddbegin \DIFadd{; }\DIFaddend all other attack ingredients are available and reside on the same page. 
+\DIFdelbegin \DIFdel{However, this paper shows }\DIFdelend \DIFaddbegin \DIFadd{We show }\DIFaddend that DMA vulnerabilities are a deep-rooted issue \DIFdelbegin \DIFdel{where }\DIFdelend \DIFaddbegin \DIFadd{and }\DIFaddend it is often the kernel design that enables complex and multistage DMA attacks. \DIFdelbegin \DIFdel{In this paper, we seek to provide }\DIFdelend \DIFaddbegin \DIFadd{This work presents }\DIFaddend a structured top-down approach \mbox{to characterize, exploit, and detect them.}
 
 
 
@@ -271,19 +267,22 @@ In this paper, we seek to provide a structured top-down approach \mbox{to charac
 %This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. 
 
 %This paper shows that it is often the kernel design choices that facilitate a DMA attack. 
-To this end, we first categorize \subpage vulnerabilities into four categories, providing insight into the structure of DMA vulnerabilities. 
-Then, to exploit these vulnerabilities, we identify a set of three vulnerability attributes which are sufficient to execute code injection attacks. 
+To this end, we first categorize \subpage vulnerabilities into four \DIFdelbegin \DIFdel{categories}\DIFdelend \DIFaddbegin \DIFadd{types}\DIFaddend , providing insight into the structure of DMA vulnerabilities. 
+\DIFdelbegin \DIFdel{Then, to exploit these vulnerabilities, we }\DIFdelend \DIFaddbegin \DIFadd{We then }\DIFaddend identify a set of three vulnerability attributes \DIFdelbegin \DIFdel{which }\DIFdelend \DIFaddbegin \DIFadd{that }\DIFaddend are sufficient to execute code injection attacks. 
 
-We then build analysis tools that detect \subpage vulnerabilities and analyze the Linux kernel. 
-We find that 72\% of the device drivers expose sensitive callback pointers, which may be overwritten by a device to hijack kernel control flow.
+We \DIFdelbegin \DIFdel{then build }\DIFdelend \DIFaddbegin \DIFadd{built }\DIFaddend analysis tools that detect \DIFaddbegin \DIFadd{these }\DIFaddend \subpage vulnerabilities and analyze the Linux kernel. 
+\DIFdelbegin \DIFdel{We find }\DIFdelend \DIFaddbegin \DIFadd{Using these tools, we found }\DIFaddend that 72\% of the device drivers expose sensitive callback pointers, which may be overwritten by a device to hijack \DIFaddbegin \DIFadd{the }\DIFaddend kernel control flow.
 
-Aided by the tools' output, we demonstrate novel code injection attacks on the Linux kernel we term \compound{} attacks.
-Specifically, while all previously reported attacks are \emph{single-step}, i.e., with the vulnerability attributes present in a single page, in \compound{} attacks, the vulnerability attributes are initially incomplete. However, they can be attained by carefully exploiting standard OS behavior.
+Aided by \DIFdelbegin \DIFdel{the }\DIFdelend \DIFaddbegin \DIFadd{our }\DIFaddend tools' output, we demonstrate novel code injection attacks on the Linux kernel\DIFdelbegin \DIFdel{we term }\DIFdelend \DIFaddbegin \DIFadd{; we refer to these as }\DIFaddend \compound{} attacks.
+\DIFdelbegin \DIFdel{Specifically, while all }\DIFdelend \DIFaddbegin \DIFadd{All }\DIFaddend previously reported attacks are \emph{single-step}, \DIFdelbegin \DIFdel{i.e., }\DIFdelend with the vulnerability attributes present in a single page\DIFdelbegin \DIFdel{, in }\DIFdelend \DIFaddbegin \DIFadd{. In }\DIFaddend \compound{} attacks, the vulnerability attributes are initially incomplete. However, \DIFaddbegin \DIFadd{we demonstrate that }\DIFaddend they can be \DIFdelbegin \DIFdel{attained }\DIFdelend \DIFaddbegin \DIFadd{obtained }\DIFaddend by carefully exploiting standard OS behavior.
 
-Finally, our code is publicly available \cite{DKASAN,SPADE}.
+\DIFdelbegin \DIFdel{Finally, our }\DIFdelend \DIFaddbegin \DIFadd{Our }\DIFaddend code is publicly available \cite{DKASAN,SPADE}.
 
 \end{abstract}
-\maketitle
+\DIFdelbegin %DIFDELCMD < \maketitle
+%DIFDELCMD < %%%
+\DIFdelend 
+
 
 %-------------------------------------------------------------------------------
 %-------------------------------------------------------------------------------
