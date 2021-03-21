@@ -7,19 +7,19 @@
 %We also discuss dangerous trade-offs and discuss the threat model.
 %\adam{similar comment to intro: not clear what this trifecta means on top of the first categorization}
 This section organizes and categorizes the risks associated with DMA operations, providing the building blocks for reasoning about code injection attacks.
-In particular, we first present our threat model. Then, we categorise the different \subpage{} vulnerabilities into four categories.
+We first present our threat model and then organize the different \subpage{} vulnerabilities into four categories.
 Finally, we identify a set of three vulnerability attributes that make it possible for a malicious device to exploit a \subpage{} vulnerability and execute a viable code injection attack.
 
 \subsection{Threat Model}\label{sec:threat_model}
-Our organization of DMA risks in this section reveals that the Linux kernel is vulnerable to various high impact attacks.
+By organizing the DMA risks, we reveal that the Linux kernel is vulnerable to various high impact attacks.
 For example, a full memory dump is possible when an attacker can modify data pointers before they are mapped, causing the driver to map arbitrary kernel addresses.
-Alternatively, a malicious device can corrupt random memory regions~\cite{MMT16} resulting in a denial of service attack (DOS).
+Alternatively, a malicious device can corrupt random memory regions~\cite{MMT16}, resulting in a denial of service attack (DOS).
 
 
-Nevertheless, the most significant potential consequence of our attacks is privilege escalation via code injection, allowing attackers to execute arbitrary code with kernel privileges. Indeed, this is the focus of our paper. 
+The most significant potential consequence of these attacks is privilege escalation via code injection, allowing attackers to execute arbitrary code with kernel privileges. Indeed, this is the focus of our paper. 
 Our attacks are designed with the following assumptions:
 \begin{enumerate}
-    \item We assume the existence of a malicious DMA-capable device attached to the system.
+    \item A malicious DMA-capable device is attached to the system.
     \item The actual attack is performed solely by the DMA-capable malicious device.
     \item Any hardware aside from the specific malicious device is working as expected.
  \end{enumerate}
@@ -65,24 +65,24 @@ Our attacks are designed with the following assumptions:
 \subsection{Sub-Page Vulnerabilities}\label{sec:subpage}
 
 %\adam{start with a sentence defining what a subpage vuln is (IO buffer co-located with data)}
-Anytime an I/O buffer smaller than a page is DMA-mapped all additional information that resides on the same physical page becomes accessible to the device. Any such situation where a memory-region is exposed due to the IOMMU page granularity is called a \subpage vulnerability.
+Anytime an I/O buffer smaller than a page is DMA-mapped, all additional information that resides on the same physical page becomes accessible to the device. Any such situation where a memory-region is exposed due to the IOMMU page granularity is called a \subpage vulnerability.
 
-We classify the different types of \subpage vulnerability into four categories as illustrated in Fig.~\ref{fig:colocation}:
+We classify the different types of \subpage vulnerabilities into four categories, as illustrated in Figure~\ref{fig:colocation}:
 
 \begin{enumerate}
-    \item[(a)] The I/O buffer is part of a bigger data structure. This data structure may include function pointers, often caused by poor DMA hygiene by the driver. An isolated driver fix is usually sufficient to fix such vulnerabilities.
-    \item[(b)] The OS (e.g., memory allocator)---rather than the driver---saves metadata, such as free-lists, on the same page as the I/O buffer~\cite{Cor07}. Manipulating these data structures may also compromise the system~\cite{ak09}. Similarly to (a), sensitive metadata is unwittingly shared. However, in this case, it is an OS subsystem that is at fault rather than the device driver.
-    \item[(c)] The same page is mapped multiple times due to co-located device driver buffers resulting in multiple \iova{} indicating the same page. 
-    In this case, unmapping one \iova will not stop the device from accessing the page through a different \iova.
-    The device will retain access to the physical page as long as a single valid \iova{} exists. This means that the device can tamper with memory regions that should no longer be accessible to it. We discuss the practical implications of multiple \iova indicating the same page in Sec.~\ref{sec:timely}.
-    \item[(d)] The I/O buffer and a different, dynamically allocated memory buffer may coincidentally share a page. This common situation results in data leakage (e.g., kernel pointers). Currently, the Linux kernel uses the same memory allocation mechanism (e.g., kmalloc) for both I/O buffers and regular kernel buffers. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works in page granularity, the respective I/O devices gain access to these kernel buffers. Such vulnerability is a subclass of (b), as an OS subsystem causes it, but the main difference is that the exposed data structures are leaked randomly.
+    \item[(a)] The I/O buffer is part of a bigger data structure. This data structure may include function pointers, often caused by poor DMA hygiene in the driver. An isolated driver fix is usually sufficient to repair such vulnerabilities.
+    \item[(b)] The OS (e.g., memory allocator)---rather than the driver---saves metadata such as free-lists, on the same page as the I/O buffer~\cite{Cor07}. Manipulating these data structures may also compromise the system~\cite{ak09}. Similar to (a), sensitive metadata is unwittingly shared. However, in this case, it is an OS subsystem that is at fault rather than the device driver.
+    \item[(c)] The same page is mapped multiple times due to co-located device driver buffers, resulting in multiple \iova{}s indicating the same page. 
+    In this case, unmapping one \iova will not prevent the device from accessing the page through a different \iova.
+    The device will retain access to the physical page as long as a single valid \iova{} exists. This means that the device can tamper with memory regions that should no longer be accessible. We discuss the practical implications of multiple \iova indicating the same page in Section~\ref{sec:timely}.
+    \item[(d)] The I/O buffer and a different, dynamically allocated memory buffer may coincidentally share a page. This common situation results in data leakage (e.g., kernel pointers). Currently, the Linux kernel uses the same kmalloc memory allocation mechanism for both I/O buffers and regular kernel buffers. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works at page granularity, the respective I/O devices gain access to these kernel buffers. Such vulnerability is a subclass of (b), as it is caused by an OS subsystem; the main difference is that the exposed data structures are leaked randomly.
 \end{enumerate}
 %\adam{what does point (c) have to do with sub-page vulns? It seems generic, and indeed, it doesn't talk about any co-location.}\SV{Type C is key to gaining opportunity in \compound attacks, we've fixed the first paragraph to fit better.}
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.8\columnwidth]{figs/subpage.pdf}
-    \caption{\subpage{} DMA vulnerabilities when the I/O buffer shares a page with other data: (a) I/O buffer metadata; (b) OS
+    \caption{DMA \subpage{} vulnerabilities when the I/O buffer shares a page with other data: (a) I/O buffer metadata; (b) OS
 metadata; (c) a page mapped by multiple \iova; (d) randomly co-located sensitive buffers.}
 %\vspace{-3mm}
     \label{fig:colocation}
@@ -99,13 +99,13 @@ We introduce a schema that allows for a systematic analysis of code injection at
 %to categorizes DMA vulnerabilities. The goal of MMO is to define building blocks for reasoning about DMA attacks.
 For a successful privilege escalation attack (i.e., code injection), a malicious device needs the following set of three vulnerability attributes:
 \begin{enumerate}
-    \item The \kva{} of a kernel buffer filled with malicious code (e.g., a ROP attack). Given the device is using an \iova, the attacker needs to obtain the buffer's \kva{}, for example, by observing leaked pointers. 
-    \item Write access to a function callback pointer, which can alter the CPU control flow and cause it to execute the malicious code. For example, write access to a data structure that holds a function callback pointer at a known offset.\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation~\cite{rand_layout}.} The location on the page of the callback pointer must be known to the device.
+    \item The \kva{} of a kernel buffer filled with malicious code (e.g., ROP attack). Given that the device is using an \iova, the attacker needs to obtain the buffer's \kva{}, for example, by observing leaked pointers. 
+    \item Write access to a function callback pointer, which can alter the CPU control flow and cause it to execute the malicious code. For example, this might be write access to a data structure that holds a function callback pointer at a known offset.\footnote{The Linux kernel randomizes the layout of some data structures with \_\_randomize\_layout annotation~\cite{rand_layout}.} The location on the page of the callback pointer must be known to the device.
     %\item There exists a time window such that modifying the function pointer during that time window is followed by the CPU reading the pointer without previously altering its content.
-    \item A time window exists such that the device can modify the callback pointer during that window and the CPU will subsequently jump to the pointed code (before the pointer gets overwritten, if it is ever overwritten).
+    \item A time window exists such that the device can modify the callback pointer during that window and the CPU will subsequently jump to the pointed code; this occurs before the pointer gets overwritten, if it is ever overwritten.
 \end{enumerate}
 
-To further emphasize the significance of these attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing a received (RX) packet. Due to a \subpage{} vulnerability and a random allocation coincidence (Fig.~\ref{fig:colocation}, type (d)), a structure with a callback pointer is write-accessible to a malicious device. Also, the device can create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks the following:
+To further emphasize the significance of these attributes, we present a hypothetical scenario. Assume a NIC has write access to a page containing a received (RX) packet. Due to a \subpage{} vulnerability and a random allocation coincidence (Figure~\ref{fig:colocation}, type (d)), a structure with a callback pointer is write-accessible to a malicious device. Also, the device can create a valid \mabaf{} in the aforementioned page. It may seem that the device has a valid attack, whereas it actually lacks the following:
 
 \begin{itemize}
     \item Without a valid \kva{} of the writable page, the device cannot modify the callback function pointer to indicate the \mabaf.
@@ -114,9 +114,9 @@ To further emphasize the significance of these attributes, we present a hypothet
         \item[(a)] That a callback function pointer is available for sabotage.
         \item[(b)] The correct offset of the callback function pointer.
     \end{enumerate}
-    \item It is not known if the modified callback pointer will be executed.
+    \item It is not known whether the modified callback pointer will be executed.
 \end{itemize}
 
 Under the hypothesized circumstance, and without additional information, a malicious device has no viable attack options.
-Namely, all three attributes are required for a code injection attack.
-While corrupting random kernel memory is still a possibility and may even cause a kernel panic~\cite{MMT16}, it does not achieve the goal of privilege escalation.
+All three attributes are required for a code injection attack.
+While corrupting the random kernel memory is still a possibility and may even cause a kernel panic~\cite{MMT16}, it does not achieve the goal of privilege escalation.

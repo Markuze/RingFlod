@@ -173,11 +173,10 @@
 %\textcolor{red}{Before: chaos Now Oder == MMO, taxonomy of DMA vulnerabilities Result \compound attacks. + tool. We expose  a deep-rooted issue in OS design rather than ad-hoc buggies... The language:\simple vs. \compound, MMO, \subpage types.}
 
 
-Direct Memory Access (DMA) makes the system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware IOMMU protection cannot prevent all DMA attacks because it restricts DMA at page-level granularity leading to \subpage vulnerabilities. 
+Direct memory access (DMA) renders a system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware input–output memory management units (IOMMU) connect a direct-memory-access–capable  I/O bus to the main memory and can be used to provide protection. However, an IOMMU cannot prevent all DMA attacks because it only restricts DMA at page-level granularity, leading to \subpage vulnerabilities. 
 
-Currently, known DMA attacks rely on simple situations in which write access to a kernel pointer is obtained due to \subpage vulnerabilities and all other attack ingredients are available and reside on the same page. 
-However, this paper shows that DMA vulnerabilities are a deep-rooted issue where it is often the kernel design that enables complex and multistage DMA attacks.  
-In this paper, we seek to provide a structured top-down approach \mbox{to characterize, exploit, and detect them.}
+Current DMA attacks rely on simple situations in which write access to a kernel pointer is obtained due to \subpage vulnerabilities; all other attack ingredients are available and reside on the same page. 
+We show that DMA vulnerabilities are a deep-rooted issue and it is often the kernel design that enables complex and multistage DMA attacks. This work presents a structured top-down approach \mbox{to characterize, exploit, and detect them.}
 
 
 
@@ -186,19 +185,20 @@ In this paper, we seek to provide a structured top-down approach \mbox{to charac
 %This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. 
 
 %This paper shows that it is often the kernel design choices that facilitate a DMA attack. 
-To this end, we first categorize \subpage vulnerabilities into four categories, providing insight into the structure of DMA vulnerabilities. 
-Then, to exploit these vulnerabilities, we identify a set of three vulnerability attributes which are sufficient to execute code injection attacks. 
+To this end, we first categorize \subpage vulnerabilities into four types, providing insight into the structure of DMA vulnerabilities. 
+We then identify a set of three vulnerability attributes that are sufficient to execute code injection attacks. 
 
-We then build analysis tools that detect \subpage vulnerabilities and analyze the Linux kernel. 
-We find that 72\% of the device drivers expose sensitive callback pointers, which may be overwritten by a device to hijack kernel control flow.
+We built analysis tools that detect these \subpage vulnerabilities and analyze the Linux kernel. 
+Using these tools, we found that 72\% of the device drivers expose sensitive callback pointers, which may be overwritten by a device to hijack the kernel control flow.
 
-Aided by the tools' output, we demonstrate novel code injection attacks on the Linux kernel we term \compound{} attacks.
-Specifically, while all previously reported attacks are \emph{single-step}, i.e., with the vulnerability attributes present in a single page, in \compound{} attacks, the vulnerability attributes are initially incomplete. However, they can be attained by carefully exploiting standard OS behavior.
+Aided by our tools' output, we demonstrate novel code injection attacks on the Linux kernel; we refer to these as \compound{} attacks.
+All previously reported attacks are \emph{single-step}, with the vulnerability attributes present in a single page. In \compound{} attacks, the vulnerability attributes are initially incomplete. However, we demonstrate that they can be obtained by carefully exploiting standard OS behavior.
 
-Finally, our code is publicly available \cite{DKASAN,SPADE}.
+Our code is publicly available \cite{DKASAN,SPADE}.
 
 \end{abstract}
 \maketitle
+
 
 %-------------------------------------------------------------------------------
 %-------------------------------------------------------------------------------

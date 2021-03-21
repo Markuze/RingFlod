@@ -1,14 +1,14 @@
 \subsection{DMA Kernel Address SANitizer}\label{sec:dma-kasan} 
 
-In Sec.~\ref{sec:static-analysis}, we have shown that more than 70\% of DMA-map operations result in exposed pointers. 
+In Section~\ref{sec:static-analysis}, we demonstrated that more than 70\% of DMA-map operations result in exposed pointers. 
 %Exposed pointers may be used in a DMA attack either passively to subvert KASLR or actively to execute an attack. 
-Most of the remaining 30\% DMA-map operations are executed on allocated objects that are presumably not co-located on the same page with vulnerable meta-data. However, this is often not the case in practice.
+Most of the remaining 30\% of DMA-map operations are executed on allocated objects that are presumably not co-located on the same page with vulnerable metadata. However, this is often not the case in practice.
 Indeed, objects allocated via the kmalloc API~\cite{Cor07} may share a page with objects of similar size. As a result, vulnerable metadata may still be mapped. 
 %
-Such a vulnerability is not visible to \tool as it is of a dynamic nature. Accordingly, we have developed a run-time tool that reports such vulnerabilities. 
+Such a vulnerability is not visible to \tool as it is of a dynamic nature. Accordingly, we developed a run-time tool that reports such vulnerabilities. 
 
-Our solution is based on an existing kernel tool, KASAN~\cite{kasan}, which is a dynamic memory error detector designed to detect out-of-bounds and use-after-free bugs. KASAN uses shadow memory to record whether a memory byte is safe to access. KASAN uses compile-time instrumentation to insert checks of shadow memory on each memory access. 
-We modify KASAN to record DMA-map operations in addition to memory allocations. Our tool, termed DMA-KASAN (\dkasan) reports: 
+Our solution is based on an existing kernel tool, KASAN~\cite{kasan}, which is a dynamic memory error detector designed to detect out-of-bounds and use-after-free bugs. KASAN uses shadow memory to record whether a memory byte is safe to access. It also uses compile-time instrumentation to insert checks of shadow memory on each memory access. 
+We modified KASAN to record DMA-map operations in addition to memory allocations. Our tool, referred to as DMA-KASAN (\dkasan), reports the following: 
 \begin{enumerate}
     \item alloc-after-map:  kmalloc object is allocated from a mapped page.
     \item map-after-alloc:  the containing page is mapped after an object was allocated.
@@ -19,11 +19,11 @@ We modify KASAN to record DMA-map operations in addition to memory allocations. 
 %\adam{the meaning of these terms shouldn't be in a footnote, it's important}
 %The tool also detects cases when a DMA mapped page is accessed by the CPU. 
 %\dkasan, therefore, identifies all cases where an allocated object was inadvertently dma-mapped after allocation or has already been allocated on a dma-mapped page. 
-We test \dkasan using our setup (Sec.~\ref{Sec:setup}).
+We tested \dkasan using the setup described in Section~\ref{Sec:setup}).
 %\adam{setup wasn't discussed or defined until this point}\SV{Added a forward ref}.
-In our experiment we clone a large project from a git repository and compile it concurrently with light network traffic (i.e., ICMP ping). This experiment identifies numerous cases where a DMA-mapped page is used to hold network and file system metadata. Example results are shown in Fig.~\ref{fig:dkasan-report}. Each line shows an allocation that results in a random exposure; namely, it shows the size of the allocated buffer, the DMA access type and the allocating location (i.e., function name and offset).
+In our experiment we cloned a large project from a Git repository and compiled it concurrently with light network traffic (i.e., ICMP ping). This experiment identified numerous cases where a DMA-mapped page is used to hold network and file system metadata. Sample results are shown in Figure~\ref{fig:dkasan-report}. Each line shows an allocation that results in a random exposure; namely, it shows the size of the allocated buffer, the DMA access type, and the allocating location (i.e., function name and offset).
 
-Fig.~\ref{fig:dkasan-report} also shows how random kernel data structures can be mapped for both READ and WRITE. Some of these also contain callback pointers (e.g., line 5). 
+Figure~\ref{fig:dkasan-report} also shows how random kernel data structures can be mapped for both READ and WRITE. Some of these, such as line 5, also contain callback pointers. 
  
 %
 %In case of deferred protection
@@ -48,18 +48,18 @@ Fig.~\ref{fig:dkasan-report} also shows how random kernel data structures can be
 [5] size 328 [|\color{purple}READ, WRITE|] assoc_array_insert+0xa9/0x7e0
         \end{lstlisting}
 \end{adjustbox}
-        \caption{\dkasan report example.}
+        \caption{\dkasan report example}
         %\vspace{-3mm}
         \label{fig:dkasan-report}
 \end{figure}
 
 %\subsection{Random Exposure Exploits}\label{sec:rand_exp}
-While we do not demonstrate random exposure exploits, these findings indicate that random exposure vulnerabilities should not be disregarded. Accordingly, in Sec.~\ref{appx:additional_compound} we show a compound attack that exploits an I/O buffer that is mapped twice, once for read and once for write. Line 1 in Fig.~\ref{fig:dkasan-report}  shows how such double mapping innocently occurs.
+While we do not demonstrate random exposure exploits, these findings indicate that random exposure vulnerabilities should not be disregarded. Accordingly, in Section~\ref{appx:additional_compound}, we present a compound attack that exploits an I/O buffer that is mapped twice, once for read and once for write. Line 1 in Figure~\ref{fig:dkasan-report}  shows how such double mapping innocently occurs.
 
 \subsection{Discussion and Limitations}
 \dkasan is a run-time tool that has a large memory footprint and the obvious overhead of callbacks on each memory access. This tool is useful for testing specific systems for vulnerabilities.
-\tool is a static analysis tool that may fail to follow a mapped variable due to potential code obfuscation like function pointers, macros and others, potentially resulting in a false-negative result. False positives may happen in a rare case
+\tool is a static analysis tool that may fail to follow a mapped variable due to potential code obfuscation such as function pointers, macros, and others, potentially resulting in a false-negative result. False positives may happen in the rare situation 
 %\adam{the footnote and its purposes are't clear. Bugs by who\textcolor{red}{\textbf{m}}? Tool writers (you) or kernel devs? And what exactly is the point?}\SV{Removed} 
-where the mapped data structure crosses a  page boundary. In this case, \tool may flag a callback function, which may not be exposed, since it resides on a different page. Namely, only part of a data structure is accessible to the device due to the \subpage{} vulnerability at the mapped page, whereas the callback pointer resides on a different page which is not accessible to the device.%\adam{explain why this can happen}\SV{Is this what you were looking for?}
+where the mapped data structure crosses a  page boundary. In this case, \tool may flag a callback function that may not be exposed, since it resides on a different page. Only part of a data structure is accessible to the device due to the \subpage{} vulnerability at the mapped page, whereas the callback pointer resides on a different page that is not accessible to the device.%\adam{explain why this can happen}\SV{Is this what you were looking for?}
 
 Our code for \dkasan is publicly available \cite{DKASAN}.
