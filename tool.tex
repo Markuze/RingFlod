@@ -49,7 +49,7 @@ We devised a static code analysis tool that performs Sub-Page Analysis for DMA E
 \begin{enumerate}
     \item Type A: Looks for \texttt{dma\_map*} functions and traces back the call stack to identify whether the mapped buffer is embedded inside a data structure.
     \item Type B: Looks for kernel APIs that create a data structure inside a mapped buffer (e.g., \texttt{build\_skb}).
-    \item Type C: Looks for functions that offer fast allocation by slicing a contiguous memory buffer into segments (e.g., netdev\_alloc\_skb, napi\_alloc\_skb). These may result in multiple \iova mapping the same page. These functions utilize the \texttt{page\_frag} API, which we discuss in greater detail in Section \ref{sec:shinfo_exploit}. 
+    \item Type C: Looks for functions that are used for fast allocation by slicing a contiguous memory buffer into segments (e.g., netdev\_alloc\_skb, napi\_alloc\_skb). These may result in multiple \iova mapping the same page. These functions utilize the \texttt{page\_frag} API, which we discuss in greater detail in Section \ref{sec:shinfo_exploit}. 
 \end{enumerate}
 
 
@@ -67,7 +67,7 @@ We devised a static code analysis tool that performs Sub-Page Analysis for DMA E
 
 \subsubsection{High-Level Design Overview}
 
-\tool operates recursively starting from calls to the dma\_map* functions. From this initial set of calls, \tool identifies the mapped variables and backtracks their declarations and assignments to these variables. When a data structure is identified as exposed, \tool identifies the related callback pointers or mapped heap pointers. 
+\tool operates recursively starting from calls to the dma\_map* functions. From this initial set of calls, \tool identifies the mapped variables and backtracks their declarations and assignments. When a data structure is identified as exposed, \tool identifies the exposed callback pointers or mapped heap pointers. 
 
 
 

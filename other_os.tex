@@ -46,7 +46,7 @@ The NET\_BUFFER vulnerability was previously described by Markettos et al.\cite{
 
 \smallskip
 \noindent\textbf{MacOS.} IOMMU protection is enabled by default. It also uses dedicated memory for network I/O. MacOS, however, does expose the \textit{mbuf} data structure to the device, though with some precautions such as blinding the exposed callback pointer \textit{ext\_free} by XORing it with a secret cookie.
-Indeed, this is sufficient to defend against \simple attacks. However, such an exposure of metadata opens up the macOS to potential \compound attacks.
+Indeed, this is sufficient to defend against \simple attacks. However, such an exposure of metadata opens up the MacOS to potential \compound attacks.
 %While stopping \simple attacks, such an exposure of metadata opens up the MacOS to potential \compound attacks. 
 Although the value of the secret cookie is random, \textit{ext\_free} can receive only one of two possible values. As a result, once an attacker compromises MacOS KASLR (as demonstrated in \cite{thunder}), the random cookie is revealed by a single XOR operation.  
 %\adam{how, if pointers are blinded? Explain.}\SV{let's discuss}

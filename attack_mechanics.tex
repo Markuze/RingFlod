@@ -1,5 +1,5 @@
 
-\section{Organizing DMA Risks}\label{sec:dma-risks}
+\section{Categorizing DMA Risks}\label{sec:dma-risks}
 %In this section we organize and categorize the risks associated with DMA operations.
 %We first categorise the different types of \subpage{} vulnerabilities.
 %Then, we categorize the three vulnerability attributes, providing building blocks for reasoning about code-injection attacks.\adam{similar comment to intro: not clear what this trifecta means on top of the first categorization}
@@ -74,8 +74,8 @@ We classify the different types of \subpage vulnerabilities into four categories
     \item[(b)] The OS (e.g., memory allocator)---rather than the driver---saves metadata such as free-lists, on the same page as the I/O buffer~\cite{Cor07}. Manipulating these data structures may also compromise the system~\cite{ak09}. Similar to (a), sensitive metadata is unwittingly shared. However, in this case, it is an OS subsystem that is at fault rather than the device driver.
     \item[(c)] The same page is mapped multiple times due to co-located device driver buffers, resulting in multiple \iova{}s indicating the same page. 
     In this case, unmapping one \iova will not prevent the device from accessing the page through a different \iova.
-    The device will retain access to the physical page as long as a single valid \iova{} exists. This means that the device can tamper with memory regions that should no longer be accessible. We discuss the practical implications of multiple \iova indicating the same page in Section~\ref{sec:timely}.
-    \item[(d)] The I/O buffer and a different, dynamically allocated memory buffer may coincidentally share a page. This common situation results in data leakage (e.g., kernel pointers). Currently, the Linux kernel uses the same kmalloc memory allocation mechanism for both I/O buffers and regular kernel buffers. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works at page granularity, the respective I/O devices gain access to these kernel buffers. Such vulnerability is a subclass of (b), as it is caused by an OS subsystem; the main difference is that the exposed data structures are leaked randomly.
+    The device will retain access to the physical page as long as a single valid \iova{} exists. This means that the device can tamper with memory regions that should no longer be accessible. We discuss the practical implications of multiple \iova{}s indicating the same page in Section~\ref{sec:timely}.
+    \item[(d)] The I/O buffer and a different, dynamically allocated memory buffer may coincidentally share a page. This common situation results in data leakage (e.g., kernel pointers). Currently, the Linux kernel uses the same memory allocation mechanism (e.g., kmalloc) for both I/O buffers and regular kernel buffers. Consequently, I/O buffers often share pages with other, potentially sensitive, kernel buffers. Since IOMMU works at page granularity, the respective I/O devices gain access to these kernel buffers. Such vulnerability is a subclass of (b), as it is caused by an OS subsystem; the main difference is that the exposed data structures are leaked randomly.
 \end{enumerate}
 %\adam{what does point (c) have to do with sub-page vulns? It seems generic, and indeed, it doesn't talk about any co-location.}\SV{Type C is key to gaining opportunity in \compound attacks, we've fixed the first paragraph to fit better.}
 
@@ -109,11 +109,7 @@ To further emphasize the significance of these attributes, we present a hypothet
 
 \begin{itemize}
     \item Without a valid \kva{} of the writable page, the device cannot modify the callback function pointer to indicate the \mabaf.
-    \item Although a callback function pointer is available for modifications, the device has no way of knowing: 
-    \begin{enumerate}
-        \item[(a)] That a callback function pointer is available for sabotage.
-        \item[(b)] The correct offset of the callback function pointer.
-    \end{enumerate}
+    \item Although a callback function pointer is available for modifications, the device has no way of knowing that a callback function pointer is available for sabotage nor the correct offset of the callback function pointer.
     \item It is not known whether the modified callback pointer will be executed.
 \end{itemize}
 

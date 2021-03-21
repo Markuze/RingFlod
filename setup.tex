@@ -15,7 +15,7 @@ We used a 28-core Dell PowerEdge R730 server, with Ubuntu 18.04 (kernel version 
 \smallskip
 \noindent\textbf{Executed Attacks.}
 We executed the \textit{RingFlood} attack on the \texttt{skb\_shared\_info} structure to inject and run malicious code in the kernel.
-Our exploit places a ROP gadget on the DMA buffer page. To execute this ROP gadget, the device points the struct's callback pointer to a JOP gadget in the kernel. The kernel then passes the callback in the \%rdi register to its containing struct. Thus, this pointer contains the DMA buffer's address. 
+Our exploit places a ROP gadget on the DMA buffer page. To execute this ROP gadget, the device points the struct's callback pointer to a JOP gadget in the kernel. The kernel then passes the callback in the \texttt{\%rdi} register to its containing struct. Thus, this pointer contains the DMA buffer's address. 
 To complete the attack, we needed a JOP~\cite{BJFL11} gadget that performs \texttt{\%rsp = \%rdi + const}. We located such a gadget using the ROPgadget tool~\cite{ROPgadget}.
 %\footnote{\url{https://github.com/JonathanSalwan/ROPgadget}}
 
