@@ -13,19 +13,40 @@ The attack exploited a \DIFdelbegin \DIFdel{TOCTTOU (}\DIFdelend Time of Check T
 
 
 \smallskip
-\noindent\textbf{Thunderclap~\cite{thunder}.} This work also considers sub-page vulnerabilities and \simple attacks. \DIFdelbegin \DIFdel{They }\DIFdelend \DIFaddbegin \DIFadd{Markettos et al. }\DIFaddend developed a security evaluation platform built on FPGA hardware\DIFdelbegin \DIFdel{that mimics }\DIFdelend \DIFaddbegin \DIFadd{. By mimicking }\DIFaddend a legitimate peripheral device's functionality\DIFdelbegin \DIFdel{to }\DIFdelend \DIFaddbegin \DIFadd{, the platform can }\DIFaddend convince a target operating system to grant it access to regions of memory. They used this platform to demonstrate \simple DMA attacks on Windows, macOS, and FreeBSD.
-Our work takes a step forward in characterizing, exploiting, and detecting DMA vulnerabilities. In particular:
-\begin{itemize}
+\noindent\textbf{Thunderclap~\cite{thunder}.} This work also considers sub-page vulnerabilities and \simple attacks. \DIFdelbegin \DIFdel{In particular, they introduced an FPGA tool using which they demonstrated several ad-hoc }\DIFdelend \DIFaddbegin \DIFadd{Markettos et al. developed a security evaluation platform built on FPGA hardware. By mimicking a legitimate peripheral device's functionality, the platform can convince a target operating system to grant it access to regions of memory. They used this platform to demonstrate }\DIFaddend \simple DMA attacks on Windows, macOS, and FreeBSD.
+\DIFdelbegin \DIFdel{However, our }\DIFdelend \DIFaddbegin \DIFadd{Our }\DIFaddend work takes a \DIFdelbegin \DIFdel{significant }\DIFdelend step forward in characterizing, exploiting, and detecting DMA vulnerabilities. \DIFdelbegin \DIFdel{Below we summarize the main differences \mbox{between our work and Thunderclap:}
+}\DIFdelend \DIFaddbegin \DIFadd{In particular:
+}\DIFaddend \begin{itemize}
 
-    \item Thunderclap provides a taxonomy that differentiates between data leakage and kernel pointer attacks. We extend this taxonomy by characterizing the different types of \subpage vulnerabilities (\DIFdelbegin \DIFdel{Sec.}\DIFdelend \DIFaddbegin \DIFadd{Section}\DIFaddend ~\ref{sec:subpage}).
+    \item Thunderclap \DIFdelbegin \DIFdel{does not distinguish }%DIFDELCMD < \simple %%%
+\DIFdel{from }%DIFDELCMD < \compound %%%
+\DIFdel{attacks. However, this distinction is crucial because it shows that merely having write access to a kernel pointer might not be sufficient to mount an attack. For instance, Thunderclap's ``attack story 6'' is not exploitable without a technique to identify the buffer's KVA, an important missing piece that is not discussed/acknowledged in the Thunderclap paper.
+    }%DIFDELCMD < 
 
-    \item We explicitly characterize the attributes required for a successful code injection DMA attack. This allows us to better reason about a DMA attack focusing \DIFaddbegin \DIFadd{separately }\DIFaddend on each of its constituting parts\DIFdelbegin \DIFdel{separately}\DIFdelend . 
+%DIFDELCMD <     \item %%%
+\item%DIFAUXCMD
+\DIFdel{We propose new techniques to identify KVAs (Sec.~\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound}}\DIFdelend \DIFaddbegin \DIFadd{provides a taxonomy that differentiates between data leakage and kernel pointer attacks. We extend this taxonomy by characterizing the different types of }\subpage \DIFadd{vulnerabilities (Section~\ref{sec:subpage}}\DIFaddend ).
 
-    \item We introduce \compound attacks and propose techniques to identify the buffer's KVA (\DIFdelbegin \DIFdel{Sec.}\DIFdelend \DIFaddbegin \DIFadd{Section}\DIFaddend ~\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound})\DIFdelbegin \DIFdel{that enable }\DIFdelend \DIFaddbegin \DIFadd{, which enables }\DIFaddend their execution.
+    \item We explicitly characterize \DIFdelbegin \DIFdel{/enumerate }\DIFdelend the attributes required for a successful \DIFaddbegin \DIFadd{code injection }\DIFaddend DMA attack. \DIFdelbegin \DIFdel{These are not systematically defined by Thunderclap. Further, we demonstrate a complete }%DIFDELCMD < \compound %%%
+\DIFdel{attack in Sec. 
+    ~\ref{Sec:setup}.
+    }\DIFdelend \DIFaddbegin \DIFadd{This allows us to better reason about a DMA attack focusing separately on each of its constituting parts. 
+    }\DIFaddend 
 
-    \item We demonstrate (\DIFdelbegin \DIFdel{Sec.}\DIFdelend \DIFaddbegin \DIFadd{Section}\DIFaddend ~\ref{Sec:setup}) that Linux is not safe from DMA attacks on the network data structures.
+    \item We \DIFdelbegin \DIFdel{taxonomize sub-page vulnerabilities (Sec.~\ref{sec:subpage}). Thunderclap's vulnerability taxonomy is general: it differentiates ``data leakage'' from ``kernel pointer'' but does not fully characterize kernel pointer attacks. Our work carefully addresses this issue.
+    }\DIFdelend \DIFaddbegin \DIFadd{introduce }\compound \DIFadd{attacks and propose techniques to identify the buffer's KVA (Section~\ref{sec:ringflod}, ~\ref{sec:posion},~\ref{appx:additional_compound}), which enables their execution.
+    }\DIFaddend 
 
-    \item We introduce new static~\cite{SPADE} and dynamic~\cite{DKASAN} analysis tools that identify sub-page vulnerabilities, run them on Linux\DIFdelbegin \DIFdel{and, }\DIFdelend \DIFaddbegin \DIFadd{, and }\DIFaddend report many previously unknown DMA vulnerabilities.
+    \item \DIFdelbegin \DIFdel{Whereas Thunderclap claims }\DIFdelend \DIFaddbegin \DIFadd{We demonstrate (Section~\ref{Sec:setup}) }\DIFaddend that Linux is \DIFdelbegin \DIFdel{safe from skbuff attacks because ``its skbuff locates function pointers and data on different pages'' (quoting its Sec.
+    VI), we show that this is incorrect by discovering and describing a new vulnerability/attack \mbox{on Linux skbuffs.}
+    }\DIFdelend \DIFaddbegin \DIFadd{not safe from DMA attacks on the network data structures.
+    }\DIFaddend 
+
+    \item We \DIFdelbegin \DIFdel{contribute staticand dynamic analyses to }\DIFdelend \DIFaddbegin \DIFadd{introduce new static~\mbox{%DIFAUXCMD
+\cite{SPADE} }\hskip0pt%DIFAUXCMD
+and dynamic~\mbox{%DIFAUXCMD
+\cite{DKASAN} }\hskip0pt%DIFAUXCMD
+analysis tools that }\DIFaddend identify sub-page vulnerabilities, \DIFdelbegin \DIFdel{and we }\DIFdelend run them on Linux\DIFaddbegin \DIFadd{, and report many previously unknown DMA vulnerabilities}\DIFaddend .
 
 \end{itemize}
 

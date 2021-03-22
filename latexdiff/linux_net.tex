@@ -35,7 +35,7 @@ Struct \skb{} is a data structure used by the Linux network stack to hold inform
 
 This separation means that \skb{} is \emph{never} \DIFdelbegin \DIFdel{(intentionally ) }\DIFdelend \DIFaddbegin \DIFadd{intentionally }\DIFaddend mapped to the device. Indeed, it is a common belief~(e.g., Markettos et al.~\cite{thunder}) \DIFdelbegin \DIFdel{, }\DIFdelend that the Linux network stack is not susceptible to DMA attacks via the \texttt{data} pointer. In this work, we show that this belief is misplaced.
 
-The Linux network stack supports packet cloning by merely copying \skb{} metadata. That is, the resulting \skb{} and the original one share the \texttt{data} buffer~\cite{drivers2005linux}. The payload in the \skb{} can be partially located on the \emph{linear} part~(i.e., in the buffer indicated by the \texttt{data} pointer) and partially on the \emph{non-linear} fragments\DIFdelbegin \DIFdel{. That }\DIFdelend \DIFaddbegin \DIFadd{; that }\DIFaddend is, buffers that are described by their \page{}, length\DIFaddbegin \DIFadd{, }\DIFaddend and offset in the \texttt{frags} array of \shinfo{} (\DIFdelbegin \DIFdel{Fig.}\DIFdelend \DIFaddbegin \DIFadd{Figure}\DIFaddend ~\ref{fig:sh_info}). 
+The Linux network stack supports packet cloning by merely copying \skb{} metadata. That is, the resulting \skb{} and the original one share the \texttt{data} buffer~\cite{drivers2005linux}. The payload in the \skb{} can be partially located on the \emph{\DIFdelbegin \DIFdel{liner}\DIFdelend \DIFaddbegin \DIFadd{linear}\DIFaddend } part~(i.e., in the buffer indicated by the \texttt{data} pointer) and partially on the \emph{non-linear} fragments\DIFdelbegin \DIFdel{. That }\DIFdelend \DIFaddbegin \DIFadd{; that }\DIFaddend is, buffers that are described by their \page{}, length\DIFaddbegin \DIFadd{, }\DIFaddend and offset in the \texttt{frags} array of \shinfo{} (\DIFdelbegin \DIFdel{Fig.}\DIFdelend \DIFaddbegin \DIFadd{Figure}\DIFaddend ~\ref{fig:sh_info}). 
 
 To support the sharing of these non-linear buffers, the embedded \shinfo{} metadata structure is used.
 Struct \shinfo{}, in contrast to \skb{}, is \emph{always} allocated as part of the data buffer. Therefore it is \emph{always} mapped to the device. \shinfo{} is unwittingly mapped with the permissions of the packet, i.e., WRITE for RX packets, READ for TX packets, and in some cases, such as XDP~\cite{xdp} with BIDIRECTIONAL.
@@ -87,7 +87,7 @@ The repercussions of \emph{deferred} mode are that a malicious device can take a
     \label{fig:deferred}
 \end{figure}
 
-\subsubsection{The Time \DIFdelbegin \DIFdel{window}\DIFdelend \DIFaddbegin \DIFadd{Window}\DIFaddend }\label{sec:shinfo}
+\subsubsection{\DIFdelbegin \DIFdel{The }\DIFdelend Time \DIFdelbegin \DIFdel{window}\DIFdelend \DIFaddbegin \DIFadd{Window}\DIFaddend }\label{sec:shinfo}
 
 \begin{figure}[t]
     \centering

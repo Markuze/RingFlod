@@ -16,8 +16,11 @@
 %\adam{this paragraph was weak. It implies that IOMMU was thought to be a protection before, which is not the case, since we go on to cite papers dealing with sub-page vulns. This paragraph should try to summarize the contribution. I suggest using text from the abstract/intro, along the lines of: we have shown that sub-page vulns are caused by the OS, not drivers, we have characterized them, etc.}
 
 By introducing and demonstrating \compound{} attacks on the Linux kernel, we have shown that IOMMU, as it is used today, leaves the OS vulnerable to DMA attacks. \DIFdelbegin \DIFdel{While such }\DIFdelend \DIFaddbegin \DIFadd{Such }\DIFaddend vulnerabilities have been considered to be caused by buggy device drivers or poor\DIFdelbegin \DIFdel{(but isolated) }\DIFdelend \DIFaddbegin \DIFadd{, but isolated, }\DIFaddend driver design choices\DIFdelbegin \DIFdel{, we }\DIFdelend \DIFaddbegin \DIFadd{. We }\DIFaddend find that it is often the OS design choices that compromise the system security.
-%Accordingly, in Sec. \ref{sec:api}, we provide examples of such OS design choices and summarize APIs we have exploited for executing \compound{} DMA attacks, %In Sec. \ref{sec:rand_exp} we discuss random exposure vulnerabilities.
-%then, in Sec. \ref{sec:Conclusion} we conclude the paper.
+\DIFdelbegin \DIFdel{Accordingly, in Sec. \ref{sec:api}, we provide examples of such OS design choices and summarize APIs we have exploited for executing }%DIFDELCMD < \compound{} %%%
+\DIFdel{DMA attacks, %DIF < In Sec. \ref{sec:rand_exp} we discuss random exposure vulnerabilities.
+then, in Sec. \ref{sec:Conclusion} we conclude the paper.
+}\DIFdelend %DIF > Accordingly, in Sec. \ref{sec:api}, we provide examples of such OS design choices and summarize APIs we have exploited for executing \compound{} DMA attacks, %In Sec. \ref{sec:rand_exp} we discuss random exposure vulnerabilities.
+%DIF > then, in Sec. \ref{sec:Conclusion} we conclude the paper.
 
 \subsection{API}\label{sec:api}
 
@@ -55,7 +58,9 @@ Moreover, these solutions are focused solely on network devices, leaving the sys
 
 
 To achieve better DMA security in future \DIFdelbegin \DIFdel{OSes, a }\DIFdelend \DIFaddbegin \DIFadd{OSs, one }\DIFaddend possible direction is to consider the segregation of I/O memory from OS memory. 
-Alternatively, to prevent the existence of sensitive \DIFdelbegin \DIFdel{meta-data }\DIFdelend \DIFaddbegin \DIFadd{metadata }\DIFaddend on I/O pages, we propose to open-source and offer \DIFdelbegin \DIFdel{, as a first step, }\DIFdelend \tool{}~\cite{SPADE} and \dkasan{}~\cite{DKASAN} to \DIFdelbegin \DIFdel{be used at the development and deployment stages to }\DIFdelend validate the security of the system \DIFaddbegin \DIFadd{in the development and deployment stages}\DIFaddend . 
+Alternatively, to prevent the existence of sensitive \DIFdelbegin \DIFdel{meta-data }\DIFdelend \DIFaddbegin \DIFadd{metadata }\DIFaddend on I/O pages, we propose to open-source and offer \DIFdelbegin \DIFdel{, as a first step, }\DIFdelend \tool{}~\cite{SPADE} and \dkasan{}~\cite{DKASAN} to \DIFdelbegin \DIFdel{be used at the development and deployment stages to }\DIFdelend validate the security of the system \DIFdelbegin \DIFdel{. 
+}\DIFdelend \DIFaddbegin \DIFadd{in the \mbox{development and deployment stages.} 
+}\DIFaddend 
 
 
 %We contend that there are two avenues which need to be followed concurrently in order to achieve DMA security.
