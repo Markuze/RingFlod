@@ -30,7 +30,7 @@
 % \smallskip
 % \noindent\textbf{Remark.} Other drivers that have XDP support, also tend to map RX buffers with BIDIRECTIONAL (e.g., bnxt, i40e, mlx4\_en). Interestingly, the mlx5\_core driver has two modes of operation: (1) linear - where an skb is built around an RX buffer and, (2) non-linear where the driver is filling up the \texttt{frags} of \shinfo, which was never mapped. The former is the default, and the later is actually secure. The non-linear mode is secure because \shinfo{} is \emph{never} accessible to the device. Thus the NIC never gains the oportunity to attack.
 
-\subsection{Forward Thinking \Compound \DIFdelbegin \DIFdel{attack}\DIFdelend \DIFaddbegin \DIFadd{Attack}\DIFaddend }\label{appx:additional_compound}
+\subsection{\DIFdelbegin \DIFdel{The }\DIFdelend Forward Thinking \Compound \DIFdelbegin \DIFdel{attack}\DIFdelend \DIFaddbegin \DIFadd{Attack}\DIFaddend }\label{appx:additional_compound}
 
 
 Packet forwarding is a standard Linux feature that allows a Linux machine to serve as a router or a load balancer. Packet forwarding functionality is usually disabled by default on Linux servers.
