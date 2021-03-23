@@ -58,7 +58,7 @@ While we do not demonstrate random exposure exploits, these findings indicate th
 
 \subsection{Discussion and Limitations}
 \dkasan is a run-time tool that has a large memory footprint and the obvious overhead of callbacks on each memory access. This tool is useful for testing specific systems for vulnerabilities.
-\tool is a static analysis tool that may fail to follow a mapped variable due to potential code obfuscation such as function pointers, macros, and others, potentially resulting in a false-negative result. False positives may happen in the rare situation 
+\tool is a static analysis tool that may fail to follow a mapped variable due to complex code constructs such as function pointers, macros, and others, potentially resulting in a false-negative result. False positives may happen in the rare situation 
 %\adam{the footnote and its purposes are't clear. Bugs by who\textcolor{red}{\textbf{m}}? Tool writers (you) or kernel devs? And what exactly is the point?}\SV{Removed} 
 where the mapped data structure crosses a  page boundary. In this case, \tool may flag a callback function that may not be exposed, since it resides on a different page. Only part of a data structure is accessible to the device due to the \subpage{} vulnerability at the mapped page, whereas the callback pointer resides on a different page that is not accessible to the device.%\adam{explain why this can happen}\SV{Is this what you were looking for?}
 

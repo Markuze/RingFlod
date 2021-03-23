@@ -107,7 +107,7 @@ The output starts from the impact evaluation,  such as detected exposed callback
 Line 7 reveals that a single callback pointer is mapped in the mapped \texttt{nvme\_fc\_fcp\_op} data structure (i.e., \texttt{fcp\_req.done}) and line 8 reveals that it is possible to spoof another 931 callback pointers.\footnote{In this case, spoofing means replacing this pointer to indicate an instance of the structure created by the device, with its own callback pointers.}
 After finding the variable declaration in line 5, and looking at the mapped pointer \texttt{\&op->rsp\_iu} in line 4, \tool concludes in line 6  that the entire \texttt{struct nvme\_fc\_fcp\_op} is exposed to the device. Lines 1 through 3 repeat the same analysis process for the \texttt{dma\_map\_single} call that exposes the data structure to the device. 
 
-This example demonstrates the recursive nature of the script.
+This example demonstrates the recursive nature of the analysis.
 \tool first identifies the suspect function call, finds the mapped pointer's declaration, and then prints its type. This pattern repeats itself in lines 1 through 3 and 4 through 6 until a vulnerability is discovered. The findings are then displayed: line 7 counts the number of directly exposed callback pointers, and line 8 displays the number of callback pointers that may be potentially spoofed.
 
 
