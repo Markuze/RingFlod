@@ -1,18 +1,21 @@
 %\documentclass[sigplan,review,anonymous]{acmart}
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL ../orig/main.tex   Tue Mar 23 15:05:39 2021
-%DIF ADD main.tex           Mon Mar 22 18:38:48 2021
+%DIF DEL ../orig/main.tex   Tue Mar 23 16:23:54 2021
+%DIF ADD main.tex           Tue Mar 23 16:18:26 2021
 \documentclass[sigplan,10pt]{acmart}
+%DIF 3a3
+\settopmatter{authorsperrow=4} %DIF > 
+%DIF -------
 %\acmSubmissionID{336}
 %\renewcommand\footnotetextcopyrightpermission[1]{}
 %\settopmatter{printacmref=false}
 %\documentclass[letterpaper,twocolumn,10pt]{article}
 %\usepackage{usenix2019_v3}
 %\pagestyle{plain}
-
-%DIF 10d10
+%DIF 9d10
 %DIF < 
 %DIF -------
+
 \usepackage{color}
 \usepackage{xspace}
 \usepackage{graphicx}
@@ -195,36 +198,76 @@
 %\title{\Large \bf Systematizing DMA Vulnerabilities}
 %\title{\Large \bf Endemic Weakness in DMA I/O: Systematizing DMA Vulnerabilities}
 
-%\author{Markuze Alex$^{\dagger,\diamond}$}
-%\author{Shay Vargaftik}
-%\affiliation{VMware Research}
-%\author{Gil Kupfer}
-%\author{Boris Pismeny}
+%DIF < \author{Markuze Alex$^{\dagger,\diamond}$}
+%DIF < \author{Shay Vargaftik}
+%DIF < \affiliation{VMware Research}
+%DIF < \author{Gil Kupfer}
+%DIF < \author{Boris Pismeny}
+\DIFdelbegin %DIFDELCMD < 
 
-%\affiliation{\institution{$^{\dagger}$Technion -- Israel Institute of Technology}}
-%\affiliation{\institution{$^{\diamond}$VMware}}
-%\affiliation{\institution{$^{\ddagger}$Tel Aviv University }}
-%\affiliation{Technion -- Israel Institute of Technology}
-% % USENIX Security has double blind submissions
- \author{%
-   Alex Markuze$^{\dagger,\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-   Shay Vargaftik$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-   Gil Kupfer$^{\dagger}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-   Boris Pismeny$^{\dagger}$\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-   Nadav Amit$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
-   Adam Morrison$^{\ddagger}$ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
-   Dan Tsafrir$^{\dagger,\diamond}$
- }
-\affiliation{
-   \institution{%
-     \ \\[-2mm]
-     $^{\dagger}$Technion -- Israel Institute of Technology
-     \ \ \ \ \ \ \ \ \ \ \ \ \ 
-     $^{\ddagger}$Tel Aviv University 
-     \ \ \ \ \ \ \ \ \ \ \ \ \ 
-     $^{\diamond}$VMware\\
-     \ \\
-}}
+%DIFDELCMD < %%%
+%DIF < \affiliation{\institution{$^{\dagger}$Technion -- Israel Institute of Technology}}
+%DIF < \affiliation{\institution{$^{\diamond}$VMware}}
+%DIF < \affiliation{\institution{$^{\ddagger}$Tel Aviv University }}
+%DIF < \affiliation{Technion -- Israel Institute of Technology}
+\DIFdelend \DIFaddbegin \author{\DIFadd{Markuze Alex}}
+\affiliation{\institution{Technion, VMware}}
+\author{\DIFadd{Shay Vargaftik}}
+\affiliation{\institution{VMware}}
+\author{\DIFadd{Gil Kupfer}}
+\affiliation{Technion}
+\author{\DIFadd{Boris Pismeny}}
+\affiliation{Technion}
+\author{\DIFadd{Nadav Amit}}
+\affiliation{\institution{VMware}}
+\author{\DIFadd{Adam Morrison}}
+\affiliation{\institution{Tel Aviv University}}
+\author{\DIFadd{Dan Tsafrir}}
+\affiliation{Technion, VMware}
+%DIF >  \affiliation{\institution{$^{\dagger}$Technion -- Israel Institute of Technology}}
+%DIF >  \affiliation{\institution{$^{\diamond}$VMware}}
+%DIF >  \affiliation{\institution{$^{\ddagger}$Tel Aviv University }}
+%DIF >  \affiliation{Technion -- Israel Institute of Technology}
+\DIFaddend % % USENIX Security has double blind submissions
+\DIFdelbegin %DIFDELCMD < \author{%
+%DIFDELCMD <    Alex Markuze$^{\dagger,\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIFDELCMD <    Shay Vargaftik$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIFDELCMD <    Gil Kupfer$^{\dagger}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIFDELCMD <    Boris Pismeny$^{\dagger}$\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIFDELCMD <    Nadav Amit$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+%DIFDELCMD <    Adam Morrison$^{\ddagger}$ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+%DIFDELCMD <    Dan Tsafrir$^{\dagger,\diamond}$
+%DIFDELCMD <  }
+%DIFDELCMD < \affiliation{
+%DIFDELCMD <    \institution{%
+%DIFDELCMD <      \ \\[-2mm]
+%DIFDELCMD <      $^{\dagger}$Technion -- Israel Institute of Technology
+%DIFDELCMD <      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIFDELCMD <      $^{\ddagger}$Tel Aviv University 
+%DIFDELCMD <      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIFDELCMD <      $^{\diamond}$VMware\\
+%DIFDELCMD <      \ \\
+%DIFDELCMD < }}
+%DIFDELCMD <  %%%
+\DIFdelend %DIF >   \author{%
+%DIF >    Alex Markuze$^{\dagger,\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIF >    Shay Vargaftik$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIF >    Gil Kupfer$^{\dagger}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIF >    Boris Pismeny$^{\dagger}$\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIF >    Nadav Amit$^{\diamond}$   \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+%DIF >    Adam Morrison$^{\ddagger}$ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+%DIF >    Dan Tsafrir$^{\dagger,\diamond}$
+%DIF >   }
+%DIF >  \affiliation{
+%DIF >    \institution{%
+%DIF >       \ \\[-2mm]
+%DIF >       $^{\dagger}$Technion -- Israel Institute of Technology
+%DIF >       \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIF >       $^{\ddagger}$Tel Aviv University 
+%DIF >       \ \ \ \ \ \ \ \ \ \ \ \ \ 
+%DIF >       $^{\diamond}$VMware\\
+%DIF >       \ \\
+%DIF >  }}
 
 \renewcommand{\shortauthors}{Markuze, Vargaftik, Kupfer, Pismeny, Amit, Morrison, and Tsafrir}
   %\gdef\authors{Alex Markuze, Shay Vargaftik, Gil Kupfer, Boris Pismeny, Nadav Amit, Adam Morrison, and Dan Tsafrir}
@@ -258,23 +301,23 @@
 %\textcolor{red}{Before: chaos Now Oder == MMO, taxonomy of DMA vulnerabilities Result \compound attacks. + tool. We expose  a deep-rooted issue in OS design rather than ad-hoc buggies... The language:\simple vs. \compound, MMO, \subpage types.}
 
 
-Direct \DIFdelbegin \DIFdel{Memory Access }\DIFdelend \DIFaddbegin \DIFadd{memory access }\DIFaddend (DMA) \DIFdelbegin \DIFdel{makes the }\DIFdelend \DIFaddbegin \DIFadd{renders a }\DIFaddend system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware \DIFdelbegin \DIFdel{IOMMU protection }\DIFdelend \DIFaddbegin \DIFadd{input–output memory management units (IOMMU) 
-%DIF > connect a direct-memory-access–capable  I/O bus to the main memory and 
-can be used to provide protection; however, they }\DIFaddend cannot prevent all DMA attacks because \DIFdelbegin \DIFdel{it }\DIFdelend \DIFaddbegin \DIFadd{IOMMU only }\DIFaddend restricts DMA at page-level granularity\DIFaddbegin \DIFadd{, }\DIFaddend leading to \subpage vulnerabilities. 
+Direct \DIFdelbegin \DIFdel{Memory Access }\DIFdelend \DIFaddbegin \DIFadd{memory access }\DIFaddend (DMA) \DIFdelbegin \DIFdel{makes the }\DIFdelend \DIFaddbegin \DIFadd{renders a }\DIFaddend system vulnerable to DMA attacks, in which I/O devices access memory regions not intended for their use. Hardware \DIFdelbegin \DIFdel{IOMMU protection }\DIFdelend \DIFaddbegin \DIFadd{input–output memory management units (IOMMU) can be used to provide protection. However, an IOMMU }\DIFaddend cannot prevent all DMA attacks because it \DIFaddbegin \DIFadd{only }\DIFaddend restricts DMA at page-level granularity\DIFaddbegin \DIFadd{, }\DIFaddend leading to \subpage vulnerabilities. 
 
 \DIFdelbegin \DIFdel{Currently, known }\DIFdelend \DIFaddbegin \DIFadd{Current }\DIFaddend DMA attacks rely on simple situations in which write access to a kernel pointer is obtained due to \subpage vulnerabilities and all other attack ingredients are available and reside on the same page. 
 \DIFdelbegin \DIFdel{However, this paper shows }\DIFdelend \DIFaddbegin \DIFadd{We show }\DIFaddend that DMA vulnerabilities are a deep-rooted issue \DIFdelbegin \DIFdel{where }\DIFdelend \DIFaddbegin \DIFadd{and }\DIFaddend it is often the kernel design that enables complex and multistage DMA attacks. \DIFdelbegin \DIFdel{In this paper, we seek to provide }\DIFdelend \DIFaddbegin \DIFadd{This work presents }\DIFaddend a structured top-down approach \DIFdelbegin \DIFdel{\mbox{to characterize, exploit, and detect them.}
 }\DIFdelend \DIFaddbegin \DIFadd{to characterize, exploit, and detect them.
 }\DIFaddend 
 
+%DIF < Conventional wisdom is that \subpage vulnerabilities that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
+\DIFdelbegin %DIFDELCMD < 
 
+%DIFDELCMD < %%%
+%DIF < This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. 
+%DIFDELCMD < 
 
-%Conventional wisdom is that \subpage vulnerabilities that lead to viable DMA attacks are made possible by buggy device drivers or poor (but isolated) driver design choices.
-
-%This paper disproves the above belief, showing that it is often the kernel design that enables a DMA attack. 
-
-%This paper shows that it is often the kernel design choices that facilitate a DMA attack. 
-To this end, we first categorize \subpage vulnerabilities into four \DIFdelbegin \DIFdel{categories}\DIFdelend \DIFaddbegin \DIFadd{types}\DIFaddend , providing insight into the structure of DMA vulnerabilities. 
+%DIFDELCMD < %%%
+%DIF < This paper shows that it is often the kernel design choices that facilitate a DMA attack. 
+\DIFdelend To this end, we first categorize \subpage vulnerabilities into four \DIFdelbegin \DIFdel{categories}\DIFdelend \DIFaddbegin \DIFadd{types}\DIFaddend , providing insight into the structure of DMA vulnerabilities. 
 \DIFdelbegin \DIFdel{Then, to exploit these vulnerabilities, we }\DIFdelend \DIFaddbegin \DIFadd{We then }\DIFaddend identify a set of three vulnerability attributes \DIFdelbegin \DIFdel{which }\DIFdelend \DIFaddbegin \DIFadd{that }\DIFaddend are sufficient to execute code injection attacks. 
 
 We \DIFdelbegin \DIFdel{then build }\DIFdelend \DIFaddbegin \DIFadd{built }\DIFaddend analysis tools that detect \DIFaddbegin \DIFadd{these }\DIFaddend \subpage vulnerabilities and analyze the Linux kernel. 
@@ -283,7 +326,11 @@ We \DIFdelbegin \DIFdel{find }\DIFdelend \DIFaddbegin \DIFadd{found }\DIFaddend 
 Aided by \DIFdelbegin \DIFdel{the }\DIFdelend \DIFaddbegin \DIFadd{our }\DIFaddend tools' output, we demonstrate novel code injection attacks on the Linux kernel\DIFdelbegin \DIFdel{we term }\DIFdelend \DIFaddbegin \DIFadd{; we refer to these as }\DIFaddend \compound{} attacks.
 \DIFdelbegin \DIFdel{Specifically, while all }\DIFdelend \DIFaddbegin \DIFadd{All }\DIFaddend previously reported attacks are \emph{single-step}, \DIFdelbegin \DIFdel{i.e., }\DIFdelend with the vulnerability attributes present in a single page\DIFdelbegin \DIFdel{, in }\DIFdelend \DIFaddbegin \DIFadd{. In }\DIFaddend \compound{} attacks, the vulnerability attributes are initially incomplete. However, \DIFaddbegin \DIFadd{we demonstrate that }\DIFaddend they can be \DIFdelbegin \DIFdel{attained }\DIFdelend \DIFaddbegin \DIFadd{obtained }\DIFaddend by carefully exploiting standard OS behavior.
 
-\DIFdelbegin \DIFdel{Finally, our code is }\DIFdelend \DIFaddbegin \DIFadd{Our tools are }\DIFaddend publicly available \cite{DKASAN,SPADE}.
+\DIFdelbegin \DIFdel{Finally, our code is publicly available \mbox{%DIFAUXCMD
+\cite{DKASAN,SPADE}}\hskip0pt%DIFAUXCMD
+.
+}\DIFdelend %DIF > Our tools are publicly available \cite{DKASAN,SPADE}.
+%DIF > ADAM: Abstracts shouldn't have citations, nor is the availability of code something that should be mentioned in the abstract.
 
 \end{abstract}
 \maketitle
